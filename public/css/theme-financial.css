@@ -1,0 +1,115 @@
+/* Financial Theme - A Sleek Teal/Green Scheme */
+
+body.theme-financial {
+    background-color: #FBFCFC !important;
+    color: #111827 !important;
+}
+
+/* Sidebar and Topbar */
+body.theme-financial .sidebar {
+    background-color: #055B65 !important;
+    background-image: none !important;
+}
+
+body.theme-financial .sidebar-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.theme-financial .topbar,
+body.theme-financial .main-content>nav {
+    background-color: #055B65 !important;
+    color: #FBFCFC !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body.theme-financial .sidebar-title,
+body.theme-financial .sidebar-logo-text,
+body.theme-financial .sidebar-logo-sub,
+body.theme-financial .sidebar-section-label {
+    color: #FBFCFC !important;
+}
+
+body.theme-financial .nav-link,
+body.theme-financial .sidebar-link {
+    color: #B2C9C5 !important;
+}
+
+body.theme-financial .nav-link:hover,
+body.theme-financial .sidebar-link:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #FBFCFC !important;
+}
+
+body.theme-financial .nav-link.active,
+body.theme-financial .sidebar-link.active {
+    background-color: #1BD488 !important;
+    color: #055B65 !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+}
+
+body.theme-financial .sidebar-user {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.theme-financial .sidebar-user-name {
+    color: #FBFCFC !important;
+}
+
+body.theme-financial .sidebar-user-role {
+    color: #B2C9C5 !important;
+}
+
+/* Modal and Cards */
+body.theme-financial .modal-card,
+body.theme-financial .bg-white,
+body.theme-financial [style*="background: white"],
+body.theme-financial [style*="background-color: white"] {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border-color: #E0E5E9 !important;
+}
+
+/* Specific elements like toggle */
+body.theme-financial .theme-toggle {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #FBFCFC !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Dashboard nav buttons */
+body.theme-financial .main-content>nav a[style*="background-color: #0d6efd"] {
+    background-color: #1BD488 !important;
+    color: #055B65 !important;
+}
+
+body.theme-financial .main-content>nav a[style*="background-color: #0d6efd"] i {
+    color: #055B65 !important;
+}
+
+body.theme-financial .sidebar-logo-icon {
+    background: #1BD488 !important;
+    color: #055B65 !important;
+    box-shadow: none !important;
+}
+
+/* Topbar overrides in secondary layout */
+body.theme-financial header.topbar {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #E0E5E9 !important;
+    color: #111827 !important;
+}
+
+body.theme-financial .topbar-page-title {
+    color: #111827 !important;
+}
+
+body.theme-financial .topbar-clock {
+    color: #45828B !important;
+}
+
+body.theme-financial .theme-toggle-header {
+    background: #E0E5E9 !important;
+    color: #055B65 !important;
+    border: none !important;
+}

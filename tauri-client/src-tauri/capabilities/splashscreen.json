@@ -1,0 +1,9 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "splashscreen-window",
+  "description": "Capabilities for the splashscreen window — allows receiving Tauri events",
+  "windows": ["splashscreen"],
+  "permissions": [
+    "core:default"
+  ]
+}

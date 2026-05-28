@@ -1,0 +1,172 @@
+/* Corona Theme - Elegant Dark Theme */
+
+body.theme-corona {
+    background-color: #14161C !important;
+    color: #e5e7eb !important;
+}
+
+/* Sidebar and Topbar */
+body.theme-corona .sidebar {
+    background-color: #191C24 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    background-image: none !important;
+}
+
+body.theme-corona .sidebar-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+body.theme-corona .topbar,
+body.theme-corona .main-content>nav {
+    background-color: #191C24 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+}
+
+body.theme-corona .sidebar-title,
+body.theme-corona .sidebar-logo-text,
+body.theme-corona .sidebar-logo-sub,
+body.theme-corona .sidebar-section-label,
+body.theme-corona .sidebar-user-name {
+    color: #ffffff !important;
+}
+
+body.theme-corona .nav-link,
+body.theme-corona .sidebar-link,
+body.theme-corona .sidebar-user-role {
+    color: #6c7293 !important;
+}
+
+body.theme-corona .nav-link:hover,
+body.theme-corona .sidebar-link:hover {
+    background-color: #0f1015 !important;
+    color: #ffffff !important;
+}
+
+body.theme-corona .nav-link.active,
+body.theme-corona .sidebar-link.active {
+    background-color: #0f1015 !important;
+    color: #ffffff !important;
+    border-left: 3px solid #AF1763 !important;
+    border-radius: 0 8px 8px 0 !important;
+    box-shadow: none !important;
+}
+
+body.theme-corona .sidebar-user {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body.theme-corona .sidebar-logo-icon {
+    background: #AF1763 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+/* Cards & Containers */
+body.theme-corona .bg-white,
+body.theme-corona [style*="background: white"],
+body.theme-corona [style*="background-color: white"],
+body.theme-corona .modal-card {
+    background-color: #191C24 !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Text overrides */
+body.theme-corona h1,
+body.theme-corona h2,
+body.theme-corona h3,
+body.theme-corona h4,
+body.theme-corona h5,
+body.theme-corona h6,
+body.theme-corona .text-gray-900,
+body.theme-corona .text-gray-800,
+body.theme-corona [style*="color: #111827"] {
+    color: #ffffff !important;
+}
+
+body.theme-corona p,
+body.theme-corona .text-gray-700,
+body.theme-corona .text-gray-600,
+body.theme-corona [style*="color: #6b7280"] {
+    color: #6c7293 !important;
+}
+
+/* Tables */
+body.theme-corona table {
+    color: #e5e7eb !important;
+}
+
+body.theme-corona thead,
+body.theme-corona th {
+    background-color: #0f1015 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+body.theme-corona tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+body.theme-corona tbody tr:hover,
+body.theme-corona tbody tr:hover td {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+body.theme-corona td {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Primary Button Override */
+body.theme-corona .btn-primary,
+body.theme-corona a[style*="background-color: #0d6efd"] {
+    background-color: #0D6EFD !important;
+    border-color: #0D6EFD !important;
+    color: #ffffff !important;
+}
+
+body.theme-corona .btn-success {
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+    color: #ffffff !important;
+}
+
+body.theme-corona .btn-info {
+    background-color: #0DCAF0 !important;
+    border-color: #0DCAF0 !important;
+    color: #000000 !important;
+}
+
+body.theme-corona .btn-warning {
+    background-color: #FFC107 !important;
+    border-color: #FFC107 !important;
+    color: #000000 !important;
+}
+
+body.theme-corona .btn-danger {
+    background-color: #AB2E3C !important;
+    border-color: #AB2E3C !important;
+    color: #ffffff !important;
+}
+
+/* Dashboard Top Cards Colors */
+body.theme-corona .container-fluid>div>div>div>div[style*="background: #e0f7f4"],
+body.theme-corona .container-fluid>div>div>div>div[style*="background: #e7f1ff"],
+body.theme-corona .container-fluid>div>div>div>div[style*="background: #e8f5e9"],
+body.theme-corona .container-fluid>div>div>div>div[style*="background: #fffbea"],
+body.theme-corona .container-fluid>div>div>div>div[style*="background: #ffe8e8"],
+body.theme-corona .container-fluid>div>div>div>div[style*="background: #f3e8ff"],
+body.theme-corona .container-fluid>div>div>div>div[style*="background: #fff3cd"],
+body.theme-corona .container-fluid>div>div>div>div[style*="background: #e8f7f9"],
+body.theme-corona .container-fluid>div>div>div>div[style*="background: #fff9f0"],
+body.theme-corona .container-fluid>div>div>div>div[style*="background: #fde8f5"] {
+    background: #0f1015 !important;
+}
+
+body.theme-corona .theme-toggle-header {
+    background: #191C24 !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}

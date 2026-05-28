@@ -1,0 +1,951 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\PlantillaRecord;
+use App\Models\ActivityLog;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+class ImportController extends Controller
+{
+    // ── System field definitions (DB column => display label) ──────────────
+    public static function systemFields(): array
+    {
+        return [
+            // Optional position fields
+            'organizational_unit' => ['label' => 'Organizational Unit', 'required' => false],
+            'item' => ['label' => 'Item (Position Code)', 'required' => false],
+            'position_title' => ['label' => 'Position Title', 'required' => false],
+            'salary_grade' => ['label' => 'Salary Grade', 'required' => false],
+            'authorized_annual_salary' => ['label' => 'Authorized Annual Salary', 'required' => false],
+            'actual_annual_salary' => ['label' => 'Actual Annual Salary', 'required' => false],
+            'step' => ['label' => 'Step', 'required' => false],
+            'area_code' => ['label' => 'Area Code', 'required' => false],
+            'area_type' => ['label' => 'Area Type', 'required' => false],
+            'level' => ['label' => 'Level', 'required' => false],
+            // Required employee fields
+            'last_name' => ['label' => 'Last Name', 'required' => true],
+            'first_name' => ['label' => 'First Name', 'required' => true],
+            'middle_name' => ['label' => 'Middle Name', 'required' => false],
+            'sex' => ['label' => 'Sex (M/F)', 'required' => false],
+            'religion' => ['label' => 'Religion', 'required' => false],
+            'date_of_birth' => ['label' => 'Date of Birth', 'required' => false],
+            'tin' => ['label' => 'TIN', 'required' => false],
+            'date_original_appointment' => ['label' => 'Date of Original Appointment', 'required' => false],
+            'date_last_promotion' => ['label' => 'Date of Last Promotion', 'required' => false],
+            'employment_status' => ['label' => 'Employment Status', 'required' => false],
+            'civil_service_eligibility' => ['label' => 'Civil Service Eligibility', 'required' => false],
+            'comment_annotation' => ['label' => 'Comment / Annotation', 'required' => false],
+            'is_pwd' => ['label' => 'PWD (Y=Yes)', 'required' => false],
+            'indigenous_people' => ['label' => 'Indigenous People', 'required' => false],
+            'solo_parent' => ['label' => 'Solo Parent (ID Number)', 'required' => false],
+            'abolished' => ['label' => 'Abolished (Y=Yes)', 'required' => false],
+            'dissolved' => ['label' => 'Dissolved (Y=Yes)', 'required' => false],
+            'gsis_bp_number' => ['label' => 'GSIS BP Number', 'required' => false],
+            'position_classification' => ['label' => 'Position Classification', 'required' => false],
+            'umid' => ['label' => 'UMID', 'required' => false],
+        ];
+    }
+
+    // ── Legacy hardcoded header → DB column map (for backward compatibility) ──
+    private static function legacyHeaderMap(): array
+    {
+        return [
+            'ORGANIZATIONAL UNIT' => 'organizational_unit',
+            'ITEM' => 'item',
+            'POSITION TITLE' => 'position_title',
+            'SALARY GRADE' => 'salary_grade',
+            'AUTHORIZED ANNUAL SALARY' => 'authorized_annual_salary',
+            'ACTUAL ANNUAL SALARY' => 'actual_annual_salary',
+            'STEP' => 'step',
+            'AREA CODE' => 'area_code',
+            'AREA TYPE' => 'area_type',
+            'LEVEL' => 'level',
+            'LAST NAME' => 'last_name',
+            'FIRST NAME' => 'first_name',
+            'MIDDLE NAME' => 'middle_name',
+            'SEX' => 'sex',
+            'RELIGION' => 'religion',
+            'DATE OF BIRTH' => 'date_of_birth',
+            'TIN' => 'tin',
+            'DATE OF ORIGINAL APPOINTMENT' => 'date_original_appointment',
+            'DATE OF LAST PROMOTION-APPOINTMENT' => 'date_last_promotion',
+            'STATUS' => 'employment_status',
+            'CIVIL SERVICE ELIGIBILITY' => 'civil_service_eligibility',
+            'COMMENT/ ANNOTATION' => 'comment_annotation',
+            'PWD' => 'is_pwd',
+            'INDIGENOUS PEOPLE (Y)' => 'indigenous_people',
+            'SOLO PARENT (ID_NUMBER)' => 'solo_parent',
+            'ABOLISHED' => 'abolished',
+            'DISSOLVED' => 'dissolved',
+            'GSIS BP NUMBER' => 'gsis_bp_number',
+            'POSITION CLASSIFICATION' => 'position_classification',
+            'UMID' => 'umid',
+        ];
+    }
+
+    /**
+     * Show import page.
+     */
+    public function index()
+    {
+        $totalRecords = PlantillaRecord::count();
+        return view('imports.index', compact('totalRecords'));
+    }
+
+    /**
+     * Download a blank Excel template with correct headers and sample rows.
+     */
+    public function template(): StreamedResponse
+    {
+        $headers = [
+            'ORGANIZATIONAL UNIT',
+            'ITEM',
+            'POSITION TITLE',
+            'SALARY GRADE',
+            'AUTHORIZED ANNUAL SALARY',
+            'ACTUAL ANNUAL SALARY',
+            'STEP',
+            'AREA CODE',
+            'AREA TYPE',
+            'LEVEL',
+            'LAST NAME',
+            'FIRST NAME',
+            'MIDDLE NAME',
+            'SEX',
+            'RELIGION',
+            'DATE OF BIRTH',
+            'TIN',
+            'DATE OF ORIGINAL APPOINTMENT',
+            'DATE OF LAST PROMOTION-APPOINTMENT',
+            'STATUS',
+            'CIVIL SERVICE ELIGIBILITY',
+            'COMMENT/ ANNOTATION',
+            'PWD',
+            'INDIGENOUS PEOPLE (Y)',
+            'SOLO PARENT (ID_NUMBER)',
+            'ABOLISHED',
+            'DISSOLVED',
+            'GSIS BP NUMBER',
+            'POSITION CLASSIFICATION',
+            'UMID',
+        ];
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Plantilla Template');
+
+        // Header row styling
+        foreach ($headers as $col => $label) {
+            $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col + 1) . '1';
+            $sheet->setCellValue($cell, $label);
+            $sheet->getStyle($cell)->applyFromArray([
+                'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+                'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF312E81']],
+                'alignment' => ['horizontal' => 'center'],
+            ]);
+            $sheet->getColumnDimensionByColumn($col + 1)->setWidth(22);
+        }
+
+        // Sample filled row
+        $sample = [
+            'PROVINCE WIDE',
+            '001-001',
+            'PROVINCIAL ADMINISTRATOR',
+            '26',
+            '720000',
+            '720000',
+            '8',
+            '100',
+            'URBAN',
+            '',
+            'DE LA CRUZ',
+            'JUAN',
+            'REYES',
+            'M',
+            'ROMAN CATHOLIC',
+            '1980-01-15',
+            '123-456-789-000',
+            '2005-06-01',
+            '2020-01-01',
+            'PERMANENT',
+            'CS PROFESSIONAL',
+            '',
+            'N',
+            '',
+            '',
+            'N',
+            'N',
+            '1234567890',
+            'Career',
+            '1234567890',
+        ];
+
+        // Sample vacant row
+        $vacant = [
+            'PROVINCE WIDE',
+            '001-002',
+            'ADMIN OFFICER II',
+            '11',
+            '216000',
+            '216000',
+            '1',
+            '100',
+            'URBAN',
+            '',
+            'VACANT',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            'N',
+            '',
+            '',
+            'N',
+            'N',
+            '',
+            'Career',
+            '',
+        ];
+
+        foreach ($sample as $col => $val) {
+            $sheet->setCellValueByColumnAndRow($col + 1, 2, $val);
+        }
+        foreach ($vacant as $col => $val) {
+            $sheet->setCellValueByColumnAndRow($col + 1, 3, $val);
+        }
+
+        // Light yellow for sample rows
+        $sheet->getStyle('A2:AD2')->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFFDE7');
+        $sheet->getStyle('A3:AD3')->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFF8E1');
+
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, 'plantilla_import_template.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    /**
+     * Import history — past imports from ActivityLog.
+     */
+    public function history()
+    {
+        $logs = ActivityLog::where('action', 'Imported Data')
+            ->latest()
+            ->paginate(20);
+        return view('imports.history', compact('logs'));
+    }
+
+    /**
+     * Download failed rows from a previous import (stored in session).
+     */
+    public function exportErrors(): StreamedResponse
+    {
+        $errorRows = session('import_error_rows', []);
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Failed Rows');
+
+        if (empty($errorRows)) {
+            $sheet->setCellValue('A1', 'No failed rows found. Please run an import first.');
+        } else {
+            // Write headers from first row
+            $firstRow = reset($errorRows);
+            $colHeaders = array_keys($firstRow['data']);
+            array_unshift($colHeaders, 'ERROR_REASON');
+
+            foreach ($colHeaders as $col => $label) {
+                $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col + 1) . '1';
+                $sheet->setCellValue($cell, strtoupper($label));
+                $sheet->getStyle($cell)->getFont()->setBold(true);
+                $sheet->getStyle($cell)->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFE0E0');
+            }
+
+            foreach ($errorRows as $rowIdx => $errRow) {
+                $excelRow = $rowIdx + 2;
+                $sheet->setCellValueByColumnAndRow(1, $excelRow, $errRow['reason']);
+                foreach (array_values($errRow['data']) as $col => $val) {
+                    $sheet->setCellValueByColumnAndRow($col + 2, $excelRow, $val);
+                }
+            }
+        }
+
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, 'import_failed_rows_' . now()->format('Ymd_His') . '.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // STEP 1 → 2: Read file headers, store temp file, show mapping UI
+    // ══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Accept uploaded file, extract headers, store temp file, go to mapping.
+     */
+    public function readHeaders(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:20480',
+        ]);
+
+        try {
+            $file = $request->file('file');
+
+            // Store the file temporarily so we don't need re-upload later
+            $tmpKey = uniqid('import_', true);
+            $tmpPath = $file->storeAs('tmp/imports', $tmpKey . '.' . $file->getClientOriginalExtension());
+
+            $rows = Excel::toArray(new class implements \Maatwebsite\Excel\Concerns\ToArray {
+                public function array(array $array): void
+                {
+                }
+            }, $file);
+            $data = $rows[0];
+
+            // Smart header detection: find the actual column-header row even if the file
+            // has title/metadata rows at the top (e.g. exported All-Data Excel reports).
+            $headerRowIndex = $this->detectHeaderRow($data);
+            $headers = array_map('trim', $data[$headerRowIndex] ?? []);
+            $headers = array_filter($headers, fn($h) => $h !== '' && $h !== null);
+            $headers = array_values($headers);
+
+            // Data rows start AFTER the detected header row
+            $totalRows = count($data) - $headerRowIndex - 1;
+            $replaceAll = $request->boolean('replace_all');
+            $dryRun = $request->boolean('dry_run');
+            $systemFields = self::systemFields();
+            $legacyMap = self::legacyHeaderMap();
+            $originalFileName = $file->getClientOriginalName();
+
+            // Auto-detect mapping: if file headers exactly match legacy headers, pre-map them
+            $autoMapping = [];
+            foreach ($legacyMap as $legacyHeader => $dbCol) {
+                foreach ($headers as $fileHeader) {
+                    if (strtoupper(trim($fileHeader)) === strtoupper(trim($legacyHeader))) {
+                        $autoMapping[$dbCol] = $fileHeader;
+                        break;
+                    }
+                }
+            }
+
+            return view('imports.map', compact(
+                'headers',
+                'tmpKey',
+                'tmpPath',
+                'totalRows',
+                'replaceAll',
+                'dryRun',
+                'systemFields',
+                'autoMapping',
+                'originalFileName'
+            ));
+
+        } catch (\Exception $e) {
+            return redirect()->route('imports.index')
+                ->with('error', 'Error reading file: ' . $e->getMessage());
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // STEP 2 → 3: Accept mapping, run preview
+    // ══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Accept user's column mapping, load temp file, run preview logic.
+     */
+    public function map(Request $request)
+    {
+        $request->validate([
+            'tmp_key' => 'required|string|max:100',
+            'tmp_path' => 'required|string|max:300',
+            'mapping' => 'required|array',
+        ]);
+
+        $tmpPath = $request->input('tmp_path');
+        $mapping = $request->input('mapping'); // ['organizational_unit' => 'Dept', ...]
+        $replaceAll = $request->boolean('replace_all');
+        $dryRun = $request->boolean('dry_run');
+        $originalFileName = $request->input('original_filename', '');
+
+        if (!Storage::exists($tmpPath)) {
+            return redirect()->route('imports.index')
+                ->with('error', 'Temporary file not found. Please re-upload your file.');
+        }
+
+        try {
+            $fullPath = Storage::path($tmpPath);
+            $rows = Excel::toArray(new class implements \Maatwebsite\Excel\Concerns\ToArray {
+                public function array(array $array): void
+                {
+                }
+            }, $fullPath);
+            $data = $rows[0];
+
+            // Skip title/metadata rows — find the actual column-header row
+            $headerRowIndex = $this->detectHeaderRow($data);
+            $header = array_map('trim', $data[$headerRowIndex]);
+            $data = array_slice($data, $headerRowIndex + 1); // data rows only
+            $totalRows = count($data);
+
+            $allErrors = [];
+            $duplicates = [];
+            $mapped = [];
+            $rowNum = 2;
+
+            $existingItems = PlantillaRecord::pluck('item')
+                ->filter(fn($v) => is_string($v) || is_int($v))
+                ->mapWithKeys(fn($item) => [$item => true])
+                ->toArray();
+
+            foreach ($data as $row) {
+                $result = $this->mapRow($row, $header, $rowNum, $mapping);
+
+                if (!empty($result['errors'])) {
+                    $allErrors[] = $result['errors'];
+                } else {
+                    if (count($mapped) < 20) {
+                        $mapped[] = $result['data'];
+                    }
+                    $itemCode = $result['data']['item'] ?? '';
+                    if ($itemCode && isset($existingItems[$itemCode])) {
+                        $duplicates[] = $itemCode;
+                    }
+                }
+                $rowNum++;
+            }
+
+            // Encode the mapping as JSON for passing through to execute
+            $mappingJson = json_encode($mapping);
+            $tmpKey = $request->input('tmp_key');
+
+            return view('imports.preview', compact(
+                'mapped',
+                'allErrors',
+                'totalRows',
+                'replaceAll',
+                'dryRun',
+                'duplicates',
+                'mappingJson',
+                'tmpKey',
+                'tmpPath',
+                'originalFileName'
+            ));
+
+        } catch (\Exception $e) {
+            return redirect()->route('imports.index')
+                ->with('error', 'Error processing mapping: ' . $e->getMessage());
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // STEP 3 (legacy entry): Direct upload without mapping
+    // ══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Handle file upload and show preview (first 20 rows).
+     * Legacy path — used when coming from old direct-upload flow.
+     */
+    public function preview(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:20480',
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $rows = Excel::toArray(new class implements \Maatwebsite\Excel\Concerns\ToArray {
+                public function array(array $array): void
+                {
+                }
+            }, $file);
+            $data = $rows[0];
+
+            // Smart header detection — skip title/metadata rows
+            $headerRowIndex = $this->detectHeaderRow($data);
+            $header = array_map('trim', $data[$headerRowIndex]);
+            $data = array_slice($data, $headerRowIndex + 1);
+            $totalRows = count($data);
+
+            $allErrors = [];
+            $duplicates = [];
+            $mapped = [];
+            $rowNum = $headerRowIndex + 2; // Excel row number accounts for skipped rows
+
+            $existingItems = PlantillaRecord::pluck('item')
+                ->filter(fn($v) => is_string($v) || is_int($v))
+                ->mapWithKeys(fn($item) => [$item => true])
+                ->toArray();
+
+            foreach ($data as $row) {
+                $result = $this->mapRow($row, $header, $rowNum); // no custom mapping = legacy mode
+
+                if (!empty($result['errors'])) {
+                    $allErrors[] = $result['errors'];
+                } else {
+                    if (count($mapped) < 20) {
+                        $mapped[] = $result['data'];
+                    }
+                    $itemCode = $result['data']['item'] ?? '';
+                    if ($itemCode && isset($existingItems[$itemCode])) {
+                        $duplicates[] = $itemCode;
+                    }
+                }
+                $rowNum++;
+            }
+
+            $replaceAll = $request->boolean('replace_all');
+            $dryRun = $request->boolean('dry_run');
+            $mappingJson = null;
+            $tmpKey = null;
+            $tmpPath = null;
+
+            return view('imports.preview', compact(
+                'mapped',
+                'allErrors',
+                'totalRows',
+                'replaceAll',
+                'dryRun',
+                'duplicates',
+                'mappingJson',
+                'tmpKey',
+                'tmpPath'
+            ));
+
+        } catch (\Exception $e) {
+            return redirect()->route('imports.index')
+                ->with('error', 'Error reading file: ' . $e->getMessage());
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // EXECUTE
+    // ══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Execute the full import from the uploaded file.
+     * Supports both: (a) temp-file + mappingJson path, (b) fresh file upload path.
+     */
+    public function execute(Request $request)
+    {
+        $tmpPath = $request->input('tmp_path');
+        $mappingJson = $request->input('mapping_json');
+        $mapping = $mappingJson ? json_decode($mappingJson, true) : null;
+
+        // Capture original filename for history display
+        $originalFileName = $request->input('original_filename', '');
+
+        // Determine file source: temp file (from mapping flow) or fresh upload
+        if ($tmpPath && Storage::exists($tmpPath)) {
+            $fullPath = Storage::path($tmpPath);
+            if (empty($originalFileName)) {
+                $originalFileName = basename($tmpPath);
+            }
+        } else {
+            $request->validate([
+                'file' => 'required|file|mimes:xlsx,xls,csv|max:20480',
+            ]);
+            $uploadedFile = $request->file('file');
+            if (empty($originalFileName)) {
+                $originalFileName = $uploadedFile->getClientOriginalName();
+            }
+            $fullPath = $uploadedFile->getRealPath();
+            $tmpPath = null; // no temp file to delete
+        }
+
+        try {
+            $replaceAll = $request->boolean('replace_all');
+            $dryRun = $request->boolean('dry_run');
+            $rows = Excel::toArray(new class implements \Maatwebsite\Excel\Concerns\ToArray {
+                public function array(array $array): void
+                {
+                }
+            }, $fullPath);
+            $data = $rows[0];
+
+            // Skip title/metadata rows — find the actual column-header row
+            $headerRowIndex = $this->detectHeaderRow($data);
+            $header = array_map('trim', $data[$headerRowIndex]);
+            $data = array_slice($data, $headerRowIndex + 1); // data rows only
+
+            $stats = [
+                'created' => 0,
+                'updated' => 0,
+                'skipped' => 0,
+                'deleted' => 0,
+                'errors' => [],
+                'created_records' => [],
+                'updated_records' => [],
+                'dry_run' => $dryRun,
+            ];
+
+            $errorRows = [];
+
+            DB::beginTransaction();
+
+            if ($replaceAll && !$dryRun) {
+                $stats['deleted'] = PlantillaRecord::count();
+                // Disable FK checks so we can wipe the table cleanly,
+                // then delete child records (attachments) before the parent.
+                DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+                DB::table('employee_attachments')->delete();
+                DB::table('plantilla_records')->delete();
+                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            } elseif ($replaceAll && $dryRun) {
+                $stats['deleted'] = PlantillaRecord::count(); // show what WOULD be deleted
+            }
+
+            foreach ($data as $rowIndex => $row) {
+                $rowNum = $rowIndex + 2;
+                try {
+                    $result = $this->mapRow($row, $header, $rowNum, $mapping);
+
+                    if (!empty($result['errors'])) {
+                        $stats['skipped']++;
+                        $stats['errors'][] = $result['errors'];
+                        $rawData = array_combine(
+                            array_map('trim', $header),
+                            array_pad(array_values($row), count($header), null)
+                        );
+                        $errorRows[] = ['reason' => $result['errors'], 'data' => $rawData];
+                        continue;
+                    }
+
+                    $mappedRow = $result['data'];
+                    unset($mappedRow['row_number']);
+
+                    // Match record by item code, or fallback to first and last name if item is missing
+                    $existing = null;
+                    if (!$replaceAll) {
+                        $itemCode = $mappedRow['item'] ?? null;
+
+                        if ($itemCode) {
+                            $existing = PlantillaRecord::where('item', $itemCode)->first();
+                        }
+
+                        if (!$existing && !empty($mappedRow['first_name']) && !empty($mappedRow['last_name'])) {
+                            $existing = PlantillaRecord::where('first_name', $mappedRow['first_name'])
+                                ->where('last_name', $mappedRow['last_name'])
+                                ->first();
+                        }
+                    }
+
+                    if ($existing) {
+                        // Only update with fields that are not null, protecting existing data from being wiped by partial imports
+                        $updateData = array_filter($mappedRow, fn($value) => $value !== null);
+                        $existing->update($updateData);
+                        $stats['updated']++;
+                        $itemName = $existing->item ? $existing->item : 'No Item';
+                        $stats['updated_records'][] = trim($existing->first_name . ' ' . $existing->last_name) . " ({$itemName})";
+                    } else {
+                        $newRecord = PlantillaRecord::create($mappedRow);
+                        $stats['created']++;
+                        $itemName = $newRecord->item ? $newRecord->item : 'No Item';
+                        $stats['created_records'][] = trim($newRecord->first_name . ' ' . $newRecord->last_name) . " ({$itemName})";
+                    }
+
+                } catch (\Exception $e) {
+                    $stats['errors'][] = "Row {$rowNum}: " . $e->getMessage();
+                    $stats['skipped']++;
+                }
+            }
+
+            if ($dryRun) {
+                DB::rollBack();
+            } else {
+                DB::commit();
+                if (Auth::check()) {
+                    ActivityLog::create([
+                        'user_id' => Auth::id(),
+                        'action' => 'Imported Data',
+                        'description' => json_encode([
+                            'mode' => $replaceAll ? 'replace_all' : 'upsert',
+                            'with_mapping' => $mapping ? true : false,
+                            'file_name' => $originalFileName,
+                            'created' => $stats['created'],
+                            'updated' => $stats['updated'],
+                            'deleted' => $stats['deleted'],
+                            'skipped' => $stats['skipped'],
+                        ]),
+                    ]);
+                }
+
+                // Clean up temp file after successful import
+                if ($tmpPath && Storage::exists($tmpPath)) {
+                    Storage::delete($tmpPath);
+                }
+            }
+
+            session(['import_error_rows' => $errorRows]);
+
+            return view('imports.results', compact('stats'));
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('imports.index')
+                ->with('error', 'Import failed: ' . $e->getMessage());
+        }
+    }
+
+    public function undoImport($id)
+    {
+        $log = ActivityLog::where('action', 'Imported Data')->findOrFail($id);
+
+        $info = json_decode($log->description, true) ?? [];
+        $createdCount = $info['created'] ?? 0;
+
+        if ($createdCount <= 0) {
+            return back()->with('error', 'This import did not create any new records to delete.');
+        }
+
+        // The ActivityLog is generated at the end of the import.
+        // We look for records created up to 1 hour before the log, just to be safe.
+        $startTime = $log->created_at->copy()->subMinutes(60);
+        $endTime = $log->created_at->copy()->addMinutes(5);
+
+        // Fetch IDs first because delete() with limit() can sometimes fail depending on DB driver
+        $recordIds = PlantillaRecord::whereBetween('created_at', [$startTime, $endTime])
+            ->orderBy('created_at', 'desc')
+            ->limit($createdCount)
+            ->pluck('id');
+
+        if ($recordIds->isEmpty()) {
+            return back()->with('error', 'Could not find any records created by this import (they may have already been deleted).');
+        }
+
+        $deleted = PlantillaRecord::whereIn('id', $recordIds)->delete();
+
+        if ($deleted > 0) {
+            // Update the log so it doesn't show as having created them anymore
+            $info['created'] = $createdCount - $deleted;
+            $info['deleted_via_undo'] = ($info['deleted_via_undo'] ?? 0) + $deleted;
+
+            // Keep action as 'Imported Data' so it stays in the history table
+            $log->update([
+                'description' => json_encode($info)
+            ]);
+
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'Undid Import',
+                'description' => "Deleted {$deleted} records from import on " . $log->created_at->format('M d, Y h:i A')
+            ]);
+
+            return back()->with('success', "Successfully deleted {$deleted} records that were created by this import.");
+        }
+
+        return back()->with('error', 'Could not find any records created by this import (they may have already been deleted).');
+    }
+
+    // ── Private Helpers ───────────────────────────────────────────────────────
+
+    /**
+     * Scan the first up-to-10 rows of a sheet and return the index of the row
+     * that is most likely the actual column-header row.
+     *
+     * Strategy: count how many cells in each row match a known legacy header
+     * (case-insensitive). The row with the highest match count wins.
+     * Falls back to row 0 if nothing matches (plain template files).
+     */
+    private function detectHeaderRow(array $data): int
+    {
+        $legacyHeaders = array_keys(self::legacyHeaderMap()); // known column names
+        $bestIndex = 0;
+        $bestScore = 0;
+
+        $scanLimit = min(10, count($data));
+        for ($i = 0; $i < $scanLimit; $i++) {
+            $row = $data[$i] ?? [];
+            $score = 0;
+            foreach ($row as $cell) {
+                $cell = strtoupper(trim((string) $cell));
+                if ($cell === '')
+                    continue;
+                foreach ($legacyHeaders as $h) {
+                    if (strtoupper(trim($h)) === $cell) {
+                        $score++;
+                        break;
+                    }
+                }
+            }
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $bestIndex = $i;
+            }
+        }
+
+        return $bestIndex;
+    }
+
+    /**
+     * Map a raw Excel row to a plantilla_records array.
+     *
+     * @param array      $row     Raw row values
+     * @param array      $header  Raw file headers
+     * @param int        $rowNum  Excel row number (for error messages)
+     * @param array|null $mapping Custom mapping: ['db_col' => 'Excel Header', ...]
+     *                            If null, uses legacy hardcoded header names.
+     */
+    private function mapRow(array $row, array $header, int $rowNum, ?array $mapping = null): array
+    {
+        // Pad row to match header length
+        while (count($row) < count($header)) {
+            $row[] = null;
+        }
+
+        // Build key-value lookup: Excel header → cell value
+        $data = array_combine($header, $row);
+
+        // Sanitize Excel formula error strings → treat as null
+        $sanitize = function (mixed $value): mixed {
+            if ($value === null)
+                return null;
+            $str = trim((string) $value);
+            // Excel error values that PhpSpreadsheet reads as literal strings
+            $excelErrors = ['#NULL!', '#DIV/0!', '#VALUE!', '#REF!', '#NAME?', '#NUM!', '#N/A', '#ERROR!', '#GETTING_DATA'];
+            if (in_array(strtoupper($str), $excelErrors, true)) {
+                return null;
+            }
+            return $value;
+        };
+
+        // Build a helper closure: given a db column name, retrieve the cell value
+        $get = function (string $dbCol) use ($data, $mapping, $sanitize): mixed {
+            if ($mapping) {
+                // Custom-mapping mode: look up which Excel column the user picked
+                $excelCol = $mapping[$dbCol] ?? null;
+                if (!$excelCol)
+                    return null;
+                return $sanitize($data[$excelCol] ?? null);
+            }
+
+            // Legacy mode: use hardcoded header names
+            $legacyMap = self::legacyHeaderMap();
+            // Find legacy header(s) that point to this dbCol
+            foreach ($legacyMap as $legacyHeader => $col) {
+                if ($col === $dbCol) {
+                    // Try exact match first
+                    if (array_key_exists($legacyHeader, $data)) {
+                        return $sanitize($data[$legacyHeader]);
+                    }
+                    // Case-insensitive fallback
+                    foreach ($data as $k => $v) {
+                        if (strtoupper(trim($k)) === strtoupper(trim($legacyHeader))) {
+                            return $sanitize($v);
+                        }
+                    }
+                }
+            }
+            return null;
+        };
+
+        $errors = [];
+
+        // Pre-compute last name and vacant state before validation
+        $lastNameRaw = trim((string) ($get('last_name') ?? ''));
+        $firstNameRaw = trim((string) ($get('first_name') ?? ''));
+        $isVacantKeyword = strtoupper($lastNameRaw) === 'VACANT';
+        $isVacant = $isVacantKeyword || (empty($lastNameRaw) && empty($firstNameRaw));
+
+        // Required field validation: first name and last name (skip for explicitly vacant rows)
+        if (!$isVacant) {
+            if (empty($lastNameRaw)) {
+                $errors[] = "Row {$rowNum}: Missing Last Name";
+            }
+            if (empty($firstNameRaw)) {
+                $errors[] = "Row {$rowNum}: Missing First Name";
+            }
+        }
+
+        if ($errors) {
+            return ['data' => null, 'errors' => implode(' | ', $errors)];
+        }
+
+        $sexRaw = strtoupper(trim((string) ($get('sex') ?? '')));
+
+        return [
+            'data' => [
+                'row_number' => $rowNum,
+                'organizational_unit' => trim((string) ($get('organizational_unit') ?? '')) ?: null,
+                'item' => trim((string) ($get('item') ?? '')) ?: null,
+                'position_title' => trim((string) ($get('position_title') ?? '')) ?: null,
+                'salary_grade' => ($val = preg_replace('/[^\d]/', '', (string) $get('salary_grade'))) !== '' ? (int) $val : null,
+                'authorized_annual_salary' => ($val = preg_replace('/[^\d.]/', '', (string) $get('authorized_annual_salary'))) !== '' ? (float) $val : null,
+                'actual_annual_salary' => ($val = preg_replace('/[^\d.]/', '', (string) $get('actual_annual_salary'))) !== '' ? (float) $val : null,
+                'step' => ($val = preg_replace('/[^\d]/', '', (string) $get('step'))) !== '' ? max(1, (int) $val) : null,
+                'area_code' => trim((string) ($get('area_code') ?? '')) ?: null,
+                'area_type' => trim((string) ($get('area_type') ?? '')) ?: null,
+                'level' => trim((string) ($get('level') ?? '')) ?: null,
+                'last_name' => $isVacant ? null : $lastNameRaw,
+                'first_name' => $isVacant ? null : ($firstNameRaw ?: null),
+                'middle_name' => $isVacant ? null : (trim((string) ($get('middle_name') ?? '')) ?: null),
+                'sex' => $isVacant ? null : (in_array($sexRaw, ['M', 'F']) ? $sexRaw : null),
+                'religion' => $isVacant ? null : (trim((string) ($get('religion') ?? '')) ?: null),
+                'date_of_birth' => $this->parseDate($get('date_of_birth')),
+                'tin' => trim((string) ($get('tin') ?? '')) ?: null,
+                'date_original_appointment' => $this->parseDate($get('date_original_appointment')),
+                'date_last_promotion' => $this->parseDate($get('date_last_promotion')),
+                'employment_status' => trim((string) ($get('employment_status') ?? '')) ?: null,
+                'civil_service_eligibility' => trim((string) ($get('civil_service_eligibility') ?? '')) ?: null,
+                'comment_annotation' => trim((string) ($get('comment_annotation') ?? '')) ?: null,
+                'is_pwd' => strtoupper(trim((string) ($get('is_pwd') ?? ''))) === 'Y',
+                'indigenous_people' => trim((string) ($get('indigenous_people') ?? '')) ?: null,
+                'solo_parent' => trim((string) ($get('solo_parent') ?? '')) ?: null,
+                'abolished' => strtoupper(trim((string) ($get('abolished') ?? ''))) === 'Y',
+                'dissolved' => strtoupper(trim((string) ($get('dissolved') ?? ''))) === 'Y',
+                'gsis_bp_number' => trim((string) ($get('gsis_bp_number') ?? '')) ?: null,
+                'position_classification' => trim((string) ($get('position_classification') ?? '')) ?: null,
+                'umid' => trim((string) ($get('umid') ?? '')) ?: null,
+                'is_vacant' => $isVacant,
+            ],
+            'errors' => [],
+        ];
+    }
+
+    /**
+     * Parse Excel date: handles numeric serial numbers and string formats.
+     */
+    private function parseDate(mixed $dateValue): ?string
+    {
+        if (empty($dateValue))
+            return null;
+
+        try {
+            if (is_numeric($dateValue)) {
+                return \Carbon\Carbon::createFromTimestamp(($dateValue - 25569) * 86400)
+                    ->setTimezone('UTC')
+                    ->format('Y-m-d');
+            }
+            foreach (['Y-m-d', 'd/m/Y', 'm/d/Y', 'Y/m/d'] as $fmt) {
+                try {
+                    return \Carbon\Carbon::createFromFormat($fmt, trim($dateValue))->format('Y-m-d');
+                } catch (\Exception) {
+                }
+            }
+        } catch (\Exception) {
+        }
+
+        return null;
+    }
+}
