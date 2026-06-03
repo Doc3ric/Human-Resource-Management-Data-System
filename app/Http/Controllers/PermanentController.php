@@ -53,12 +53,12 @@ class PermanentController extends Controller
             $query->where('is_vacant', $request->input('vacant') === 'vacant');
         }
 
-        $records = $query->get();
-
-        $total       = $records->count();
-        $maleCount   = $records->where('sex', 'M')->count();
-        $femaleCount = $records->where('sex', 'F')->count();
-        $vacantCount = $records->where('is_vacant', true)->count();
+        $total       = (clone $query)->count();
+        $maleCount   = (clone $query)->where('sex', 'M')->count();
+        $femaleCount = (clone $query)->where('sex', 'F')->count();
+        $vacantCount = (clone $query)->where('is_vacant', true)->count();
+        
+        $records = $query->paginate(50)->withQueryString();
 
         $offices = PlantillaRecord::whereIn('employment_status', self::STATUSES)
             ->distinct()->orderBy('organizational_unit')

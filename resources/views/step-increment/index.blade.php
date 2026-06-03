@@ -408,10 +408,7 @@
     {{-- â–Œâ–Œ TABS â–Œâ–Œ --}}
     @php $activeTab = $tab ?? 'overdue'; @endphp
     <div class="si-tab-bar" style="flex-wrap:wrap;">
-        <a href="{{ route('step-increment.office-report', ['type' => 'permanent', 'mode' => 'annual']) }}" class="si-tab"
-            style="color:#0f766e;background:#f0fdfa;border-color:#0d9488;">
-            <i class="bi bi-file-earmark-spreadsheet-fill"></i> Annual Plantilla Basis
-        </a>
+
         <a href="{{ route('step-increment.office-report', ['type' => 'permanent', 'mode' => 'nosi']) }}" class="si-tab"
             style="color:#059669;background:#ecfdf5;border-color:#10b981;">
             <i class="bi bi-file-earmark-diff-fill"></i> NOSI/NOLP Plantilla Basis
@@ -455,15 +452,16 @@
 
     {{-- â–Œâ–Œ TABLE â–Œâ–Œ --}}
     @php
+        $activeTab = trim(strtolower($activeTab));
         $records = match ($activeTab) {
             'due' => $due,
             'upcoming_nolp' => $upcomingNolp,
             'upcoming_nosi' => $upcomingNosi,
             'magna_carta' => $magnaCartaDue,
-            'nosi' => $overdue->merge($due),
-            'nolp' => $overdue->merge($due),
+            'nosi' => $nosi,
+            'nolp' => $nolp,
             'history' => $histories,
-            default => $overdue,
+            default => collect([]),
         };
     @endphp
     <div class="si-table-wrap">
@@ -472,8 +470,13 @@
                 style="padding: 16px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
                 <div style="font-size: 13px; color: #475569;">
                     <i class="bi bi-alarm" style="color:#ea580c;"></i>
-                    Employees whose step increment is <strong>due this month</strong> ({{ now()->format('F Y') }}).
+                    Employees whose step increment is <strong>due in the selected month</strong> ({{ \Carbon\Carbon::createFromFormat('Y-m', $filterMonth ?? now()->format('Y-m'))->format('F Y') }}).
                 </div>
+                <form method="GET" action="{{ route('step-increment.index') }}" style="display:flex;align-items:center;gap:8px;">
+                    <input type="hidden" name="tab" value="due">
+                    <label style="font-size:12px; font-weight:600; color:#475569;">Filter By Month:</label>
+                    <input type="month" name="filter_month" value="{{ $filterMonth ?? now()->format('Y-m') }}" style="border:1px solid #cbd5e1;border-radius:8px;padding:5px 10px;font-size:12px;outline:none;" onchange="this.form.submit()">
+                </form>
             </div>
         @elseif(in_array($activeTab, ['upcoming_nolp', 'upcoming_nosi']))
             {{-- Sub-tab bar for Upcoming --}}
@@ -503,17 +506,47 @@
                 </div>
             </div>
         @elseif($activeTab === 'nosi')
-            <div style="padding: 16px; background: #fff; border-bottom: 1px solid #e5e7eb;">
+            <div style="padding: 16px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
                 <div style="font-size: 13px; color: #475569;">
                     <i class="bi bi-file-earmark-text-fill" style="color:#0369a1;"></i>
                     Generate <strong>Notice of Step Increment (NOSI)</strong> certificates for eligible employees.
                 </div>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <form method="GET" action="{{ route('step-increment.index') }}" style="display:flex;align-items:center;gap:8px;">
+                        <input type="hidden" name="tab" value="nosi">
+                        <label style="font-size:12px; font-weight:600; color:#475569;">Filter By Month:</label>
+                        <input type="month" name="filter_month" value="{{ $filterMonth ?? now()->format('Y-m') }}" style="border:1px solid #cbd5e1;border-radius:8px;padding:5px 10px;font-size:12px;outline:none;" onchange="this.form.submit()">
+                    </form>
+                    <a href="{{ route('step-increment.pdf.nosi-bulk', ['month' => $filterMonth ?? now()->format('Y-m')]) }}" target="_blank" data-bs-toggle="native"
+                       style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;box-shadow:0 2px 6px rgba(3,105,161,.25);">
+                        <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                    </a>
+                    <a href="{{ route('step-increment.docx.nosi-bulk', ['month' => $filterMonth ?? now()->format('Y-m')]) }}" target="_blank" data-bs-toggle="native"
+                       style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;box-shadow:0 2px 6px rgba(37,99,235,.25);">
+                        <i class="bi bi-file-earmark-word-fill"></i> DOCX
+                    </a>
+                </div>
             </div>
         @elseif($activeTab === 'nolp')
-            <div style="padding: 16px; background: #fff; border-bottom: 1px solid #e5e7eb;">
+            <div style="padding: 16px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
                 <div style="font-size: 13px; color: #475569;">
                     <i class="bi bi-file-medical-fill" style="color:#6d28d9;"></i>
                     Generate <strong>Notice of Longevity Pay (NOLP)</strong> certificates for hospital/medical personnel.
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <form method="GET" action="{{ route('step-increment.index') }}" style="display:flex;align-items:center;gap:8px;">
+                        <input type="hidden" name="tab" value="nolp">
+                        <label style="font-size:12px; font-weight:600; color:#475569;">Filter By Month:</label>
+                        <input type="month" name="filter_month" value="{{ $filterMonth ?? now()->format('Y-m') }}" style="border:1px solid #cbd5e1;border-radius:8px;padding:5px 10px;font-size:12px;outline:none;" onchange="this.form.submit()">
+                    </form>
+                    <a href="{{ route('step-increment.pdf.nolp-bulk', ['month' => $filterMonth ?? now()->format('Y-m')]) }}" target="_blank" data-bs-toggle="native"
+                       style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#6d28d9,#8b5cf6);color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;box-shadow:0 2px 6px rgba(109,40,217,.25);">
+                        <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                    </a>
+                    <a href="{{ route('step-increment.docx.nolp-bulk', ['month' => $filterMonth ?? now()->format('Y-m')]) }}" target="_blank" data-bs-toggle="native"
+                       style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;box-shadow:0 2px 6px rgba(37,99,235,.25);">
+                        <i class="bi bi-file-earmark-word-fill"></i> DOCX
+                    </a>
                 </div>
             </div>
         @elseif($activeTab === 'history')
@@ -599,15 +632,27 @@
                                 </td>
                                 <td class="tc">
                                     @if($activeTab === 'upcoming_nolp')
-                                        <a href="{{ route('step-increment.pdf.nolp', $record) }}" target="_blank"
-                                            style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#6d28d9,#8b5cf6);color:#fff;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;">
-                                            <i class="bi bi-printer-fill"></i> NOLP
-                                        </a>
+                                        <div style="display:flex;gap:4px;flex-direction:column;">
+                                            <a href="{{ route('step-increment.pdf.nolp', $record) }}" target="_blank"
+                                                style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#6d28d9,#8b5cf6);color:#fff;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;">
+                                                <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                                            </a>
+                                            <a href="{{ route('step-increment.docx.nolp', $record) }}" target="_blank"
+                                                style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;">
+                                                <i class="bi bi-file-earmark-word-fill"></i> DOCX
+                                            </a>
+                                        </div>
                                     @else
-                                        <a href="{{ route('step-increment.pdf.nosi', $record) }}" target="_blank"
-                                            style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;">
-                                            <i class="bi bi-printer-fill"></i> NOSI
-                                        </a>
+                                        <div style="display:flex;gap:4px;flex-direction:column;">
+                                            <a href="{{ route('step-increment.pdf.nosi', $record) }}" target="_blank"
+                                                style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;">
+                                                <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                                            </a>
+                                            <a href="{{ route('step-increment.docx.nosi', $record) }}" target="_blank"
+                                                style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;">
+                                                <i class="bi bi-file-earmark-word-fill"></i> DOCX
+                                            </a>
+                                        </div>
                                     @endif
                                 </td>
                             </tr>
@@ -821,8 +866,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php $nosiRecords = $overdue->merge($due)->filter(fn($r) => !$r->is_hospital_personnel); @endphp
-                        @forelse($nosiRecords as $record)
+                        @forelse($records as $record)
                             @php
                                 $dueType = $record->due_type;
                                 $stepIncrease = ($dueType === 'nolp' || $dueType === 'both') ? 2 : 1;
@@ -869,10 +913,16 @@
                                     @endif
                                 </td>
                                 <td class="tc">
-                                    <a href="{{ route('step-increment.pdf.nosi', $record) }}" target="_blank"
-                                        style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;box-shadow:0 2px 8px rgba(3,105,161,.25);">
-                                        <i class="bi bi-printer-fill"></i> Print NOSI
-                                    </a>
+                                    <div style="display:flex;gap:6px;flex-direction:column;">
+                                        <a href="{{ route('step-increment.pdf.nosi', $record) }}" target="_blank"
+                                            style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff;padding:5px 12px;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;box-shadow:0 2px 8px rgba(3,105,161,.25);">
+                                            <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                                        </a>
+                                        <a href="{{ route('step-increment.docx.nosi', $record) }}" target="_blank"
+                                            style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;padding:5px 12px;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;box-shadow:0 2px 8px rgba(37,99,235,.25);">
+                                            <i class="bi bi-file-earmark-word-fill"></i> DOCX
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -908,8 +958,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php $nolpRecords = $overdue->merge($due)->filter(fn($r) => $r->is_hospital_personnel); @endphp
-                        @forelse($nolpRecords as $record)
+                        @forelse($records as $record)
                             @php
                                 $dueType = $record->due_type;
                                 $stepIncrease = ($dueType === 'nolp' || $dueType === 'both') ? 2 : 1;
@@ -956,10 +1005,16 @@
                                     @endif
                                 </td>
                                 <td class="tc">
-                                    <a href="{{ route('step-increment.pdf.nolp', $record) }}" target="_blank"
-                                        style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;background:linear-gradient(135deg,#6d28d9,#8b5cf6);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;box-shadow:0 2px 8px rgba(109,40,217,.25);">
-                                        <i class="bi bi-printer-fill"></i> Print NOLP
-                                    </a>
+                                    <div style="display:flex;gap:6px;flex-direction:column;">
+                                        <a href="{{ route('step-increment.pdf.nolp', $record) }}" target="_blank"
+                                            style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;background:linear-gradient(135deg,#6d28d9,#8b5cf6);color:#fff;padding:5px 12px;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;box-shadow:0 2px 8px rgba(109,40,217,.25);">
+                                            <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                                        </a>
+                                        <a href="{{ route('step-increment.docx.nolp', $record) }}" target="_blank"
+                                            style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;padding:5px 12px;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;box-shadow:0 2px 8px rgba(37,99,235,.25);">
+                                            <i class="bi bi-file-earmark-word-fill"></i> DOCX
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         @empty

@@ -10,6 +10,126 @@ use Illuminate\Http\Request;
 class NoticeController extends Controller
 {
     /**
+     * Generate bulk A4 PDF for Notice of Step Increment (NOSI)
+     */
+    public function generateNosiBulk(Request $request)
+    {
+        ini_set('memory_limit', '-1');
+        set_time_limit(0);
+
+        $month = $request->query('month', now()->format('Y-m'));
+        try {
+            $targetDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+        } catch (\Exception $e) {
+            $targetDate = now()->startOfMonth();
+        }
+
+        $allDue = PlantillaRecord::stepDue()
+            ->where('is_vacant', false)
+            ->orderBy('organizational_unit')
+            ->orderBy('salary_grade')
+            ->get();
+
+        // Get exactly the ones due in the specified month
+        $employees = $allDue->filter(function($r) use ($targetDate) {
+            $due = $r->next_step_due_date;
+            return !$r->is_hospital_personnel && 
+                   $due && 
+                   $due->year === $targetDate->year && 
+                   $due->month === $targetDate->month;
+        });
+
+        if ($employees->isEmpty()) {
+            return back()->with('error', 'No NOSI records found for this month.');
+        }
+
+        $records = [];
+        foreach ($employees as $plantilla) {
+            $currentStep = $plantilla->step ?: 1;
+            $currentSalary = SalaryGrade::getRate($plantilla->salary_grade, $currentStep);
+            $newStep = min(8, $currentStep + 1);
+            $newSalary = SalaryGrade::getRate($plantilla->salary_grade, $newStep);
+            $diff = $newSalary - $currentSalary;
+            
+            $appointmentDate = $plantilla->date_last_promotion ?? $plantilla->date_original_appointment;
+            $effectiveDate = $appointmentDate ? $appointmentDate->clone()->addYears(3) : now();
+
+            $records[] = [
+                'type' => 'NOSI',
+                'employee' => $plantilla,
+                'currentSalary' => $currentSalary,
+                'currentStep' => $currentStep,
+                'newStep' => $newStep,
+                'newSalary' => $newSalary,
+                'diff' => $diff,
+                'effectiveDate' => $effectiveDate,
+            ];
+        }
+
+        $pdf = Pdf::loadView('step-increment.pdf.nosi-bulk', compact('records'))->setPaper('a4', 'portrait');
+        return $pdf->download('NOSI_Bulk_' . $targetDate->format('M_Y') . '.pdf');
+    }
+
+    /**
+     * Generate bulk A4 PDF for Notice of Longevity Pay (NOLP)
+     */
+    public function generateNolpBulk(Request $request)
+    {
+        ini_set('memory_limit', '-1');
+        set_time_limit(0);
+
+        $month = $request->query('month', now()->format('Y-m'));
+        try {
+            $targetDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+        } catch (\Exception $e) {
+            $targetDate = now()->startOfMonth();
+        }
+
+        $allDue = PlantillaRecord::stepDue()
+            ->where('is_vacant', false)
+            ->orderBy('organizational_unit')
+            ->orderBy('salary_grade')
+            ->get();
+
+        $employees = $allDue->filter(function($r) use ($targetDate) {
+            $due = $r->next_step_due_date;
+            return $r->is_hospital_personnel && 
+                   $due && 
+                   $due->year === $targetDate->year && 
+                   $due->month === $targetDate->month;
+        });
+
+        if ($employees->isEmpty()) {
+            return back()->with('error', 'No NOLP records found for this month.');
+        }
+
+        $records = [];
+        foreach ($employees as $plantilla) {
+            $currentStep = $plantilla->step ?: 1;
+            $currentSalary = SalaryGrade::getRate($plantilla->salary_grade, $currentStep);
+            $newStep = min(8, $currentStep + 2);
+            $newSalary = SalaryGrade::getRate($plantilla->salary_grade, $newStep);
+            $diff = $newSalary - $currentSalary;
+            
+            $appointmentDate = $plantilla->date_last_nolp ?? $plantilla->date_original_appointment;
+            $effectiveDate = $appointmentDate ? $appointmentDate->clone()->addYears(5) : now();
+
+            $records[] = [
+                'type' => 'NOLP',
+                'employee' => $plantilla,
+                'currentSalary' => $currentSalary,
+                'currentStep' => $currentStep,
+                'newStep' => $newStep,
+                'newSalary' => $newSalary,
+                'diff' => $diff,
+                'effectiveDate' => $effectiveDate,
+            ];
+        }
+
+        $pdf = Pdf::loadView('step-increment.pdf.nolp-bulk', compact('records'))->setPaper('a4', 'portrait');
+        return $pdf->download('NOLP_Bulk_' . $targetDate->format('M_Y') . '.pdf');
+    }
+    /**
      * Generate A4 PDF for Notice of Step Increment (NOSI)
      */
     public function generateNosi(PlantillaRecord $plantilla)
@@ -196,5 +316,177 @@ class NoticeController extends Controller
             0     => 'Not yet eligible',
         ];
         return $map[$amount] ?? number_format($amount, 2) . ' pesos';
+    }
+
+    public function generateNosiBulkDocx(Request $request)
+    {
+        ini_set('memory_limit', '-1');
+        set_time_limit(0);
+
+        $month = $request->query('month', now()->format('Y-m'));
+        try {
+            $targetDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+        } catch (\Exception $e) {
+            $targetDate = now()->startOfMonth();
+        }
+
+        $allDue = PlantillaRecord::stepDue()
+            ->where('is_vacant', false)
+            ->orderBy('organizational_unit')
+            ->orderBy('salary_grade')
+            ->get();
+
+        $employees = $allDue->filter(function($r) use ($targetDate) {
+            $due = $r->next_step_due_date;
+            return !$r->is_hospital_personnel && 
+                   $due && 
+                   $due->year === $targetDate->year && 
+                   $due->month === $targetDate->month;
+        });
+
+        if ($employees->isEmpty()) {
+            return back()->with('error', 'No NOSI records found for this month.');
+        }
+
+        $records = [];
+        foreach ($employees as $plantilla) {
+            $currentStep = $plantilla->step ?: 1;
+            $currentSalary = SalaryGrade::getRate($plantilla->salary_grade, $currentStep);
+            $newStep = min(8, $currentStep + 1);
+            $newSalary = SalaryGrade::getRate($plantilla->salary_grade, $newStep);
+            $diff = $newSalary - $currentSalary;
+            
+            $appointmentDate = $plantilla->date_last_promotion ?? $plantilla->date_original_appointment;
+            $effectiveDate = $appointmentDate ? $appointmentDate->clone()->addYears(3) : now();
+
+            $records[] = [
+                'employee' => $plantilla,
+                'currentSalary' => $currentSalary,
+                'currentStep' => $currentStep,
+                'newStep' => $newStep,
+                'newSalary' => $newSalary,
+                'diff' => $diff,
+                'effectiveDate' => $effectiveDate,
+            ];
+        }
+
+        $phpWord = \App\Services\DocxGenerator::generateNosi(['records' => $records], true);
+        return \App\Services\DocxGenerator::download($phpWord, 'NOSI_Bulk_' . $targetDate->format('M_Y') . '.docx');
+    }
+
+    public function generateNolpBulkDocx(Request $request)
+    {
+        ini_set('memory_limit', '-1');
+        set_time_limit(0);
+
+        $month = $request->query('month', now()->format('Y-m'));
+        try {
+            $targetDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+        } catch (\Exception $e) {
+            $targetDate = now()->startOfMonth();
+        }
+
+        $allDue = PlantillaRecord::stepDue()
+            ->where('is_vacant', false)
+            ->orderBy('organizational_unit')
+            ->orderBy('salary_grade')
+            ->get();
+
+        $employees = $allDue->filter(function($r) use ($targetDate) {
+            $due = $r->next_step_due_date;
+            return $r->is_hospital_personnel && 
+                   $due && 
+                   $due->year === $targetDate->year && 
+                   $due->month === $targetDate->month;
+        });
+
+        if ($employees->isEmpty()) {
+            return back()->with('error', 'No NOLP records found for this month.');
+        }
+
+        $records = [];
+        foreach ($employees as $plantilla) {
+            $currentStep = $plantilla->step ?: 1;
+            $currentSalary = SalaryGrade::getRate($plantilla->salary_grade, $currentStep);
+            $newStep = min(8, $currentStep + 2);
+            $newSalary = SalaryGrade::getRate($plantilla->salary_grade, $newStep);
+            $diff = $newSalary - $currentSalary;
+            
+            $appointmentDate = $plantilla->date_last_nolp ?? $plantilla->date_original_appointment;
+            $effectiveDate = $appointmentDate ? $appointmentDate->clone()->addYears(5) : now();
+
+            $records[] = [
+                'employee' => $plantilla,
+                'currentSalary' => $currentSalary,
+                'currentStep' => $currentStep,
+                'newStep' => $newStep,
+                'newSalary' => $newSalary,
+                'diff' => $diff,
+                'effectiveDate' => $effectiveDate,
+            ];
+        }
+
+        $phpWord = \App\Services\DocxGenerator::generateNolp(['records' => $records], true);
+        return \App\Services\DocxGenerator::download($phpWord, 'NOLP_Bulk_' . $targetDate->format('M_Y') . '.docx');
+    }
+
+    public function generateNosiDocx(PlantillaRecord $plantilla)
+    {
+        if ($plantilla->is_vacant) {
+            return back()->with('error', 'Cannot generate NOSI for a vacant position.');
+        }
+
+        $currentStep = $plantilla->step ?: 1;
+        $currentSalary = SalaryGrade::getRate($plantilla->salary_grade, $currentStep);
+        $newStep = min(8, $currentStep + 1);
+        $newSalary = SalaryGrade::getRate($plantilla->salary_grade, $newStep);
+        $diff = $newSalary - $currentSalary;
+        $appointmentDate = $plantilla->date_last_promotion ?? $plantilla->date_original_appointment;
+        $effectiveDate = $appointmentDate ? $appointmentDate->clone()->addYears(3) : now();
+
+        $data = [
+            'employee' => $plantilla,
+            'currentSalary' => $currentSalary,
+            'currentStep' => $currentStep,
+            'newStep' => $newStep,
+            'newSalary' => $newSalary,
+            'diff' => $diff,
+            'effectiveDate' => $effectiveDate,
+        ];
+
+        $phpWord = \App\Services\DocxGenerator::generateNosi($data);
+        return \App\Services\DocxGenerator::download($phpWord, 'NOSI_' . \Str::slug($plantilla->full_name) . '.docx');
+    }
+
+    public function generateNolpDocx(PlantillaRecord $plantilla)
+    {
+        if ($plantilla->is_vacant) {
+            return back()->with('error', 'Cannot generate NOLP for a vacant position.');
+        }
+
+        if (!$plantilla->is_hospital_personnel) {
+            return back()->with('error', 'NOLP is only applicable for Hospital/Medical personnel.');
+        }
+
+        $currentStep = $plantilla->step ?: 1;
+        $currentSalary = SalaryGrade::getRate($plantilla->salary_grade, $currentStep);
+        $newStep = min(8, $currentStep + 2);
+        $newSalary = SalaryGrade::getRate($plantilla->salary_grade, $newStep);
+        $diff = $newSalary - $currentSalary;
+        $appointmentDate = $plantilla->date_last_nolp ?? $plantilla->date_original_appointment;
+        $effectiveDate = $appointmentDate ? $appointmentDate->clone()->addYears(5) : now();
+
+        $data = [
+            'employee' => $plantilla,
+            'currentSalary' => $currentSalary,
+            'currentStep' => $currentStep,
+            'newStep' => $newStep,
+            'newSalary' => $newSalary,
+            'diff' => $diff,
+            'effectiveDate' => $effectiveDate,
+        ];
+
+        $phpWord = \App\Services\DocxGenerator::generateNolp($data);
+        return \App\Services\DocxGenerator::download($phpWord, 'NOLP_' . \Str::slug($plantilla->full_name) . '.docx');
     }
 }

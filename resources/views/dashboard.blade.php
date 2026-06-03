@@ -22,7 +22,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e9e9ff;
+            background-color: #f1f5f9;
         }
 
         .sidebar {
@@ -135,7 +135,7 @@
             border-top: 1px solid #e5e7eb;
         }
 
-        /* â”€â”€ Premium Logout Modal â”€â”€ */
+        /* ── Premium Logout Modal ── */
         .logout-overlay {
             display: none;
             position: fixed;
@@ -411,6 +411,65 @@
                 font-size: 24px;
             }
         }
+            /* Modern Dashboard Cards */
+        .dash-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e2e8f0;
+            height: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .dash-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #6366f1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .dash-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: #cbd5e1;
+        }
+        .dash-card:hover::before {
+            opacity: 1;
+        }
+        .dash-card-content {
+            display: flex; justify-content: space-between; align-items: flex-start;
+        }
+        .dash-card-title {
+            margin: 0; color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .dash-card-value {
+            margin: 8px 0 0 0; color: #0f172a; font-size: 32px; font-weight: 800; line-height: 1.1;
+        }
+        .dash-card-subtext {
+            margin: 4px 0 0 0; color: #94a3b8; font-size: 12px;
+        }
+        .dash-card-icon {
+            width: 54px; height: 54px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;
+            background: #eff6ff; color: #3b82f6; /* Default */
+        }
+        
+        /* Alert Box Restyling */
+        .premium-alert {
+            background: #fff1f2 !important;
+            border: 1px solid #ffe4e6 !important;
+            border-left: 4px solid #f43f5e !important;
+            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.08) !important;
+            border-radius: 12px !important;
+        }
+        .premium-alert .alert-heading { color: #881337 !important; }
+        .premium-alert p { color: #9f1239 !important; }
+        .premium-alert a { color: #be123c !important; text-decoration: underline; font-weight: 700; }
+        .premium-alert i { color: #f43f5e !important; }
+
+        }
     </style>
 </head>
 
@@ -422,8 +481,7 @@
             <img src="{{ asset('img/phrmologo.png') }}" alt="PHRMO Logo" class="sidebar-logo"
                 onerror="this.style.display='none'">
             <div class="sidebar-title-container">
-                <span class="sidebar-title-main">Human Resource Data Management System</span>
-                <span class="sidebar-title-sub">PHRMO Portal</span>
+                <span class="sidebar-title-main" style="line-height: 1.3; font-size: 14.5px; padding-top: 2px;">Human Resource<br>Data Management<br>System</span>
             </div>
         </div>
 
@@ -654,23 +712,23 @@
         <div class="container-fluid" style="padding: 20px;">
             <!-- Proactive Reminders Alert -->
             @if(($retirementDueCount ?? 0) > 0 || ($stepDueCount ?? 0) > 0)
-                <div class="alert alert-danger d-flex align-items-center mb-4" role="alert"
-                    style="border-radius: 12px; border-left: 5px solid #dc3545; background-color: #ffe8e8; color: #dc3545; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                    <i class="bi bi-bell-fill fs-3 me-3 text-danger"></i>
+                <div class="alert premium-alert d-flex align-items-center mb-4" role="alert"
+                    >
+                    <i class="bi bi-bell-fill fs-3 me-3"></i>
                     <div>
-                        <h5 class="alert-heading mb-1 text-dark" style="font-weight: 700; font-size: 16px;">Action Required
+                        <h5 class="alert-heading mb-1" style="font-size: 16px; font-weight: 800;">Action Required
                         </h5>
-                        <p class="mb-0 text-dark" style="font-size: 14px;">
+                        <p class="mb-0" style="font-size: 14px;">
                             You have
                             @if(($retirementDueCount ?? 0) > 0)
                                 <a href="{{ route('retirement.index') }}"
-                                    class="fw-bold text-danger text-decoration-underline">{{ $retirementDueCount }} employees
+                                    >{{ $retirementDueCount }} employees
                                     due for retirement</a>
                             @endif
                             @if(($retirementDueCount ?? 0) > 0 && ($stepDueCount ?? 0) > 0) and @endif
                             @if(($stepDueCount ?? 0) > 0)
                                 <a href="{{ route('step-increment.index') }}"
-                                    class="fw-bold text-primary text-decoration-underline">{{ $stepDueCount }} employees due for
+                                    >{{ $stepDueCount }} employees due for
                                     step increment</a>
                             @endif
                             that need your attention.
@@ -685,19 +743,19 @@
                 <!-- Total Employees Card -->
                 <a href="{{ route('all-data.index', ['vacant' => 'filled']) }}"
                     style="text-decoration: none; color: inherit; display: block;">
-                    <div style="background: #10327cff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(16,50,124,0.15); height: 100%; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='translateY(-2px)'"
-                        onmouseout="this.style.transform='translateY(0)'">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="dash-card"
+                        
+                        >
+                        <div class="dash-card-content">
                             <div>
-                                <p style="margin: 0; color: #93c5fd; font-size: 14px; font-weight: 500;">Total Employees
+                                <p class="dash-card-title">Total Employees
                                 </p>
-                                <h3 style="margin: 8px 0 0 0; color: #ffffff; font-size: 32px; font-weight: 700;">
+                                <h3 class="dash-card-value">
                                     {{ $filledPositions ?? 0 }}
                                 </h3>
                             </div>
                             <div
-                                style="background: rgba(255,255,255,0.15); color: #ffffff; width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                class="dash-card-icon icon-blue">
                                 <i class="bi bi-people"></i>
                             </div>
                         </div>
@@ -706,20 +764,20 @@
 
                 <!-- Total Records Card -->
                 <a href="{{ route('all-data.index') }}" style="text-decoration: none; color: inherit; display: block;">
-                    <div style="background: #10327cff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(16,50,124,0.15); height: 100%; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='translateY(-2px)'"
-                        onmouseout="this.style.transform='translateY(0)'">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="dash-card"
+                        
+                        >
+                        <div class="dash-card-content">
                             <div>
-                                <p style="margin: 0; color: #93c5fd; font-size: 14px; font-weight: 500;">Plantilla
+                                <p class="dash-card-title">Plantilla
                                     Position
                                 </p>
-                                <h3 style="margin: 8px 0 0 0; color: #ffffff; font-size: 32px; font-weight: 700;">
+                                <h3 class="dash-card-value">
                                     {{ $totalPositions ?? 0 }}
                                 </h3>
                             </div>
                             <div
-                                style="background: rgba(255,255,255,0.15); color: #ffffff; width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                class="dash-card-icon icon-purple">
                                 <i class="bi bi-person-badge"></i>
                             </div>
                         </div>
@@ -729,19 +787,19 @@
                 <!-- Filled Positions Card -->
                 <a href="{{ route('all-data.index', ['vacant' => 'filled']) }}"
                     style="text-decoration: none; color: inherit; display: block;">
-                    <div style="background: #10327cff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(16,50,124,0.15); height: 100%; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='translateY(-2px)'"
-                        onmouseout="this.style.transform='translateY(0)'">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="dash-card"
+                        
+                        >
+                        <div class="dash-card-content">
                             <div>
-                                <p style="margin: 0; color: #93c5fd; font-size: 14px; font-weight: 500;">Filled
+                                <p class="dash-card-title">Filled
                                     Positions</p>
-                                <h3 style="margin: 8px 0 0 0; color: #ffffff; font-size: 32px; font-weight: 700;">
+                                <h3 class="dash-card-value">
                                     {{ $filledPositions ?? 0 }}
                                 </h3>
                             </div>
                             <div
-                                style="background: rgba(255,255,255,0.15); color: #ffffff; width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                class="dash-card-icon icon-green">
                                 <i class="bi bi-check-circle"></i>
                             </div>
                         </div>
@@ -751,19 +809,19 @@
                 <!-- Vacant Positions Card -->
                 <a href="{{ route('all-data.index', ['vacant' => 'vacant']) }}"
                     style="text-decoration: none; color: inherit; display: block;">
-                    <div style="background: #10327cff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(16,50,124,0.15); height: 100%; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='translateY(-2px)'"
-                        onmouseout="this.style.transform='translateY(0)'">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="dash-card"
+                        
+                        >
+                        <div class="dash-card-content">
                             <div>
-                                <p style="margin: 0; color: #93c5fd; font-size: 14px; font-weight: 500;">Vacant
+                                <p class="dash-card-title">Vacant
                                     Positions</p>
-                                <h3 style="margin: 8px 0 0 0; color: #ffffff; font-size: 32px; font-weight: 700;">
+                                <h3 class="dash-card-value">
                                     {{ $vacantPositions ?? 0 }}
                                 </h3>
                             </div>
                             <div
-                                style="background: rgba(255,255,255,0.15); color: #ffffff; width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                class="dash-card-icon icon-orange">
                                 <i class="bi bi-exclamation-circle"></i>
                             </div>
                         </div>
@@ -777,18 +835,18 @@
                 <!-- Permanent Card -->
                 <a href="{{ route('all-data.index', ['status' => 'P', 'vacant' => 'filled']) }}"
                     style="text-decoration: none; color: inherit; display: block;">
-                    <div style="background: #10327cff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(16,50,124,0.15); height: 100%; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='translateY(-2px)'"
-                        onmouseout="this.style.transform='translateY(0)'">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="dash-card"
+                        
+                        >
+                        <div class="dash-card-content">
                             <div>
-                                <p style="margin: 0; color: #93c5fd; font-size: 14px; font-weight: 500;">Permanent</p>
-                                <h3 style="margin: 8px 0 0 0; color: #ffffff; font-size: 32px; font-weight: 700;">
+                                <p class="dash-card-title">Permanent</p>
+                                <h3 class="dash-card-value">
                                     {{ $permanentEmployeesCount ?? 0 }}
                                 </h3>
                             </div>
                             <div
-                                style="background: rgba(255,255,255,0.15); color: #ffffff; width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                class="dash-card-icon icon-blue">
                                 <i class="bi bi-briefcase"></i>
                             </div>
                         </div>
@@ -799,19 +857,19 @@
 
                 <!-- Overdue Retirements Card -->
                 <a href="{{ route('retirement.index') }}" style="text-decoration: none; color: inherit;">
-                    <div style="background: #10327cff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(16,50,124,0.15); height: 100%; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='translateY(-2px)'"
-                        onmouseout="this.style.transform='translateY(0)'">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="dash-card"
+                        
+                        >
+                        <div class="dash-card-content">
                             <div>
-                                <p style="margin: 0; color: #93c5fd; font-size: 14px; font-weight: 500;">Overdue
+                                <p class="dash-card-title">Overdue
                                     Retirements</p>
-                                <h3 style="margin: 8px 0 0 0; color: #ffffff; font-size: 32px; font-weight: 700;">
+                                <h3 class="dash-card-value">
                                     {{ $retirementDueCount ?? 0 }}
                                 </h3>
                             </div>
                             <div
-                                style="background: rgba(255,255,255,0.15); color: #ffffff; width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                class="dash-card-icon icon-red">
                                 <i class="bi bi-clock-history"></i>
                             </div>
                         </div>
@@ -820,19 +878,19 @@
 
                 <!-- Step Increments Due Card -->
                 <a href="{{ route('step-increment.index') }}" style="text-decoration: none; color: inherit;">
-                    <div style="background: #10327cff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(16,50,124,0.15); height: 100%; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='translateY(-2px)'"
-                        onmouseout="this.style.transform='translateY(0)'">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="dash-card"
+                        
+                        >
+                        <div class="dash-card-content">
                             <div>
-                                <p style="margin: 0; color: #93c5fd; font-size: 14px; font-weight: 500;">Step Increments
+                                <p class="dash-card-title">Step Increments
                                     Due</p>
-                                <h3 style="margin: 8px 0 0 0; color: #ffffff; font-size: 32px; font-weight: 700;">
+                                <h3 class="dash-card-value">
                                     {{ $stepDueCount ?? 0 }}
                                 </h3>
                             </div>
                             <div
-                                style="background: rgba(255,255,255,0.15); color: #ffffff; width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                class="dash-card-icon icon-purple">
                                 <i class="bi bi-graph-up-arrow"></i>
                             </div>
                         </div>
@@ -846,23 +904,23 @@
 
                 <!-- Casual Employees Card -->
                 <a href="{{ route('casual.index') }}" style="text-decoration: none; color: inherit; display: block;">
-                    <div style="background: #10327cff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(16,50,124,0.15); height: 100%; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='translateY(-2px)'"
-                        onmouseout="this.style.transform='translateY(0)'">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="dash-card"
+                        
+                        >
+                        <div class="dash-card-content">
                             <div>
-                                <p style="margin: 0; color: #93c5fd; font-size: 14px; font-weight: 500;">Casual
+                                <p class="dash-card-title">Casual
                                     Employees</p>
-                                <h3 style="margin: 8px 0 4px 0; color: #ffffff; font-size: 32px; font-weight: 700;">
+                                <h3 class="dash-card-value">
                                     {{ number_format($casualTotal) }}
                                 </h3>
-                                <p style="margin: 0; color: rgba(255,255,255,0.55); font-size: 12px;">
+                                <p class="dash-card-subtext">
                                     {{ number_format($casualVacant) }} vacant
                                     position{{ $casualVacant != 1 ? 's' : '' }}
                                 </p>
                             </div>
                             <div
-                                style="background: rgba(255,255,255,0.15); color: #ffffff; width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                class="dash-card-icon icon-orange">
                                 <i class="bi bi-person-lines-fill"></i>
                             </div>
                         </div>
@@ -872,21 +930,21 @@
                 <!-- Job Orders Card -->
                 <a href="{{ route('job-orders.index') }}"
                     style="text-decoration: none; color: inherit; display: block;">
-                    <div style="background: #10327cff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(16,50,124,0.15); height: 100%; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='translateY(-2px)'"
-                        onmouseout="this.style.transform='translateY(0)'">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="dash-card"
+                        
+                        >
+                        <div class="dash-card-content">
                             <div>
-                                <p style="margin: 0; color: #93c5fd; font-size: 14px; font-weight: 500;">Job Orders</p>
-                                <h3 style="margin: 8px 0 4px 0; color: #ffffff; font-size: 32px; font-weight: 700;">
+                                <p class="dash-card-title">Job Orders</p>
+                                <h3 class="dash-card-value">
                                     {{ number_format($jobOrderTotal) }}
                                 </h3>
                                 <p
-                                    style="margin: 0; color: rgba(255,255,255,0.55); font-size: 12px; white-space: nowrap;">
+                                    class="dash-card-subtext">
                                     Total job order records</p>
                             </div>
                             <div
-                                style="background: rgba(255,255,255,0.15); color: #ffffff; width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                class="dash-card-icon icon-blue">
                                 <i class="bi bi-file-earmark-person-fill"></i>
                             </div>
                         </div>
@@ -1031,8 +1089,8 @@
                 <a href="{{ route('all-data.index', ['pwd' => 1]) }}"
                     style="text-decoration: none; color: inherit; display: block;">
                     <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 5px solid #0d6efd; height: 100%; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='translateY(-2px)'"
-                        onmouseout="this.style.transform='translateY(0)'">
+                        
+                        >
                         <div style="display: flex; justify-content: flex-start; align-items: flex-start;">
                             <div>
                                 <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">PWD Count</p>
@@ -1048,8 +1106,8 @@
                 <a href="{{ route('all-data.index', ['ip' => 1]) }}"
                     style="text-decoration: none; color: inherit; display: block;">
                     <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 5px solid #0d6efd; height: 100%; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='translateY(-2px)'"
-                        onmouseout="this.style.transform='translateY(0)'">
+                        
+                        >
                         <div style="display: flex; justify-content: flex-start; align-items: flex-start;">
                             <div>
                                 <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">IP Count</p>
@@ -1065,8 +1123,8 @@
                 <a href="{{ route('all-data.index', ['solo_parent' => 1]) }}"
                     style="text-decoration: none; color: inherit; display: block;">
                     <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 5px solid #0d6efd; height: 100%; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='translateY(-2px)'"
-                        onmouseout="this.style.transform='translateY(0)'">
+                        
+                        >
                         <div style="display: flex; justify-content: flex-start; align-items: flex-start;">
                             <div>
                                 <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Solo Parent
@@ -1087,9 +1145,9 @@
             @endphp
 
             <style>
-                /* â•â• Birthday Widget â€” WONDERFUL EDITION â•â• */
+                /* â•â• Birthday Widget — WONDERFUL EDITION â•â• */
 
-                /* â”€â”€ Keyframes â”€â”€ */
+                /* ── Keyframes ── */
                 @keyframes bdaySlideIn {
                     from {
                         opacity: 0;
@@ -1249,7 +1307,7 @@
                     }
                 }
 
-                /* â”€â”€ Widget outer â”€â”€ */
+                /* ── Widget outer ── */
                 .bday-fx-widget {
                     border-radius: 22px;
                     overflow: hidden;
@@ -1258,7 +1316,7 @@
                     animation: bdaySlideIn .65s ease both;
                 }
 
-                /* â”€â”€ Header â”€â”€ */
+                /* ── Header ── */
                 .bday-fx-header {
                     background: linear-gradient(135deg, #1e1b4b 0%, #1d4ed8 30%, #7c3aed 58%, #db2777 80%, #ea580c 100%);
                     padding: 28px 30px;
@@ -1373,7 +1431,7 @@
                     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
                 }
 
-                /* â”€â”€ Body â€” aurora animated background â”€â”€ */
+                /* ── Body — aurora animated background ── */
                 .bday-fx-body {
                     position: relative;
                     overflow: hidden;
@@ -1452,7 +1510,7 @@
                     z-index: 1;
                 }
 
-                /* â”€â”€ Today spotlight â”€â”€ */
+                /* ── Today spotlight ── */
                 .bday-fx-today {
                     position: relative;
                     overflow: hidden;
@@ -1513,7 +1571,7 @@
                     color: #ea580c;
                 }
 
-                /* â”€â”€ Cards â”€â”€ */
+                /* ── Cards ── */
                 .bday-fx-card {
                     display: flex;
                     justify-content: space-between;
@@ -1555,7 +1613,7 @@
                     border-color: #93c5fd;
                 }
 
-                /* â”€â”€ Card internals â”€â”€ */
+                /* ── Card internals ── */
                 .bday-fx-info {
                     min-width: 0;
                     flex: 1;
@@ -1580,7 +1638,7 @@
                     text-overflow: ellipsis;
                 }
 
-                /* â”€â”€ Date display â€” no rectangle, clean text â”€â”€ */
+                /* ── Date display — no rectangle, clean text ── */
                 .bday-date-text {
                     font-size: 13px;
                     font-weight: 800;
@@ -1616,7 +1674,7 @@
                     text-align: right;
                 }
 
-                /* â”€â”€ Section divider â”€â”€ */
+                /* ── Section divider ── */
                 .bday-fx-section {
                     font-size: 11px;
                     font-weight: 800;
@@ -1636,7 +1694,7 @@
                     background: linear-gradient(90deg, #c7d2fe, transparent);
                 }
 
-                /* â”€â”€ Scroll â”€â”€ */
+                /* ── Scroll ── */
                 .bday-fx-scroll {
                     max-height: 380px;
                     overflow-y: auto;
@@ -1658,7 +1716,7 @@
                     border-radius: 10px;
                 }
 
-                /* â”€â”€ Card stagger â”€â”€ */
+                /* ── Card stagger ── */
                 .bday-fx-card:nth-child(1) {
                     animation-delay: .04s
                 }
@@ -1683,7 +1741,7 @@
                     animation-delay: .34s
                 }
 
-                /* â”€â”€ Empty state â”€â”€ */
+                /* ── Empty state ── */
                 .bday-fx-empty {
                     text-align: center;
                     padding: 52px 24px;
@@ -1691,7 +1749,9 @@
                     border: 2px dashed #e0e7ff;
                     background: rgba(248, 250, 252, 0.7);
                 }
-            </style>
+            
+        }
+    </style>
 
             <div class="row mt-4">
                 <div class="col-12">
@@ -1703,25 +1763,25 @@
                             <div class="hblob hblob2"></div>
                             <div class="hblob hblob3"></div>
                             <div class="bday-fx-particles">
-                                <span style="left:4%;animation-delay:0s;animation-duration:4s;">ðŸŽ‚</span>
-                                <span style="left:15%;animation-delay:.8s;animation-duration:5s;">âœ¨</span>
-                                <span style="left:28%;animation-delay:1.5s;animation-duration:4.2s;">ðŸŽ</span>
-                                <span style="left:45%;animation-delay:.4s;animation-duration:4.8s;">ðŸŽŠ</span>
-                                <span style="left:60%;animation-delay:1.1s;animation-duration:3.9s;">ðŸŽˆ</span>
-                                <span style="left:75%;animation-delay:.6s;animation-duration:4.5s;">â­</span>
-                                <span style="left:88%;animation-delay:1.9s;animation-duration:4.3s;">ðŸŽ‰</span>
+                                <span style="left:4%;animation-delay:0s;animation-duration:4s;">🎂</span>
+                                <span style="left:15%;animation-delay:.8s;animation-duration:5s;">✨</span>
+                                <span style="left:28%;animation-delay:1.5s;animation-duration:4.2s;">🎁</span>
+                                <span style="left:45%;animation-delay:.4s;animation-duration:4.8s;">🎊</span>
+                                <span style="left:60%;animation-delay:1.1s;animation-duration:3.9s;">🎈</span>
+                                <span style="left:75%;animation-delay:.6s;animation-duration:4.5s;">⭐</span>
+                                <span style="left:88%;animation-delay:1.9s;animation-duration:4.3s;">🎉</span>
                             </div>
                             <div class="bday-fx-header-inner">
                                 <div class="bday-fx-title-row">
-                                    <div class="bday-fx-icon">ðŸŽ</div>
+                                    <div class="bday-fx-icon">🎁</div>
                                     <div>
-                                        <h3>ðŸŽ‚ Birthdays This Month</h3>
-                                        <p class="sub">{{ now()->format('F Y') }} &nbsp;Â·&nbsp; Celebrating our team!
+                                        <h3>🎂 Birthdays This Month</h3>
+                                        <p class="sub">{{ now()->format('F Y') }} &nbsp;·&nbsp; Celebrating our team!
                                         </p>
                                     </div>
                                 </div>
                                 <div class="bday-fx-badge">
-                                    ðŸŽˆ {{ isset($monthlyBirthdays) ? count($monthlyBirthdays) : 0 }}
+                                    🎈 {{ isset($monthlyBirthdays) ? count($monthlyBirthdays) : 0 }}
                                     Celebrant{{ (isset($monthlyBirthdays) ? count($monthlyBirthdays) : 0) != 1 ? 's' : '' }}
                                 </div>
                             </div>
@@ -1766,7 +1826,7 @@
                                 @if($todayCelebrants->count() > 0)
                                     <div class="bday-fx-today">
                                         <p class="bday-fx-today-label">
-                                            <i class="bi bi-stars"></i> ðŸŽ‰ Today's Celebrants â€” {{ now()->format('F j') }}
+                                            <i class="bi bi-stars"></i> 🎉 Today's Celebrants — {{ now()->format('F j') }}
                                         </p>
                                         <div class="row g-2">
                                             @foreach($todayCelebrants as $emp)
@@ -1780,9 +1840,9 @@
                                                                 {{ $emp->position_title }}</div>
                                                         </div>
                                                         <div style="flex-shrink:0;text-align:right;margin-left:12px;">
-                                                            <div class="bday-date-text is-orange">ðŸ—“
+                                                            <div class="bday-date-text is-orange">🗓
                                                                 {{ $emp->date_of_birth->format('M d') }}</div>
-                                                            <div class="bday-fx-turns-orange">ðŸŽ‚ Turns {{ $age }}</div>
+                                                            <div class="bday-fx-turns-orange">🎂 Turns {{ $age }}</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1814,9 +1874,9 @@
                                                                 {{ $emp->position_title }}</div>
                                                         </div>
                                                         <div style="flex-shrink:0;text-align:right;margin-left:12px;">
-                                                            <div class="bday-date-text is-blue">ðŸ—“
+                                                            <div class="bday-date-text is-blue">🗓
                                                                 {{ $emp->date_of_birth->format('M d') }}</div>
-                                                            <div class="bday-fx-turns-blue">Turns {{ $age }} Â· {{ $daysLabel }}
+                                                            <div class="bday-fx-turns-blue">Turns {{ $age }} · {{ $daysLabel }}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1830,7 +1890,7 @@
                                 <div class="bday-fx-empty">
                                     <div
                                         style="width:72px;height:72px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 4px 10px rgba(0,0,0,0.06);font-size:2rem;animation:bdayBounce 2.5s ease-in-out infinite;">
-                                        ðŸŽ‚</div>
+                                        🎂</div>
                                     <p style="font-size:16px;font-weight:700;color:#1e293b;margin:20px 0 6px;">No Birthdays
                                         This Month</p>
                                     <p style="font-size:14px;color:#94a3b8;margin:0;">Check back next month!</p>
@@ -1941,7 +2001,7 @@
                     labels: ['Filled', 'Vacant Funded', 'Vacant Unfunded'],
                     datasets: [{
                         data: [chartData.filled, chartData.vacantFunded, chartData.vacantUnfunded],
-                        backgroundColor: ['#0048d9ff', '#062655ff', '#dc3545'],
+                        backgroundColor: ['#3b82f6', '#1e293b', '#f43f5e'],
                         borderColor: ['#fff', '#fff', '#fff'],
                         borderWidth: 3,
                         hoverOffset: 6
@@ -1957,8 +2017,10 @@
                             const label = this.data.labels[index];
                             if (label === 'Filled') {
                                 window.location.href = "{{ route('all-data.index', ['vacant' => 'filled']) }}";
-                            } else if (label.startsWith('Vacant')) {
-                                window.location.href = "{{ route('all-data.index', ['vacant' => 'vacant']) }}";
+                            } else if (label === 'Vacant Funded') {
+                                window.location.href = "{{ route('all-data.index', ['vacant' => 'vacant_funded']) }}";
+                            } else if (label === 'Vacant Unfunded') {
+                                window.location.href = "{{ route('all-data.index', ['vacant' => 'vacant_unfunded']) }}";
                             }
                         }
                     },

@@ -66,7 +66,7 @@
         {{-- Created Records Details --}}
         @if(!empty($stats['created_records']))
         <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-            <p class="text-green-800 font-semibold text-sm mb-2">Created Records:</p>
+            <p class="text-green-800 font-semibold text-sm mb-2">Created Records ({{ number_format($stats['created']) }} total):</p>
             <div class="max-h-48 overflow-y-auto">
                 <ul class="list-disc list-inside text-green-700 text-xs space-y-0.5">
                     @foreach($stats['created_records'] as $record)
@@ -74,13 +74,18 @@
                     @endforeach
                 </ul>
             </div>
+            @if($stats['created'] > 100)
+            <p class="text-green-600 text-xs mt-2 italic">
+                <i class="bi bi-info-circle me-1"></i>Showing first 100 of {{ number_format($stats['created']) }} created records.
+            </p>
+            @endif
         </div>
         @endif
 
         {{-- Updated Records Details --}}
         @if(!empty($stats['updated_records']))
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p class="text-blue-800 font-semibold text-sm mb-2">Updated Records:</p>
+            <p class="text-blue-800 font-semibold text-sm mb-2">Updated Records ({{ number_format($stats['updated']) }} total):</p>
             <div class="max-h-48 overflow-y-auto">
                 <ul class="list-disc list-inside text-blue-700 text-xs space-y-0.5">
                     @foreach($stats['updated_records'] as $record)
@@ -88,6 +93,11 @@
                     @endforeach
                 </ul>
             </div>
+            @if($stats['updated'] > 100)
+            <p class="text-blue-600 text-xs mt-2 italic">
+                <i class="bi bi-info-circle me-1"></i>Showing first 100 of {{ number_format($stats['updated']) }} updated records.
+            </p>
+            @endif
         </div>
         @endif
 

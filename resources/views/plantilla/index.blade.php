@@ -2,7 +2,7 @@
     <style>
         /* Page-specific styles for Inventory of Personnel */
         .inv-hero {
-            background: linear-gradient(135deg, #1e3a5f 0%, #1a5276 55%, #117a65 100%);
+            background: linear-gradient(135deg, #052c65 0%, #1e3a8a 55%, #1e40af 100%);
             border-radius: 14px;
             padding: 28px 32px;
             position: relative;
@@ -111,8 +111,8 @@
         /* Status cards */
         .status-grid {
             display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+            gap: 12px;
             margin-bottom: 20px;
         }
 
@@ -511,26 +511,26 @@
             <p>Real-time snapshot of all positions across every office</p>
         </div>
         <div style="display:flex;align-items:center;gap:28px;">
-            <a href="{{ route('plantilla.pwd-report') }}" class="hero-btn" style="background: rgba(254, 252, 232, 0.15); border-color: rgba(254, 240, 138, 0.4); color: #fefce8;">
+            <a href="{{ route('plantilla.pwd-report') }}" class="hero-btn">
                 <i class="bi bi-person-wheelchair"></i> PWD Report
                 <span style="background: #fef08a; color: #a16207; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 99px; margin-left: 4px;">{{ $pwdCount ?? 0 }}</span>
             </a>
 
-            <a href="{{ route('plantilla.ip-report') }}" class="hero-btn" style="background: rgba(255, 247, 237, 0.15); border-color: rgba(254, 215, 170, 0.4); color: #ffedd5;">
+            <a href="{{ route('plantilla.ip-report') }}" class="hero-btn">
                 <i class="bi bi-people-fill"></i> IP Report
                 <span style="background: #fed7aa; color: #c2410c; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 99px; margin-left: 4px;">{{ $ipCount ?? 0 }}</span>
             </a>
 
-            <a href="{{ route('plantilla.position-report') }}" class="hero-btn" style="background: rgba(6, 182, 212, 0.18); border-color: rgba(6, 182, 212, 0.4); color: #cffafe;">
+            <a href="{{ route('plantilla.position-report') }}" class="hero-btn">
                 <i class="bi bi-file-text-fill"></i> Position Report
             </a>
 
-            <a href="{{ route('plantilla.reports') }}" class="hero-btn" style="background: rgba(16,185,129,.18); border-color: rgba(16,185,129,.4); color: #d1fae5;">
+            <a href="{{ route('plantilla.reports') }}" class="hero-btn">
                 <i class="bi bi-file-earmark-bar-graph"></i> Reports
             </a>
 
             @if(auth()->user()->isSuperAdmin())
-                <a href="{{ route('plantilla.create') }}" class="hero-btn">
+                <a href="{{ route('plantilla.create') }}" class="hero-btn" style="background:#fff; color:#1e3a8a; font-weight:800; border:none;">
                     <i class="bi bi-plus-lg"></i> Add Record
                 </a>
             @endif
@@ -730,13 +730,13 @@
                 <div style="font-size:11px;color:#93c5fd;margin-top:2px;">{{ number_format($vacantFunded->sum()) }} total open slots</div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
-                <a href="{{ route('plantilla.form9') }}" target="_blank" style="background:#1d4ed8;color:#fff;font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;text-decoration:none;" title="Generate CSC Form No. 9">
+                <a href="{{ route('plantilla.form9') }}" target="_blank" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;text-decoration:none;" title="Generate CSC Form No. 9">
                     <i class="bi bi-printer"></i> Print Form 9
                 </a>
-                <a href="{{ route('plantilla.vacant.export.pdf', ['type' => 'funded']) }}" target="_blank" style="background:#dc2626;color:#fff;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export PDF">
+                <a href="{{ route('plantilla.vacant.export.pdf', ['type' => 'funded']) }}" target="_blank" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export PDF">
                     <i class="bi bi-file-earmark-pdf"></i> PDF
                 </a>
-                <a href="{{ route('plantilla.vacant.export.excel', ['type' => 'funded']) }}" style="background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export Excel">
+                <a href="{{ route('plantilla.vacant.export.excel', ['type' => 'funded']) }}" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export Excel">
                     <i class="bi bi-file-earmark-excel"></i> Excel
                 </a>
                 <span style="font-size:32px;font-weight:900;color:#1d4ed8;line-height:1;">{{ number_format($vacantFunded->count()) }}</span>
@@ -773,10 +773,10 @@
                 <div style="font-size:11px;color:#9ca3af;margin-top:2px;">{{ number_format($vacantUnfunded->sum()) }} total abolished slots</div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
-                <a href="{{ route('plantilla.vacant.export.pdf', ['type' => 'unfunded']) }}" target="_blank" style="background:#dc2626;color:#fff;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export PDF">
+                <a href="{{ route('plantilla.vacant.export.pdf', ['type' => 'unfunded']) }}" target="_blank" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export PDF">
                     <i class="bi bi-file-earmark-pdf"></i> PDF
                 </a>
-                <a href="{{ route('plantilla.vacant.export.excel', ['type' => 'unfunded']) }}" style="background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export Excel">
+                <a href="{{ route('plantilla.vacant.export.excel', ['type' => 'unfunded']) }}" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export Excel">
                     <i class="bi bi-file-earmark-excel"></i> Excel
                 </a>
                 <span style="font-size:32px;font-weight:900;color:#9ca3af;line-height:1;">{{ number_format($vacantUnfunded->count()) }}</span>
@@ -787,10 +787,11 @@
         @else
             <div class="vacant-scrollable">
                 @foreach($vacantUnfunded as $title => $count)
-                    <div class="vacant-row">
-                        <span style="font-size:13px;color:#374151;font-weight:500;">{{ $title ?: 'Untitled Position' }}</span>
+                    <a href="{{ route('plantilla.vacant-unfunded.detail', ['position' => $title]) }}"
+                       class="vacant-row" style="text-decoration:none;">
+                        <span style="font-size:13px;color:#374151;font-weight:600;">{{ $title ?: 'Untitled Position' }}</span>
                         <span class="vacant-badge" style="background:#6b7280;">{{ $count }}</span>
-                    </div>
+                    </a>
                 @endforeach
             </div>
         @endif

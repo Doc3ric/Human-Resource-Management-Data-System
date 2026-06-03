@@ -539,6 +539,9 @@ class PlantillaController extends Controller
      */
     public function exportVacantFundedDetailPdf(Request $request)
     {
+        ini_set('memory_limit', '2048M');
+        set_time_limit(600);
+
         $position = $request->input('position', '');
         $slug = \Illuminate\Support\Str::slug($position);
         $filename = 'Vacant_Funded_' . $slug . '_' . now()->format('Y-m-d') . '.pdf';
@@ -552,6 +555,97 @@ class PlantillaController extends Controller
             ->get();
 
         $pdf = Pdf::loadView('exports.vacant-funded-position-pdf', compact('records', 'position'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Show a detail view of all vacant-unfunded records for a single position title.
+     * ?position=URL-encoded+position+title
+     */
+    public function vacantUnfundedDetail(Request $request)
+    {
+        $position = $request->input('position', '');
+
+        $records = PlantillaRecord::where(function($q) {
+                // abolished/dissolved vacants
+                $q->where(function($q2) {
+                    $q2->where('is_vacant', true)
+                       ->where(function($q3) {
+                           $q3->where('abolished', true)->orWhere('dissolved', true);
+                       });
+                })
+                // OR zero-salary records
+                ->orWhere(function($q2) {
+                    $q2->where(function($q3) {
+                        $q3->whereNull('authorized_annual_salary')
+                           ->orWhere('authorized_annual_salary', 0);
+                    })->where(function($q3) {
+                        $q3->whereNull('actual_annual_salary')
+                           ->orWhere('actual_annual_salary', 0);
+                    });
+                });
+            })
+            ->where('position_title', $position)
+            ->orderBy('organizational_unit')
+            ->orderBy('item')
+            ->get();
+
+        return view('plantilla.vacant-unfunded-detail', compact('records', 'position'));
+    }
+
+    /**
+     * Export a single vacant-unfunded position as Excel.
+     * ?position=URL-encoded+position+title
+     */
+    public function exportVacantUnfundedDetailExcel(Request $request)
+    {
+        $position = $request->input('position', '');
+        $slug = \Illuminate\Support\Str::slug($position);
+        $filename = 'Vacant_Unfunded_' . $slug . '_' . now()->format('Y-m-d') . '.xlsx';
+
+        return Excel::download(
+            new \App\Exports\VacantUnfundedPositionExport($position),
+            $filename
+        );
+    }
+
+    /**
+     * Export a single vacant-unfunded position as PDF.
+     * ?position=URL-encoded+position+title
+     */
+    public function exportVacantUnfundedDetailPdf(Request $request)
+    {
+        ini_set('memory_limit', '2048M');
+        set_time_limit(600);
+
+        $position = $request->input('position', '');
+        $slug = \Illuminate\Support\Str::slug($position);
+        $filename = 'Vacant_Unfunded_' . $slug . '_' . now()->format('Y-m-d') . '.pdf';
+
+        $records = PlantillaRecord::where(function($q) {
+                $q->where(function($q2) {
+                    $q2->where('is_vacant', true)
+                       ->where(function($q3) {
+                           $q3->where('abolished', true)->orWhere('dissolved', true);
+                       });
+                })->orWhere(function($q2) {
+                    $q2->where(function($q3) {
+                        $q3->whereNull('authorized_annual_salary')
+                           ->orWhere('authorized_annual_salary', 0);
+                    })->where(function($q3) {
+                        $q3->whereNull('actual_annual_salary')
+                           ->orWhere('actual_annual_salary', 0);
+                    });
+                });
+            })
+            ->where('position_title', $position)
+            ->orderBy('organizational_unit')
+            ->orderBy('item')
+            ->get();
+
+        $pdf = Pdf::loadView('exports.vacant-unfunded-position-pdf', compact('records', 'position'))
             ->setPaper('a4', 'portrait');
 
         return $pdf->download($filename);
@@ -960,6 +1054,9 @@ class PlantillaController extends Controller
      */
     public function generateForm9()
     {
+        ini_set('memory_limit', '2048M');
+        set_time_limit(600);
+
         $vacantRecords = PlantillaRecord::where('is_vacant', true)
                             ->where('abolished', false)
                             ->where('dissolved', false)

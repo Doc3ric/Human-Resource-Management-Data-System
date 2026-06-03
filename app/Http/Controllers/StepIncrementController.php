@@ -19,6 +19,13 @@ class StepIncrementController extends Controller
     public function index(Request $request)
     {
         $tab = $request->input('tab', 'due'); // due | upcoming_nolp | upcoming_nosi | magna_carta | history
+        $filterMonth = $request->input('filter_month', now()->format('Y-m'));
+        try {
+            $targetDate = \Carbon\Carbon::createFromFormat('Y-m', $filterMonth)->startOfMonth();
+        } catch (\Exception $e) {
+            $targetDate = now()->startOfMonth();
+            $filterMonth = now()->format('Y-m');
+        }
 
         // OVERDUE / DUE THIS MONTH
         $allDue = PlantillaRecord::stepDue()
@@ -26,16 +33,38 @@ class StepIncrementController extends Controller
             ->orderBy('salary_grade')
             ->get();
 
-        $overdueIds = $allDue->filter(fn($r) => $r->next_step_due_date && $r->next_step_due_date->lt(now()->startOfMonth()))->pluck('id');
-        $dueIds     = $allDue->filter(fn($r) => $r->next_step_due_date && $r->next_step_due_date->gte(now()->startOfMonth()) && $r->next_step_due_date->lte(now()))->pluck('id');
+        $overdueIds = $allDue->filter(fn($r) => $r->next_step_due_date && $r->next_step_due_date->lt($targetDate))->pluck('id');
+        
+        $dueIds = [];
+        $nosiIds = [];
+        $nolpIds = [];
+        foreach ($allDue as $r) {
+            $due = $r->next_step_due_date;
+            if ($due && $due->format('Y-m') === $targetDate->format('Y-m')) {
+                $dueIds[] = $r->id;
+                if ($r->is_hospital_personnel) {
+                    $nolpIds[] = $r->id;
+                } else {
+                    $nosiIds[] = $r->id;
+                }
+            }
+        }
 
         $overdue = PlantillaRecord::whereIn('id', $overdueIds)
             ->orderBy('organizational_unit')->orderBy('salary_grade')
-            ->paginate(15, ['*'], 'od_page')->withQueryString();
+            ->paginate(15, ['*'], 'od_page')->appends($request->except('od_page'));
 
         $due = PlantillaRecord::whereIn('id', $dueIds)
             ->orderBy('organizational_unit')->orderBy('salary_grade')
-            ->paginate(15, ['*'], 'due_page')->withQueryString();
+            ->paginate(15, ['*'], 'due_page')->appends($request->except('due_page'));
+
+        $nosi = PlantillaRecord::whereIn('id', $nosiIds)
+            ->orderBy('organizational_unit')->orderBy('salary_grade')
+            ->paginate(15, ['*'], 'nosi_page')->appends($request->except('nosi_page'));
+
+        $nolp = PlantillaRecord::whereIn('id', $nolpIds)
+            ->orderBy('organizational_unit')->orderBy('salary_grade')
+            ->paginate(15, ['*'], 'nolp_page')->appends($request->except('nolp_page'));
 
         // UPCOMING (within 6 months) — split into NOLP (hospital) and NOSI (non-hospital)
         $sixMonthsFromNow = now()->addMonths(6);
@@ -84,7 +113,7 @@ class StepIncrementController extends Controller
 
         $stats = [
             'overdue'      => $overdueIds->count(),
-            'due'          => $dueIds->count(),
+            'due'          => count($dueIds),
             'upcoming'     => $upcomingCount,
             'upcoming_nolp'=> $upcomingNolpIds->count(),
             'upcoming_nosi'=> $upcomingNosiIds->count(),
@@ -93,10 +122,10 @@ class StepIncrementController extends Controller
         ];
 
         return view('step-increment.index', compact(
-            'overdue', 'due',
+            'overdue', 'due', 'nosi', 'nolp',
             'upcomingNolp', 'upcomingNosi',
             'magnaCartaDue', 'histories', 'historySearch',
-            'stats', 'tab'
+            'stats', 'tab', 'filterMonth'
         ));
     }
 

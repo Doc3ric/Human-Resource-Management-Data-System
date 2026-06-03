@@ -159,9 +159,7 @@
                                         <td style="padding: 1rem 1.5rem; text-align: center;">
                                             <div style="display: flex; justify-content: center; align-items: center; gap: 0.25rem; flex-wrap: wrap;">
                                                 <button type="button"
-                                                        style="background: transparent; border: 1px solid #e5e7eb; color: #4b5563; border-radius: 9999px; padding: 0.25rem 0.75rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; cursor: pointer; transition: all 0.2s; font-size: 0.75rem; font-weight: 600;"
-                                                        onmouseover="this.style.backgroundColor='#f3f4f6'; this.style.borderColor='#d1d5db';"
-                                                        onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='#e5e7eb';"
+                                                        class="btn-audit changes"
                                                         onclick="viewAuditLog(this)"
                                                         data-user="{{ $log->causer ? $log->causer->name : 'System' }}"
                                                         data-action="{{ $log->event }}"
@@ -169,7 +167,7 @@
                                                         data-date="{{ $log->created_at->format('M d, Y h:i A') }}"
                                                         data-changes="{{ json_encode($log->properties) }}"
                                                         title="View Changes">
-                                                    <i class="bi bi-eye" style="font-size: 0.875rem;"></i> Changes
+                                                    <i class="bi bi-eye"></i> Changes
                                                 </button>
 
                                                 {{-- Undo button — only for 'updated' events on employee models --}}
@@ -177,12 +175,10 @@
                                                 <form method="POST" action="{{ route('audit-logs.undo', $log->id) }}" id="audit-undo-form-{{ $log->id }}">
                                                     @csrf
                                                     <button type="button"
+                                                            class="btn-audit undo"
                                                             onclick="confirmAuditUndo('{{ $log->id }}')"
-                                                            style="background-color: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 11px; padding: 4px 10px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s; font-weight: 600; cursor: pointer;"
-                                                            onmouseover="this.style.backgroundColor='#dbeafe'; this.style.transform='translateY(-1px)';"
-                                                            onmouseout="this.style.backgroundColor='#eff6ff'; this.style.transform='translateY(0)';"
                                                             title="Revert this change">
-                                                        <i class="bi bi-arrow-counterclockwise" style="margin-right: 4px;"></i> Undo
+                                                        <i class="bi bi-arrow-counterclockwise"></i> Undo
                                                     </button>
                                                 </form>
                                                 @endif
@@ -418,6 +414,43 @@
         .diff-key { font-weight: 700; color: #4b5563; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.025em; border-bottom: 1px dashed #e5e7eb; padding-bottom: 4px; word-break: break-word; }
         .diff-val-old { color: #dc2626; text-decoration: line-through; margin-right: 8px; word-break: break-all; }
         .diff-val-new { color: #16a34a; word-break: break-all; }
+
+        /* Audit Table Buttons */
+        .btn-audit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all .15s;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .btn-audit.changes {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+
+        .btn-audit.changes:hover {
+            background: #dbeafe;
+            border-color: #93c5fd;
+        }
+
+        .btn-audit.undo {
+            background: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fde68a;
+        }
+
+        .btn-audit.undo:hover {
+            background: #fef3c7;
+            border-color: #fcd34d;
+        }
     </style>
 
     <script>

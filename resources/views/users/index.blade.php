@@ -123,51 +123,47 @@
             align-items: center;
             justify-content: center;
             width: auto;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 11px;
             font-weight: 700;
             text-decoration: none;
-            transition: all .2s;
-            border: none;
+            transition: all .15s;
             gap: 4px;
             cursor: pointer;
         }
 
         .btn-icon.approve {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: #fff;
-            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
         }
 
         .btn-icon.approve:hover {
-            background: linear-gradient(135deg, #059669, #047857);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.4);
+            background: #d1fae5;
+            border-color: #6ee7b7;
         }
 
         .btn-icon.edit {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: #fff;
-            box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3);
+            background: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fde68a;
         }
 
         .btn-icon.edit:hover {
-            background: linear-gradient(135deg, #d97706, #b45309);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 10px rgba(217, 119, 6, 0.4);
+            background: #fef3c7;
+            border-color: #fcd34d;
         }
 
         .btn-icon.del {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: #fff;
-            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
         }
 
         .btn-icon.del:hover {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 10px rgba(220, 38, 38, 0.4);
+            background: #fee2e2;
+            border-color: #fca5a5;
         }
 
         .alert-success {

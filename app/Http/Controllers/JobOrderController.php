@@ -41,20 +41,22 @@ class JobOrderController extends Controller
             $query->where('gender', strtoupper($request->input('gender')));
         }
 
-        $records = $query->get();
-
         // Stats
-        $total       = $records->count();
-        $maleCount   = $records->where('gender', 'M')->count();
-        $femaleCount = $records->where('gender', 'F')->count();
+        $total       = (clone $query)->count();
+        $maleCount   = (clone $query)->where('gender', 'M')->count();
+        $femaleCount = (clone $query)->where('gender', 'F')->count();
 
-        $byOffice = $records->groupBy('office')
-            ->map(fn($g) => $g->count())
+        $byOffice = (clone $query)->reorder()->select('office', \DB::raw('count(*) as count'))
+            ->groupBy('office')
+            ->pluck('count', 'office')
             ->sortKeys();
 
-        $byNature = $records->groupBy('nature_of_work')
-            ->map(fn($g) => $g->count())
+        $byNature = (clone $query)->reorder()->select('nature_of_work', \DB::raw('count(*) as count'))
+            ->groupBy('nature_of_work')
+            ->pluck('count', 'nature_of_work')
             ->sortKeys();
+            
+        $records = $query->paginate(50)->withQueryString();
 
         // Filter options
         $offices    = JobOrder::distinct()->orderBy('office')->pluck('office')->filter()->values();
@@ -215,37 +217,37 @@ class JobOrderController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Inventory');
 
-        // ── Main header row (row 9) ──────────────────────────────────────
-        // Columns: A=NO, B=CHARGES, C=FAMILY, D=FIRST, E=MI, F=EXT,
-        //          G=POSITION, H=NATURE OF WORK, I=OFFICE, J=RATE/DAY,
-        //          K=FIRST DAY OF SERVICE, L=LOS YEARS, M=LOS MONTHS,
-        //          N=BIRTHDATE, O=ADDRESS, P=ELIGIBILITY,
-        //          Q=GENDER M, R=GENDER F, S=1st LEVEL, T=2nd LEVEL,
-        //          U=IP COMMUNITY MEMBERSHIP, V=SOLO PARENT, W=REMARKS
+        // ── Header row (row 1) ─────────────────────────────────────────────
+        // Columns:
+        // A=CHARGES  B=LASTNAME  C=FIRSTNAME  D=M.I.  E=EXT.  F=POSITION
+        // G=NATURE OF WORK  H=OFFICE ASSIGNED  I=RATE/DAY
+        // J=FIRST DAY OF SERVICE  K=LENGTH YR/S  L=MONTH/S
+        // M=BIRTHDATE  N=STATUS  O=ADDRESS  P=ELIGIBILITY
+        // Q=NATURE OF WORK (detail)  R=GENDER  S=LEVEL
+        // T=IP COMMUNITY MEMBERSHIP  U=SOLO PARENT  V=REMARKS
         $headers = [
-            'A9' => 'NO.',
-            'B9' => 'CHARGES',
-            'C9' => 'FAMILY',
-            'D9' => 'FIRST',
-            'E9' => 'M.I.',
-            'F9' => 'EXT',
-            'G9' => 'POSITION',
-            'H9' => 'NATURE OF WORK',
-            'I9' => 'OFFICE',
-            'J9' => 'RATE/DAY',
-            'K9' => 'FIRST DAY OF SERVICE',
-            'L9' => 'LENGTH YRS',
-            'M9' => 'LENGTH MOS',
-            'N9' => 'BIRTHDATE',
-            'O9' => 'ADDRESS',
-            'P9' => 'ELIGIBILITY',
-            'Q9' => 'GENDER (M)',
-            'R9' => 'GENDER (F)',
-            'S9' => '1st LEVEL',
-            'T9' => '2nd LEVEL',
-            'U9' => 'IP COMMUNITY MEMBERSHIP',
-            'V9' => 'SOLO PARENT',
-            'W9' => 'REMARKS',
+            'A1' => 'CHARGES',
+            'B1' => 'LASTNAME',
+            'C1' => 'FIRSTNAME',
+            'D1' => 'M.I.',
+            'E1' => 'EXT.',
+            'F1' => 'POSITION',
+            'G1' => 'NATURE OF WORK',
+            'H1' => 'OFFICE ASSIGNED',
+            'I1' => 'RATE/DAY',
+            'J1' => 'FIRST DAY OF SERVICE',
+            'K1' => 'LENGHT OF SERVICE YEAR/S',
+            'L1' => 'MONTH/S',
+            'M1' => 'BIRTHDATE',
+            'N1' => 'STATUS',
+            'O1' => 'ADDRESS',
+            'P1' => 'ELIGIBILITY',
+            'Q1' => 'NATURE OF WORK',
+            'R1' => 'GENDER',
+            'S1' => 'LEVEL',
+            'T1' => 'IP COMMUNNITY MEMBERSHIP',
+            'U1' => 'SOLO PARENT',
+            'V1' => 'REMARKS',
         ];
 
         foreach ($headers as $cell => $value) {
@@ -253,55 +255,62 @@ class JobOrderController extends Controller
         }
 
         // Style the header row
-        $sheet->getStyle('A9:W9')->applyFromArray([
+        $sheet->getStyle('A1:V1')->applyFromArray([
             'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 9],
             'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1E3A5F']],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
             'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'AAAAAA']]],
         ]);
-        $sheet->getRowDimension(9)->setRowHeight(30);
-
-        // Title rows (1–8 placeholder)
-        $sheet->mergeCells('A1:W1');
-        $sheet->setCellValue('A1', 'JO INVENTORY 2026 — Import Template');
-        $sheet->getStyle('A1')->applyFromArray([
-            'font'      => ['bold' => true, 'size' => 14, 'color' => ['rgb' => '1E3A5F']],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
-        ]);
-        $sheet->getRowDimension(1)->setRowHeight(24);
+        $sheet->getRowDimension(1)->setRowHeight(30);
 
         // Add one sample row
-        $sample = ['A10' => '1', 'B10' => 'BEMO', 'C10' => 'DELA CRUZ', 'D10' => 'JUAN',
-                   'E10' => 'S.', 'F10' => 'Jr.', 'G10' => 'ADMINISTRATIVE AIDE II',
-                   'H10' => 'Clerical services', 'I10' => 'BEMO', 'J10' => '615.00',
-                   'K10' => '2024-01-15', 'N10' => '1990-05-20',
-                   'O10' => 'Marikina City', 'P10' => 'NO ELIGIBILITY', 'Q10' => '/', 'R10' => ''];
+        $sample = [
+            'A2' => 'BENRO',
+            'B2' => 'DELA CRUZ',
+            'C2' => 'JUAN',
+            'D2' => 'S.',
+            'E2' => 'Jr.',
+            'F2' => 'ADMINISTRATIVE AIDE II',
+            'G2' => 'Clerical services',
+            'H2' => 'BENRO',
+            'I2' => '678.41',
+            'J2' => '2024-01-15',
+            'K2' => '1',
+            'L2' => '4',
+            'M2' => '1990-05-20',
+            'N2' => 'SINGLE',
+            'O2' => 'Malaybalay City, Bukidnon',
+            'P2' => 'NO ELIGIBILITY',
+            'Q2' => 'CLERICAL SERVICES',
+            'R2' => 'M',
+            'S2' => 'M1',
+        ];
         foreach ($sample as $cell => $val) {
             $sheet->setCellValue($cell, $val);
         }
-        $sheet->getStyle('A10:W10')->applyFromArray([
+        $sheet->getStyle('A2:V2')->applyFromArray([
             'fill'    => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F0F7FF']],
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
             'font'    => ['size' => 9, 'italic' => true, 'color' => ['rgb' => '555555']],
         ]);
 
         // Note row
-        $sheet->mergeCells('A11:W11');
-        $sheet->setCellValue('A11', '⚠ For GENDER: enter "/" or "x" in the M or F column. For checkboxes (1st/2nd Level, Solo Parent): enter "/" or "x". Dates: YYYY-MM-DD. Delete rows 10–11 before uploading real data.');
-        $sheet->getStyle('A11')->applyFromArray([
+        $sheet->mergeCells('A3:V3');
+        $sheet->setCellValue('A3', '⚠ GENDER: enter M or F. LEVEL: M1, F1, M2, F2. STATUS: SINGLE, MARRIED, WIDOW, etc. Dates: YYYY-MM-DD or YYYY/MM/DD. Delete rows 2–3 before uploading real data.');
+        $sheet->getStyle('A3')->applyFromArray([
             'font'      => ['italic' => true, 'color' => ['rgb' => '888888'], 'size' => 8],
             'alignment' => ['wrapText' => true],
             'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFDE7']],
         ]);
-        $sheet->getRowDimension(11)->setRowHeight(28);
+        $sheet->getRowDimension(3)->setRowHeight(28);
 
         // Auto-width columns
-        foreach (range('A', 'W') as $col) {
+        foreach (range('A', 'V') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
         // Freeze pane below header
-        $sheet->freezePane('A10');
+        $sheet->freezePane('A2');
 
         $writer = new Xlsx($spreadsheet);
         $filename = 'JO_Import_Template_' . now()->format('Y') . '.xlsx';
@@ -356,28 +365,28 @@ class JobOrderController extends Controller
 
         // ── Headers and Filter Setup ──────────────────────────────────────
         $allCols = [
-            'charges' => 'CHARGES',
-            'family_name' => 'FAMILY NAME',
-            'first_name' => 'FIRST NAME',
-            'mi' => 'M.I.',
-            'ext' => 'EXT',
-            'position' => 'POSITION',
-            'nature_of_work' => 'NATURE OF WORK',
-            'office' => 'OFFICE',
-            'rate_day' => 'RATE/DAY',
-            'first_day' => 'FIRST DAY OF SERVICE',
-            'length_yrs' => 'LENGTH (YRS)',
-            'length_mos' => 'LENGTH (MOS)',
-            'birthdate' => 'BIRTHDATE',
-            'address' => 'ADDRESS',
-            'eligibility' => 'ELIGIBILITY',
-            'gender_m' => 'GENDER (M)',
-            'gender_f' => 'GENDER (F)',
-            'level_1' => '1st LEVEL',
-            'level_2' => '2nd LEVEL',
-            'ip' => 'IP COMMUNITY MEMBERSHIP',
-            'solo_parent' => 'SOLO PARENT',
-            'remarks' => 'REMARKS',
+            'charges'              => 'CHARGES',
+            'family_name'          => 'LASTNAME',
+            'first_name'           => 'FIRSTNAME',
+            'mi'                   => 'M.I.',
+            'ext'                  => 'EXT.',
+            'position'             => 'POSITION',
+            'nature_of_work'       => 'NATURE OF WORK',
+            'office'               => 'OFFICE ASSIGNED',
+            'rate_day'             => 'RATE/DAY',
+            'first_day'            => 'FIRST DAY OF SERVICE',
+            'length_yrs'           => 'LENGHT OF SERVICE YEAR/S',
+            'length_mos'           => 'MONTH/S',
+            'birthdate'            => 'BIRTHDATE',
+            'civil_status'         => 'STATUS',
+            'address'              => 'ADDRESS',
+            'eligibility'          => 'ELIGIBILITY',
+            'nature_of_work_detail'=> 'NATURE OF WORK',
+            'gender'               => 'GENDER',
+            'level'                => 'LEVEL',
+            'ip'                   => 'IP COMMUNNITY MEMBERSHIP',
+            'solo_parent'          => 'SOLO PARENT',
+            'remarks'              => 'REMARKS',
         ];
 
         $cols = ['NO.'];
@@ -454,12 +463,12 @@ class JobOrderController extends Controller
                     case 'length_yrs': $val = $jo->first_day_of_service ? $jo->years_of_service : ''; break;
                     case 'length_mos': $val = $jo->first_day_of_service ? $jo->months_of_service : ''; break;
                     case 'birthdate': $val = $jo->birthdate ? $jo->birthdate->format('Y-m-d') : ''; break;
+                    case 'civil_status': $val = $jo->civil_status; break;
                     case 'address': $val = $jo->address; break;
                     case 'eligibility': $val = $jo->eligibility; break;
-                    case 'gender_m': $val = $jo->gender === 'M' ? '/' : ''; break;
-                    case 'gender_f': $val = $jo->gender === 'F' ? '/' : ''; break;
-                    case 'level_1': $val = $jo->first_level_eligibility ? '/' : ''; break;
-                    case 'level_2': $val = $jo->second_level_eligibility ? '/' : ''; break;
+                    case 'nature_of_work_detail': $val = $jo->nature_of_work_detail; break;
+                    case 'gender': $val = $jo->gender; break;
+                    case 'level': $val = $jo->level; break;
                     case 'ip': $val = $jo->ip_community_membership; break;
                     case 'solo_parent': $val = $jo->solo_parent ? '/' : ''; break;
                     case 'remarks': $val = $jo->remarks; break;
@@ -509,26 +518,29 @@ class JobOrderController extends Controller
     private function validateRecord(Request $request, ?int $exceptId = null): array
     {
         return $request->validate([
-            'charges'                 => 'nullable|string|max:100',
-            'last_name'               => 'required|string|max:100',
-            'first_name'              => 'required|string|max:100',
-            'middle_initial'          => 'nullable|string|max:10',
-            'name_extension'          => 'nullable|string|max:20',
-            'position_title'          => 'required|string|max:200',
-            'nature_of_work'          => 'nullable|string|max:200',
-            'office'                  => 'nullable|string|max:200',
-            'rate_per_day'            => 'nullable|numeric|min:0',
-            'first_day_of_service'    => 'nullable|date',
-            'birthdate'               => 'nullable|date',
-            'address'                 => 'nullable|string|max:500',
-            'eligibility'             => 'nullable|string|max:200',
-            'gender'                  => 'nullable|in:M,F',
-            'first_level_eligibility' => 'boolean',
-            'second_level_eligibility'=> 'boolean',
-            'ip_community_membership' => 'nullable|string|max:200',
-            'solo_parent'             => 'boolean',
-            'remarks'                 => 'nullable|string|max:1000',
-            'employee_code'           => 'nullable|string|max:20|unique:job_orders,employee_code' . ($exceptId ? ",{$exceptId}" : ''),
+            'charges'                  => 'nullable|string|max:100',
+            'last_name'                => 'required|string|max:100',
+            'first_name'               => 'required|string|max:100',
+            'middle_initial'           => 'nullable|string|max:10',
+            'name_extension'           => 'nullable|string|max:20',
+            'position_title'           => 'required|string|max:200',
+            'nature_of_work'           => 'nullable|string|max:200',
+            'nature_of_work_detail'    => 'nullable|string|max:200',
+            'office'                   => 'nullable|string|max:200',
+            'rate_per_day'             => 'nullable|numeric|min:0',
+            'first_day_of_service'     => 'nullable|date',
+            'birthdate'                => 'nullable|date',
+            'civil_status'             => 'nullable|string|max:50',
+            'address'                  => 'nullable|string|max:500',
+            'eligibility'              => 'nullable|string|max:200',
+            'gender'                   => 'nullable|in:M,F',
+            'level'                    => 'nullable|string|max:20',
+            'first_level_eligibility'  => 'boolean',
+            'second_level_eligibility' => 'boolean',
+            'ip_community_membership'  => 'nullable|string|max:200',
+            'solo_parent'              => 'boolean',
+            'remarks'                  => 'nullable|string|max:1000',
+            'employee_code'            => 'nullable|string|max:20|unique:job_orders,employee_code' . ($exceptId ? ",{$exceptId}" : ''),
         ]);
     }
 

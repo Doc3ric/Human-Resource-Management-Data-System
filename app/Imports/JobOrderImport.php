@@ -5,40 +5,38 @@ namespace App\Imports;
 use App\Models\JobOrder;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Carbon\Carbon;
 
 /**
  * Job Order Inventory import.
  *
- * Expected columns (row 9 is the sub-header, data starts row 10):
- *   NO. | CHARGES | FAMILY | FIRST | M.I. | EXT | POSITION | NATURE OF WORK |
- *   OFFICE | RATE/DAY | FIRST DAY OF SERVICE | BIRTHDATE | ADDRESS |
- *   ELIGIBILITY | GENDER (M col) | GENDER (F col) |
- *   1st LEVEL | 2nd LEVEL | IP COMMUNITY MEMBERSHIP | SOLO PARENT | REMARKS
- *
- * We skip the heading rows manually and use column indices.
+ * Expected columns (row 1 is the header, data starts row 2):
+ *   A=CHARGES  B=LASTNAME  C=FIRSTNAME  D=M.I.  E=EXT.  F=POSITION
+ *   G=NATURE OF WORK  H=OFFICE ASSIGNED  I=RATE/DAY
+ *   J=FIRST DAY OF SERVICE  K=LENGTH YR/S (computed)  L=MONTH/S (computed)
+ *   M=BIRTHDATE  N=STATUS  O=ADDRESS  P=ELIGIBILITY
+ *   Q=NATURE OF WORK (detail)  R=GENDER  S=LEVEL
+ *   T=IP COMMUNITY MEMBERSHIP  U=SOLO PARENT  V=REMARKS
  */
 class JobOrderImport implements ToCollection, WithStartRow
 {
-    public array $errors  = [];
+    public array $errors   = [];
     public int   $imported = 0;
     public int   $skipped  = 0;
 
     /**
-     * Data rows start at row 10 (0-indexed internally = row index 9).
-     * The sheet has merged header rows 1-8 then column labels at row 9.
+     * Data rows start at row 2 (after single header row).
      */
     public function startRow(): int
     {
-        return 10; // actual Excel row number
+        return 2; // actual Excel row number
     }
 
     public function collection(Collection $rows): void
     {
         foreach ($rows as $rowIndex => $row) {
-            $actualRow = $rowIndex + 10; // for error messages
+            $actualRow = $rowIndex + 2; // for error messages
 
             // Skip completely empty rows
             $rowArr = $row->toArray();
@@ -48,32 +46,31 @@ class JobOrderImport implements ToCollection, WithStartRow
             }
 
             // ── Column mapping (0-based) ─────────────────────────────────
-            // 0  = NO.
-            // 1  = CHARGES
-            // 2  = FAMILY (last_name)
-            // 3  = FIRST (first_name)
-            // 4  = M.I. (middle_initial)
-            // 5  = EXT (name_extension)
-            // 6  = POSITION
-            // 7  = NATURE OF WORK
-            // 8  = OFFICE
-            // 9  = RATE/DAY
-            // 10 = FIRST DAY OF SERVICE
-            // 11 = LENGTH YRS (computed – skip)
-            // 12 = LENGTH MOS (computed – skip)
-            // 13 = BIRTHDATE
+            // 0  = CHARGES
+            // 1  = LASTNAME (last_name)
+            // 2  = FIRSTNAME (first_name)
+            // 3  = M.I. (middle_initial)
+            // 4  = EXT. (name_extension)
+            // 5  = POSITION
+            // 6  = NATURE OF WORK (category)
+            // 7  = OFFICE ASSIGNED
+            // 8  = RATE/DAY
+            // 9  = FIRST DAY OF SERVICE
+            // 10 = LENGTH OF SERVICE YEAR/S (computed – skip import)
+            // 11 = MONTH/S (computed – skip import)
+            // 12 = BIRTHDATE
+            // 13 = STATUS (civil_status)
             // 14 = ADDRESS
             // 15 = ELIGIBILITY
-            // 16 = GENDER M  (if filled → 'M')
-            // 17 = GENDER F  (if filled → 'F')
-            // 18 = 1st LEVEL (checkmark → bool)
-            // 19 = 2nd LEVEL (checkmark → bool)
-            // 20 = IP COMMUNITY MEMBERSHIP
-            // 21 = SOLO PARENT (checkmark → bool)
-            // 22 = REMARKS
+            // 16 = NATURE OF WORK (detail / specific work type)
+            // 17 = GENDER (M or F — single column)
+            // 18 = LEVEL (M1, F1, M2, F2)
+            // 19 = IP COMMUNITY MEMBERSHIP
+            // 20 = SOLO PARENT
+            // 21 = REMARKS
 
-            $lastName  = $this->str($row, 2);
-            $firstName = $this->str($row, 3);
+            $lastName  = $this->str($row, 1);
+            $firstName = $this->str($row, 2);
 
             // Must have at least a last name
             if (empty($lastName)) {
@@ -81,44 +78,47 @@ class JobOrderImport implements ToCollection, WithStartRow
                 continue;
             }
 
-            // Determine gender from two separate M/F columns using checkmarks
-            $gender = null;
-            if ($this->bool($row, 16)) $gender = 'M';
-            elseif ($this->bool($row, 17)) $gender = 'F';
+            // Determine gender from single R column
+            $genderRaw = strtoupper(trim((string) ($row->get(17) ?? '')));
+            $gender = in_array($genderRaw, ['M', 'F']) ? $genderRaw : null;
+
+            // Solo parent: check for truthy value
+            $soloParent = $this->bool($row, 20);
 
             try {
                 JobOrder::create([
-                    'charges'                  => $this->str($row, 1),
-                    'last_name'                => $lastName,
-                    'first_name'               => $firstName,
-                    'middle_initial'           => $this->str($row, 4),
-                    'name_extension'           => $this->str($row, 5),
-                    'position_title'           => $this->str($row, 6),
-                    'nature_of_work'           => $this->str($row, 7),
-                    'office'                   => $this->str($row, 8),
-                    'rate_per_day'             => $this->numeric($row, 9),
-                    'first_day_of_service'     => $this->date($row, 10),
-                    'birthdate'                => $this->date($row, 13),
-                    'address'                  => $this->str($row, 14),
-                    'eligibility'              => $this->str($row, 15),
-                    'gender'                   => $gender,
-                    'first_level_eligibility'  => $this->bool($row, 18),
-                    'second_level_eligibility' => $this->bool($row, 19),
-                    'ip_community_membership'  => $this->str($row, 20),
-                    'solo_parent'              => $this->bool($row, 21),
-                    'remarks'                  => $this->str($row, 22),
+                    'charges'               => $this->str($row, 0),
+                    'last_name'             => $lastName,
+                    'first_name'            => $firstName,
+                    'middle_initial'        => $this->str($row, 3),
+                    'name_extension'        => $this->str($row, 4),
+                    'position_title'        => $this->str($row, 5),
+                    'nature_of_work'        => $this->str($row, 6),
+                    'office'                => $this->str($row, 7),
+                    'rate_per_day'          => $this->numeric($row, 8),
+                    'first_day_of_service'  => $this->date($row, 9),
+                    'birthdate'             => $this->date($row, 12),
+                    'civil_status'          => $this->str($row, 13),
+                    'address'               => $this->str($row, 14),
+                    'eligibility'           => $this->str($row, 15),
+                    'nature_of_work_detail' => $this->str($row, 16),
+                    'gender'                => $gender,
+                    'level'                 => $this->str($row, 18),
+                    'ip_community_membership' => $this->str($row, 19),
+                    'solo_parent'           => $soloParent,
+                    'remarks'               => $this->str($row, 21),
                 ]);
 
                 // Sync data to ALL DATA (PlantillaRecord)
                 \App\Models\PlantillaRecord::create([
-                    'organizational_unit'       => $this->str($row, 8),
+                    'organizational_unit'       => $this->str($row, 7),
                     'last_name'                 => $lastName,
                     'first_name'                => $firstName,
-                    'middle_name'               => $this->str($row, 4),
-                    'position_title'            => $this->str($row, 6),
-                    'date_original_appointment' => $this->date($row, 10),
+                    'middle_name'               => $this->str($row, 3),
+                    'position_title'            => $this->str($row, 5),
+                    'date_original_appointment' => $this->date($row, 9),
                     'sex'                       => $gender,
-                    'date_of_birth'             => $this->date($row, 13),
+                    'date_of_birth'             => $this->date($row, 12),
                     'civil_service_eligibility' => $this->str($row, 15),
                     'employment_status'         => 'JO',
                     'is_vacant'                 => false,
@@ -165,9 +165,9 @@ class JobOrderImport implements ToCollection, WithStartRow
             }
         }
 
-        // String date
+        // String date — handle YYYY/MM/DD or YYYY-MM-DD
         try {
-            return Carbon::parse($val)->format('Y-m-d');
+            return Carbon::parse(str_replace('/', '-', $val))->format('Y-m-d');
         } catch (\Throwable) {
             return null;
         }

@@ -272,8 +272,7 @@
                 <div class="sidebar-header">
             <img src="{{ asset('img/logo.png') }}" alt="CSC Logo" class="sidebar-logo" onerror="this.style.display='none'">
             <div class="sidebar-title-container">
-                <span class="sidebar-title-main">CSC</span>
-                <span class="sidebar-title-sub">Plantilla System</span>
+                <span class="sidebar-title-main" style="line-height: 1.3; font-size: 14.5px; padding-top: 2px;">Human Resource<br>Data Management<br>System</span>
             </div>
         </div>
 

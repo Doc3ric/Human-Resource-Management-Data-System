@@ -396,8 +396,7 @@
                 <div class="sidebar-logo">
                     <img src="{{ asset('img/phrmologo.png') }}" alt="PHRMO" class="sidebar-logo-img">
                     <div>
-                        <div class="sidebar-logo-text">Human Resource Data Management System</div>
-                        <div class="sidebar-logo-sub">PHRMO Portal</div>
+                        <div class="sidebar-logo-text" style="line-height: 1.3; font-size: 14.5px; padding-top: 2px;">Human Resource<br>Data Management<br>System</div>
                     </div>
                 </div>
 

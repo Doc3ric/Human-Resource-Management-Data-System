@@ -236,7 +236,7 @@
         }
 
         .filter-btn.add {
-            background: linear-gradient(135deg, #059669, #047857);
+            background: linear-gradient(135deg, #1e3a8a, #1e40af);
             color: #fff;
         }
 
@@ -342,7 +342,7 @@
         }
 
         .data-table td {
-            padding: 9px 12px;
+            padding: 12px 14px;
             font-size: 12px;
             color: #374151;
             border-bottom: 1px solid #f1f5f9;
@@ -703,16 +703,16 @@
                 {{-- Right Side: Extra Utilities --}}
                 <div style="display:flex; gap:6px; align-items:center;">
                     @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                        <button type="button" class="filter-btn" id="toggle-select-multiple" style="background:#3b82f6;color:#fff;gap:5px;">
+                        <button type="button" class="filter-btn" id="toggle-select-multiple" style="background:#fff;color:#334155;border:1px solid #cbd5e1;gap:5px;" onmouseover="this.style.background='#f8fafc';this.style.borderColor='#94a3b8';" onmouseout="this.style.background='#fff';this.style.borderColor='#cbd5e1';">
                             <i class="bi bi-ui-checks-grid"></i> Select Multiple
                         </button>
                     @endif
                     <a href="{{ route('archives.index') }}" class="filter-btn"
-                        style="background:#7c3aed;color:#fff;gap:5px;" onmouseover="this.style.background='#6d28d9';"
-                        onmouseout="this.style.background='#7c3aed';">
+                        style="background:#7c3aed;color:#fff;gap:5px;" onmouseover="this.style.background='#f8fafc';this.style.borderColor='#94a3b8';"
+                        onmouseout="this.style.background='#fff';this.style.borderColor='#cbd5e1';">
                         <i class="bi bi-archive-fill"></i> View Archives
                     </a>
-                    <button type="button" class="filter-btn" style="background:#16a34a;color:#fff;gap:5px;" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()">
+                    <button type="button" class="filter-btn" style="background:#fff;color:#334155;border:1px solid #cbd5e1;gap:5px;" onmouseover="this.style.background='#f8fafc';this.style.borderColor='#94a3b8';" onmouseout="this.style.background='#fff';this.style.borderColor='#cbd5e1';" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()">
                         <i class="bi bi-file-earmark-arrow-down-fill"></i> Export Settings
                     </button>
                 </div>
@@ -805,7 +805,7 @@
                             </td>
 
                             {{-- Employee Code --}}
-                            <td style="font-family:monospace;font-size:11px;color:#047857;font-weight:700;">
+                            <td style="font-family:monospace;font-size:11px;color:#2563eb;font-weight:700;">
                                 {{ $r->employee_code ?: '-' }}
                             </td>
 

@@ -37,16 +37,17 @@ class CasualController extends Controller
             $query->where('is_vacant', $request->input('vacant') === 'vacant');
         }
 
-        $records = $query->get();
+        $total = (clone $query)->count();
+        $maleCount = (clone $query)->where('gender', 'M')->count();
+        $femaleCount = (clone $query)->where('gender', 'F')->count();
+        $vacantCount = (clone $query)->where('is_vacant', true)->count();
 
-        $total = $records->count();
-        $maleCount = $records->where('gender', 'M')->count();
-        $femaleCount = $records->where('gender', 'F')->count();
-        $vacantCount = $records->where('is_vacant', true)->count();
-
-        $byOffice = $records->groupBy('office')
-            ->map(fn($g) => $g->count())
+        $byOffice = (clone $query)->reorder()->select('office', \DB::raw('count(*) as count'))
+            ->groupBy('office')
+            ->pluck('count', 'office')
             ->sortKeys();
+            
+        $records = $query->paginate(50)->withQueryString();
 
         // Filter options
         $offices = CasualEmployee::distinct()->orderBy('office')->pluck('office')->filter()->values();

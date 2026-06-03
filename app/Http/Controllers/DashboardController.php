@@ -56,7 +56,7 @@ class DashboardController extends Controller
 
             $pwdCount        = PlantillaRecord::filled()->where('is_pwd', true)->count();
             $ipCount         = PlantillaRecord::filled()->whereNotNull('indigenous_people')->where('indigenous_people', '!=', '')->count();
-            $soloParentCount = PlantillaRecord::filled()->whereNotNull('solo_parent')->where('solo_parent', '!=', '')->count();
+            $soloParentCount = PlantillaRecord::filled()->whereNotNull('solo_parent')->where('solo_parent', '!=', '')->where('solo_parent', '!=', '-')->count();
 
             // Employees per organizational unit (top 15 for chart)
             $employeesPerUnit = PlantillaRecord::filled()

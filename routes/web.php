@@ -69,6 +69,10 @@ Route::middleware('auth')->group(function () {
         Route::get('plantilla/vacant-funded/detail', [PlantillaController::class, 'vacantFundedDetail'])->name('plantilla.vacant-funded.detail');
         Route::get('plantilla/vacant-funded/detail/export/excel', [PlantillaController::class, 'exportVacantFundedDetailExcel'])->name('plantilla.vacant-funded.detail.export.excel');
         Route::get('plantilla/vacant-funded/detail/export/pdf', [PlantillaController::class, 'exportVacantFundedDetailPdf'])->name('plantilla.vacant-funded.detail.export.pdf');
+
+        Route::get('plantilla/vacant-unfunded/detail', [PlantillaController::class, 'vacantUnfundedDetail'])->name('plantilla.vacant-unfunded.detail');
+        Route::get('plantilla/vacant-unfunded/detail/export/excel', [PlantillaController::class, 'exportVacantUnfundedDetailExcel'])->name('plantilla.vacant-unfunded.detail.export.excel');
+        Route::get('plantilla/vacant-unfunded/detail/export/pdf', [PlantillaController::class, 'exportVacantUnfundedDetailPdf'])->name('plantilla.vacant-unfunded.detail.export.pdf');
         Route::get('plantilla/form9', [PlantillaController::class, 'generateForm9'])->name('plantilla.form9');
         Route::get('plantilla/{plantilla}/service-record', [PlantillaController::class, 'generateServiceRecord'])->name('plantilla.service-record');
         Route::get('plantilla/{plantilla}/form33', [PlantillaController::class, 'generateForm33'])->name('plantilla.form33');
@@ -190,8 +194,14 @@ Route::middleware('auth')->group(function () {
             Route::get('/office-report/export-pdf-by-office', [StepIncrementController::class, 'exportOfficeReportPdfByOffice'])->name('office-report.export-pdf-by-office');
             Route::post('/{plantilla}/process', [StepIncrementController::class, 'process'])->name('process');
             Route::post('/{plantilla}/process/magna-carta', [StepIncrementController::class, 'processMagnaCarta'])->name('process-magna-carta');
+            Route::get('/pdf/nosi/bulk', [\App\Http\Controllers\NoticeController::class, 'generateNosiBulk'])->name('pdf.nosi-bulk');
+            Route::get('/pdf/nolp/bulk', [\App\Http\Controllers\NoticeController::class, 'generateNolpBulk'])->name('pdf.nolp-bulk');
             Route::get('/{plantilla}/pdf/nosi', [\App\Http\Controllers\NoticeController::class, 'generateNosi'])->name('pdf.nosi');
             Route::get('/{plantilla}/pdf/nolp', [\App\Http\Controllers\NoticeController::class, 'generateNolp'])->name('pdf.nolp');
+            Route::get('/docx/nosi/bulk', [\App\Http\Controllers\NoticeController::class, 'generateNosiBulkDocx'])->name('docx.nosi-bulk');
+            Route::get('/docx/nolp/bulk', [\App\Http\Controllers\NoticeController::class, 'generateNolpBulkDocx'])->name('docx.nolp-bulk');
+            Route::get('/{plantilla}/docx/nosi', [\App\Http\Controllers\NoticeController::class, 'generateNosiDocx'])->name('docx.nosi');
+            Route::get('/{plantilla}/docx/nolp', [\App\Http\Controllers\NoticeController::class, 'generateNolpDocx'])->name('docx.nolp');
             Route::get('/{plantilla}/pdf/nosa', [\App\Http\Controllers\NoticeController::class, 'generateNosa'])->name('pdf.nosa');
             Route::get('/{plantilla}/pdf/loyalty-incentive', [\App\Http\Controllers\NoticeController::class, 'generateLoyaltyIncentive'])->name('pdf.loyalty-incentive');
 
@@ -238,6 +248,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/template', [ImportController::class, 'template'])->name('template');
             Route::get('/history', [ImportController::class, 'history'])->name('history');
             Route::get('/export-errors', [ImportController::class, 'exportErrors'])->name('export-errors');
+            // New: download error rows discovered during the preview stage (before executing)
+            Route::get('/preview-errors', [ImportController::class, 'exportPreviewErrors'])->name('preview-errors');
+            // New: return to the column-mapping step with the already-uploaded file
+            Route::post('/back-to-map', [ImportController::class, 'backToMap'])->name('back-to-map');
             Route::post('/read-headers', [ImportController::class, 'readHeaders'])->name('read-headers');
             Route::post('/map', [ImportController::class, 'map'])->name('map');
             Route::post('/preview', [ImportController::class, 'preview'])->name('preview');

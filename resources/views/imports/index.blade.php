@@ -189,5 +189,25 @@
                 desc.style.color = '';
             }
         }
+
+        // FIX #5 — Warn user before uploading a large file so they know it may take a while
+        document.getElementById('previewForm').addEventListener('submit', function(e) {
+            const fileInput = document.getElementById('fileInput');
+            if (!fileInput.files || !fileInput.files[0]) {
+                e.preventDefault();
+                alert('Please select a file before continuing.');
+                return;
+            }
+            const fileSizeMB = fileInput.files[0].size / (1024 * 1024);
+            if (fileSizeMB > 5) {
+                const proceed = confirm(
+                    `Your file is ${fileSizeMB.toFixed(1)} MB which may contain a large number of rows.\n\n` +
+                    `The import will load the entire file into memory. For very large files (10,000+ rows) this may take 30–60 seconds.\n\n` +
+                    `Click OK to continue, or Cancel to choose a smaller file.`
+                );
+                if (!proceed) e.preventDefault();
+            }
+        });
     </script>
 </x-dashboard-app>
+

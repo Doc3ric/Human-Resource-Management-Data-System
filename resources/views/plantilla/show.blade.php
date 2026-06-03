@@ -25,10 +25,16 @@
                             <a href="{{ route('plantilla.service-record', $plantilla) }}" target="_blank" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 font-medium transition">Service Record</a>
                             <a href="{{ route('plantilla.form33', $plantilla) }}" target="_blank" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 font-medium transition">CSC Form 33 (Appointment)</a>
                             <div class="border-t border-gray-100"></div>
-                            <a href="{{ route('step-increment.pdf.nosi', $plantilla) }}" target="_blank" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition">Notice of Step Increment (NOSI)</a>
-                            <a href="{{ route('step-increment.pdf.nosa', $plantilla) }}" target="_blank" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition">Notice of Salary Adj. (NOSA)</a>
+                            <div class="px-4 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider">Step Increment (NOSI)</div>
+                            <a href="{{ route('step-increment.pdf.nosi', $plantilla) }}" target="_blank" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition pl-6"><i class="bi bi-file-earmark-pdf mr-2 text-red-500"></i> Export as PDF</a>
+                            <a href="{{ route('step-increment.docx.nosi', $plantilla) }}" target="_blank" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition pl-6"><i class="bi bi-file-earmark-word mr-2 text-blue-500"></i> Export as DOCX</a>
+                            
+                            <a href="{{ route('step-increment.pdf.nosa', $plantilla) }}" target="_blank" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition border-t border-gray-100">Notice of Salary Adj. (NOSA)</a>
+                            
                             @if(isset($plantilla->is_hospital_personnel) && $plantilla->is_hospital_personnel)
-                                <a href="{{ route('step-increment.pdf.nolp', $plantilla) }}" target="_blank" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition">Longevity Pay (NOLP)</a>
+                                <div class="px-4 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider border-t border-gray-100 mt-1 pt-2">Longevity Pay (NOLP)</div>
+                                <a href="{{ route('step-increment.pdf.nolp', $plantilla) }}" target="_blank" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition pl-6"><i class="bi bi-file-earmark-pdf mr-2 text-red-500"></i> Export as PDF</a>
+                                <a href="{{ route('step-increment.docx.nolp', $plantilla) }}" target="_blank" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition pl-6"><i class="bi bi-file-earmark-word mr-2 text-blue-500"></i> Export as DOCX</a>
                             @endif
                             <div class="border-t border-gray-100"></div>
                             <a href="{{ route('step-increment.pdf.loyalty-incentive', $plantilla) }}" target="_blank" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition">Loyalty Incentive Certificate</a>

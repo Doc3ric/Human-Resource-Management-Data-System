@@ -2,7 +2,7 @@
     <style>
         /* ── Hero ─────────────────────────────────────────────────────── */
         .perm-hero {
-            background: linear-gradient(135deg, #312e81 0%, #3730a3 55%, #4338ca 100%);
+            background: linear-gradient(135deg, #052c65 0%, #1e3a8a 55%, #1e40af 100%);
             border-radius: 14px;
             padding: 24px 28px;
             position: relative;
@@ -83,8 +83,8 @@
             font-weight: 700; border: none; cursor: pointer;
             transition: all .15s; white-space: nowrap; text-decoration: none;
         }
-        .perm-btn.primary { background: #4f46e5; color: #fff; }
-        .perm-btn.primary:hover { background: #4338ca; }
+        .perm-btn.primary { background: #2563eb; color: #fff; }
+        .perm-btn.primary:hover { background: #1d4ed8; }
         .perm-btn.reset { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
         .perm-btn.reset:hover { background: #e2e8f0; }
         .perm-btn.export { background: #16a34a; color: #fff; }
@@ -128,7 +128,7 @@
             min-width: 1600px;
         }
         .perm-table thead tr {
-            background: linear-gradient(135deg, #312e81 0%, #3730a3 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
             position: sticky; top: 0; z-index: 2;
         }
         .perm-table th {
@@ -324,17 +324,17 @@
 
             <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
                 @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                    <button type="button" class="perm-btn" id="toggle-select-multiple" style="background:#3b82f6;color:#fff;">
+                    <button type="button" class="perm-btn" id="toggle-select-multiple" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;">
                         <i class="bi bi-ui-checks-grid"></i> Select Multiple
                     </button>
                 @endif
                 <a href="{{ route('archives.index') }}" class="perm-btn"
-                    style="background:#7c3aed;color:#fff;"
-                    onmouseover="this.style.background='#6d28d9';"
-                    onmouseout="this.style.background='#7c3aed';">
+                    style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;"
+                    onmouseover="this.style.background='#f8fafc';this.style.borderColor='#94a3b8';"
+                    onmouseout="this.style.background='#fff';this.style.borderColor='#cbd5e1';">
                     <i class="bi bi-archive-fill"></i> View Archives
                 </a>
-                <button type="button" class="perm-btn" style="background:#16a34a;color:#fff;gap:5px;" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()">
+                <button type="button" class="perm-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;gap:5px;" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()">
                     <i class="bi bi-file-earmark-arrow-down-fill"></i> Export Settings
                 </button>
             </div>
@@ -527,7 +527,7 @@
         </div>
 
         <div class="perm-table-footer">
-            <span class="perm-count">Showing {{ number_format($records->count()) }} record(s)</span>
+            <span class="perm-count">Showing {{ number_format($records->total()) }} record(s)</span>
             <div style="font-size:11px;color:#94a3b8;">
                 Male: <strong>{{ $maleCount }}</strong> &nbsp;|&nbsp;
                 Female: <strong>{{ $femaleCount }}</strong> &nbsp;|&nbsp;
@@ -537,6 +537,11 @@
     </div>
 
     {{-- SweetAlert2 --}}
+    
+    <div style="padding: 12px 18px; border-top: 1px solid #f1f5f9; background: #fff; border-radius: 0 0 12px 12px;">
+        {{ $records->links('pagination::bootstrap-5') }}
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // ── Excel-style right-quarter horizontal scrollbar sync (Permanent) ──

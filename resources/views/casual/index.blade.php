@@ -1,7 +1,7 @@
 <x-dashboard-app>
     <style>
         .cas-hero {
-            background: linear-gradient(135deg, #052c65 0%, #052c65 55%, #052c65 100%);
+            background: linear-gradient(135deg, #052c65 0%, #1e3a8a 55%, #1e40af 100%);
             border-radius: 14px;
             padding: 24px 28px;
             position: relative;
@@ -221,7 +221,7 @@
         }
 
         .cas-btn.add {
-            background: linear-gradient(135deg, #059669, #047857);
+            background: linear-gradient(135deg, #1e3a8a, #1e40af);
             color: #fff;
         }
 
@@ -231,8 +231,9 @@
         }
 
         .cas-btn.import {
-            background: #7c3aed;
-            color: #fff;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
         }
 
         .cas-btn.import:hover {
@@ -452,8 +453,9 @@
         }
 
         .row-btn.arc:hover {
-            background: #7c3aed;
-            color: #fff;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
         }
 
         /* Table footer */
@@ -724,22 +726,22 @@
 
             @if(auth()->user()->isSuperAdmin())
                 <button type="button" id="delete-all-btn"
-                    style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;background:#dc2626;color:#fff;transition:all .15s;"
+                    style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;background:#ffffff;color:#334155;border:1px solid #cbd5e1;transition:all .15s;"
                     onclick="document.getElementById('delete-all-overlay').classList.add('active')">
                     <i class="bi bi-trash3-fill"></i> Delete All Data
                 </button>
             @endif
 
             <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
-                <a href="{{ route('casual.import.history') }}" class="cas-btn" style="background:#7c3aed;color:#fff;">
+                <a href="{{ route('casual.import.history') }}" class="cas-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;">
                     <i class="bi bi-clock-history"></i> Import History
                 </a>
                 @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                    <button type="button" class="cas-btn" id="toggle-select-multiple" style="background:#3b82f6;color:#fff;border:none;cursor:pointer;">
+                    <button type="button" class="cas-btn" id="toggle-select-multiple" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;cursor:pointer;">
                         <i class="bi bi-ui-checks-grid"></i> Select Multiple
                     </button>
                 @endif
-                <button type="button" class="cas-btn" style="background:#16a34a;color:#fff;border:none;cursor:pointer;" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()">
+                <button type="button" class="cas-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;cursor:pointer;" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()">
                     <i class="bi bi-file-earmark-arrow-down-fill"></i> Export Settings
                 </button>
             </div>
@@ -939,7 +941,7 @@
         </div>
 
         <div class="cas-table-footer">
-            <span class="cas-count">Showing {{ number_format($records->count()) }} record(s)</span>
+            <span class="cas-count">Showing {{ number_format($records->total()) }} record(s)</span>
             <div style="font-size:11px;color:#94a3b8;">
                 Male: <strong>{{ $maleCount }}</strong> &nbsp;|&nbsp;
                 Female: <strong>{{ $femaleCount }}</strong> &nbsp;|&nbsp;
@@ -1189,6 +1191,11 @@
             });
         });
     </script>
+
+    
+    <div style="padding: 12px 18px; border-top: 1px solid #f1f5f9; background: #fff; border-radius: 0 0 12px 12px;">
+        {{ $records->links('pagination::bootstrap-5') }}
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>

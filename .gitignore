@@ -23,3 +23,9 @@ dist/
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Session files
+/storage/framework/sessions/
+
+# Local test scripts
+test-*.php

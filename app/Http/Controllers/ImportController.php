@@ -302,6 +302,90 @@ class ImportController extends Controller
     // ══════════════════════════════════════════════════════════════════════════
 
     /**
+     * Download error rows found during the PREVIEW stage — before the import executes.
+     * Stored in session during map() so users can fix mistakes before committing.
+     */
+    public function exportPreviewErrors(Request $request): StreamedResponse
+    {
+        $tmpKey   = $request->query('tmp_key', '');
+        $errorRows = $tmpKey
+            ? session("import_preview_errors_{$tmpKey}", [])
+            : [];
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Preview Errors');
+
+        if (empty($errorRows)) {
+            $sheet->setCellValue('A1', 'No error rows found in this preview session.');
+        } else {
+            $firstRow   = reset($errorRows);
+            $colHeaders = array_keys($firstRow['data']);
+            array_unshift($colHeaders, 'ERROR_REASON');
+
+            foreach ($colHeaders as $col => $label) {
+                $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col + 1) . '1';
+                $sheet->setCellValue($cell, strtoupper($label));
+                $sheet->getStyle($cell)->getFont()->setBold(true);
+                $sheet->getStyle($cell)->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFE0E0');
+            }
+
+            foreach ($errorRows as $rowIdx => $errRow) {
+                $excelRow = $rowIdx + 2;
+                $sheet->setCellValueByColumnAndRow(1, $excelRow, $errRow['reason']);
+                foreach (array_values($errRow['data']) as $col => $val) {
+                    $sheet->setCellValueByColumnAndRow($col + 2, $excelRow, $val);
+                }
+            }
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, 'preview_errors_' . now()->format('Ymd_His') . '.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    /**
+     * Return to the column-mapping step using the same uploaded file + previously
+     * selected mapping (both stored in session). No re-upload required.
+     */
+    public function backToMap(Request $request)
+    {
+        $tmpKey = $request->input('tmp_key');
+        $tmpPath = $tmpKey ? session("import_tmp_{$tmpKey}") : null;
+
+        if (!$tmpPath || !Storage::exists($tmpPath)) {
+            return redirect()->route('imports.index')
+                ->with('error', 'Your session has expired. Please re-upload the file to start over.');
+        }
+
+        $headers      = session("import_headers_{$tmpKey}", []);
+        $totalRows    = session("import_totalrows_{$tmpKey}", 0);
+        $lastMapping  = session("import_lastmapping_{$tmpKey}", []);
+        $originalFileName = session("import_filename_{$tmpKey}", '');
+        $replaceAll   = (bool) $request->input('replace_all', false);
+        $dryRun       = (bool) $request->input('dry_run', false);
+        $systemFields = self::systemFields();
+
+        // Use the previously selected mapping as the pre-selected auto-mapping
+        $autoMapping  = $lastMapping;
+
+        return view('imports.map', compact(
+            'headers',
+            'tmpKey',
+            'tmpPath',
+            'totalRows',
+            'replaceAll',
+            'dryRun',
+            'systemFields',
+            'autoMapping',
+            'originalFileName'
+        ));
+    }
+
+    /**
      * Accept uploaded file, extract headers, store temp file, go to mapping.
      */
     public function readHeaders(Request $request)
@@ -316,6 +400,10 @@ class ImportController extends Controller
             // Store the file temporarily so we don't need re-upload later
             $tmpKey = uniqid('import_', true);
             $tmpPath = $file->storeAs('tmp/imports', $tmpKey . '.' . $file->getClientOriginalExtension());
+
+            // FIX #2 — Store the resolved tmp_path in session keyed by tmpKey so the
+            // browser-side hidden input can never be tampered to point at another file.
+            session(["import_tmp_{$tmpKey}" => $tmpPath]);
 
             $rows = Excel::toArray(new class implements \Maatwebsite\Excel\Concerns\ToArray {
                 public function array(array $array): void
@@ -350,6 +438,14 @@ class ImportController extends Controller
                 }
             }
 
+            // Store headers + totalRows in session so "Back to Mapping" can restore the map page
+            // without requiring a re-upload.
+            session([
+                "import_headers_{$tmpKey}"   => $headers,
+                "import_totalrows_{$tmpKey}" => $totalRows,
+                "import_filename_{$tmpKey}"  => $originalFileName,
+            ]);
+
             return view('imports.map', compact(
                 'headers',
                 'tmpKey',
@@ -379,19 +475,20 @@ class ImportController extends Controller
     {
         $request->validate([
             'tmp_key' => 'required|string|max:100',
-            'tmp_path' => 'required|string|max:300',
             'mapping' => 'required|array',
         ]);
 
-        $tmpPath = $request->input('tmp_path');
+        // FIX #2 — Resolve tmp_path from session instead of trusting the hidden input
+        $tmpKey  = $request->input('tmp_key');
+        $tmpPath = session("import_tmp_{$tmpKey}");
         $mapping = $request->input('mapping'); // ['organizational_unit' => 'Dept', ...]
         $replaceAll = $request->boolean('replace_all');
         $dryRun = $request->boolean('dry_run');
         $originalFileName = $request->input('original_filename', '');
 
-        if (!Storage::exists($tmpPath)) {
+        if (!$tmpPath || !Storage::exists($tmpPath)) {
             return redirect()->route('imports.index')
-                ->with('error', 'Temporary file not found. Please re-upload your file.');
+                ->with('error', 'Temporary file not found or session expired. Please re-upload your file.');
         }
 
         try {
@@ -409,9 +506,11 @@ class ImportController extends Controller
             $data = array_slice($data, $headerRowIndex + 1); // data rows only
             $totalRows = count($data);
 
-            $allErrors = [];
+            $allErrors  = [];
+            $errorRows  = []; // raw rows for pre-import download
             $duplicates = [];
-            $mapped = [];
+            $mapped     = [];
+            $vacantCount = 0;
             $rowNum = 2;
 
             $existingItems = PlantillaRecord::pluck('item')
@@ -424,6 +523,11 @@ class ImportController extends Controller
 
                 if (!empty($result['errors'])) {
                     $allErrors[] = $result['errors'];
+                    $rawData = array_combine(
+                        array_map('trim', $header),
+                        array_pad(array_values($row), count($header), null)
+                    );
+                    $errorRows[] = ['reason' => $result['errors'], 'data' => $rawData];
                 } else {
                     if (count($mapped) < 20) {
                         $mapped[] = $result['data'];
@@ -432,13 +536,77 @@ class ImportController extends Controller
                     if ($itemCode && isset($existingItems[$itemCode])) {
                         $duplicates[] = $itemCode;
                     }
+                    if ($result['data']['is_vacant'] ?? false) {
+                        $vacantCount++;
+                    }
                 }
                 $rowNum++;
             }
 
+            // Store pre-import error rows in session so user can download them now
+            session(["import_preview_errors_{$tmpKey}" => $errorRows]);
+
+            // Store the mapping in session for "Back to Mapping" feature
+            session(["import_lastmapping_{$tmpKey}" => $mapping]);
+
+            // Build change-comparison for UPDATE rows in the preview (first 10 dupes only, for performance)
+            $changeComparisons = [];
+            $dupeItemsInPreview = array_filter($mapped, fn($r) => isset($existingItems[$r['item'] ?? '']));
+            $dupeItemsInPreview = array_slice(array_values($dupeItemsInPreview), 0, 10);
+            if (!empty($dupeItemsInPreview)) {
+                $itemCodesToFetch = array_column($dupeItemsInPreview, 'item');
+                $existingRecords  = PlantillaRecord::whereIn('item', $itemCodesToFetch)->get()->keyBy('item');
+                $compareFields = ['position_title', 'salary_grade', 'step', 'employment_status',
+                                  'first_name', 'last_name', 'organizational_unit'];
+                foreach ($dupeItemsInPreview as $row) {
+                    $item = $row['item'] ?? null;
+                    if (!$item || !isset($existingRecords[$item])) continue;
+                    $existing = $existingRecords[$item];
+                    $changes = [];
+                    foreach ($compareFields as $field) {
+                        $newVal = $row[$field] ?? null;
+                        $oldVal = $existing->$field ?? null;
+                        if ($newVal !== null && (string)$newVal !== (string)$oldVal) {
+                            $changes[] = [
+                                'field' => $field,
+                                'old'   => $oldVal ?? '—',
+                                'new'   => $newVal,
+                            ];
+                        }
+                    }
+                    if (!empty($changes)) {
+                        $changeComparisons[$item] = $changes;
+                    }
+                }
+            }
+
+            // Last import info for the info banner
+            $lastImport = \App\Models\ActivityLog::where('action', 'Imported Data')
+                ->with('user')
+                ->latest()
+                ->first();
+            $lastImportInfo = null;
+            if ($lastImport) {
+                $info = json_decode($lastImport->description, true) ?? [];
+                $lastImportInfo = [
+                    'date'     => $lastImport->created_at->format('M d, Y h:i A'),
+                    'by'       => optional($lastImport->user)->name ?? 'Unknown',
+                    'created'  => $info['created'] ?? 0,
+                    'updated'  => $info['updated'] ?? 0,
+                    'file'     => $info['file_name'] ?? '',
+                ];
+            }
+
+            // Estimated processing time (rough: ~500 rows/sec for upsert)
+            $estSeconds = max(5, (int) round($totalRows / 500));
+            $estTime = $estSeconds < 60
+                ? "~{$estSeconds} seconds"
+                : '~' . round($estSeconds / 60, 1) . ' minutes';
+
             // Encode the mapping as JSON for passing through to execute
             $mappingJson = json_encode($mapping);
             $tmpKey = $request->input('tmp_key');
+            $hasPreviewErrors = count($errorRows) > 0;
 
             return view('imports.preview', compact(
                 'mapped',
@@ -450,7 +618,12 @@ class ImportController extends Controller
                 'mappingJson',
                 'tmpKey',
                 'tmpPath',
-                'originalFileName'
+                'originalFileName',
+                'vacantCount',
+                'changeComparisons',
+                'lastImportInfo',
+                'estTime',
+                'hasPreviewErrors'
             ));
 
         } catch (\Exception $e) {
@@ -520,6 +693,8 @@ class ImportController extends Controller
             $mappingJson = null;
             $tmpKey = null;
             $tmpPath = null;
+            // FIX #4 — Capture filename from the fresh upload in legacy path
+            $originalFileName = $file->getClientOriginalName();
 
             return view('imports.preview', compact(
                 'mapped',
@@ -549,12 +724,15 @@ class ImportController extends Controller
      */
     public function execute(Request $request)
     {
-        $tmpPath = $request->input('tmp_path');
         $mappingJson = $request->input('mapping_json');
-        $mapping = $mappingJson ? json_decode($mappingJson, true) : null;
+        $mapping     = $mappingJson ? json_decode($mappingJson, true) : null;
 
         // Capture original filename for history display
         $originalFileName = $request->input('original_filename', '');
+
+        // FIX #2 — Resolve tmp_path from session via tmp_key, never trust the hidden input
+        $tmpKey  = $request->input('tmp_key');
+        $tmpPath = $tmpKey ? session("import_tmp_{$tmpKey}") : null;
 
         // Determine file source: temp file (from mapping flow) or fresh upload
         if ($tmpPath && Storage::exists($tmpPath)) {
@@ -571,7 +749,7 @@ class ImportController extends Controller
                 $originalFileName = $uploadedFile->getClientOriginalName();
             }
             $fullPath = $uploadedFile->getRealPath();
-            $tmpPath = null; // no temp file to delete
+            $tmpPath  = null; // no temp file to delete
         }
 
         try {
@@ -656,13 +834,19 @@ class ImportController extends Controller
                         $updateData = array_filter($mappedRow, fn($value) => $value !== null);
                         $existing->update($updateData);
                         $stats['updated']++;
-                        $itemName = $existing->item ? $existing->item : 'No Item';
-                        $stats['updated_records'][] = trim($existing->first_name . ' ' . $existing->last_name) . " ({$itemName})";
+                        // FIX #6 — Cap detail arrays at 100 to avoid memory/rendering issues on large imports
+                        if (count($stats['updated_records']) < 100) {
+                            $itemName = $existing->item ?: 'No Item';
+                            $stats['updated_records'][] = trim($existing->first_name . ' ' . $existing->last_name) . " ({$itemName})";
+                        }
                     } else {
                         $newRecord = PlantillaRecord::create($mappedRow);
                         $stats['created']++;
-                        $itemName = $newRecord->item ? $newRecord->item : 'No Item';
-                        $stats['created_records'][] = trim($newRecord->first_name . ' ' . $newRecord->last_name) . " ({$itemName})";
+                        // FIX #6 — Cap detail arrays at 100
+                        if (count($stats['created_records']) < 100) {
+                            $itemName = $newRecord->item ?: 'No Item';
+                            $stats['created_records'][] = trim($newRecord->first_name . ' ' . $newRecord->last_name) . " ({$itemName})";
+                        }
                     }
 
                 } catch (\Exception $e) {
@@ -691,9 +875,12 @@ class ImportController extends Controller
                     ]);
                 }
 
-                // Clean up temp file after successful import
+                // Clean up temp file AND session key after successful import
                 if ($tmpPath && Storage::exists($tmpPath)) {
                     Storage::delete($tmpPath);
+                }
+                if ($tmpKey) {
+                    session()->forget("import_tmp_{$tmpKey}");
                 }
             }
 
@@ -910,7 +1097,7 @@ class ImportController extends Controller
                 'civil_service_eligibility' => trim((string) ($get('civil_service_eligibility') ?? '')) ?: null,
                 'comment_annotation' => trim((string) ($get('comment_annotation') ?? '')) ?: null,
                 'is_pwd' => strtoupper(trim((string) ($get('is_pwd') ?? ''))) === 'Y',
-                'indigenous_people' => trim((string) ($get('indigenous_people') ?? '')) ?: null,
+                'indigenous_people' => strtoupper(trim((string) ($get('indigenous_people') ?? ''))) === 'Y' ? 'Y' : null,
                 'solo_parent' => trim((string) ($get('solo_parent') ?? '')) ?: null,
                 'abolished' => strtoupper(trim((string) ($get('abolished') ?? ''))) === 'Y',
                 'dissolved' => strtoupper(trim((string) ($get('dissolved') ?? ''))) === 'Y',

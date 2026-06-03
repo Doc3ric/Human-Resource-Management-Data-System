@@ -114,9 +114,27 @@ class AllDataController extends Controller
 
         // Vacant / Filled filter
         if ($request->filled('vacant')) {
-            if ($request->input('vacant') === 'vacant') {
+            $vacant = $request->input('vacant');
+            if ($vacant === 'vacant') {
                 $query->where('is_vacant', true);
-            } elseif ($request->input('vacant') === 'filled') {
+            } elseif ($vacant === 'vacant_funded') {
+                $query->where('is_vacant', true)->where('abolished', false)->where('dissolved', false);
+            } elseif ($vacant === 'vacant_unfunded') {
+                $query->where(function($q) {
+                    $q->where(function($q2) {
+                        $q2->where('is_vacant', true)
+                           ->where(function($q3) {
+                               $q3->where('abolished', true)->orWhere('dissolved', true);
+                           });
+                    })->orWhere(function($q2) {
+                        $q2->where(function($q3) {
+                            $q3->whereNull('authorized_annual_salary')->orWhere('authorized_annual_salary', 0);
+                        })->where(function($q3) {
+                            $q3->whereNull('actual_annual_salary')->orWhere('actual_annual_salary', 0);
+                        });
+                    });
+                });
+            } elseif ($vacant === 'filled') {
                 $query->where('is_vacant', false);
             }
         }
@@ -133,7 +151,7 @@ class AllDataController extends Controller
 
         // Solo Parent filter
         if ($request->boolean('solo_parent')) {
-            $query->whereNotNull('solo_parent')->where('solo_parent', '!=', '');
+            $query->whereNotNull('solo_parent')->where('solo_parent', '!=', '')->where('solo_parent', '!=', '-');
         }
 
         // Abolished filter
@@ -491,9 +509,27 @@ class AllDataController extends Controller
             $query->where('sex', $request->input('sex'));
         }
         if ($request->filled('vacant')) {
-            if ($request->input('vacant') === 'vacant') {
+            $vacant = $request->input('vacant');
+            if ($vacant === 'vacant') {
                 $query->where('is_vacant', true);
-            } elseif ($request->input('vacant') === 'filled') {
+            } elseif ($vacant === 'vacant_funded') {
+                $query->where('is_vacant', true)->where('abolished', false)->where('dissolved', false);
+            } elseif ($vacant === 'vacant_unfunded') {
+                $query->where(function($q) {
+                    $q->where(function($q2) {
+                        $q2->where('is_vacant', true)
+                           ->where(function($q3) {
+                               $q3->where('abolished', true)->orWhere('dissolved', true);
+                           });
+                    })->orWhere(function($q2) {
+                        $q2->where(function($q3) {
+                            $q3->whereNull('authorized_annual_salary')->orWhere('authorized_annual_salary', 0);
+                        })->where(function($q3) {
+                            $q3->whereNull('actual_annual_salary')->orWhere('actual_annual_salary', 0);
+                        });
+                    });
+                });
+            } elseif ($vacant === 'filled') {
                 $query->where('is_vacant', false);
             }
         }
@@ -504,7 +540,7 @@ class AllDataController extends Controller
             $query->whereNotNull('indigenous_people')->where('indigenous_people', '!=', '');
         }
         if ($request->boolean('solo_parent')) {
-            $query->whereNotNull('solo_parent')->where('solo_parent', '!=', '');
+            $query->whereNotNull('solo_parent')->where('solo_parent', '!=', '')->where('solo_parent', '!=', '-');
         }
         if ($request->boolean('abolished')) {
             $query->where('abolished', true);

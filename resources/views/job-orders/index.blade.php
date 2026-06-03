@@ -156,7 +156,7 @@
             display: inline-flex;
             align-items: center;
             gap: 7px;
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: linear-gradient(135deg, #1e3a8a, #1e40af);
             color: #fff;
             border: none;
             border-radius: 9px;
@@ -251,15 +251,15 @@
         }
 
         .jo-table thead tr th {
-            background: #f1f5f9;
-            padding: 9px 8px;
+            background: #0f172a;
+            padding: 10px 12px;
             text-align: center;
             font-size: 9.5px;
             font-weight: 800;
-            color: #475569;
+            color: rgba(255, 255, 255, .75);
             text-transform: uppercase;
             letter-spacing: .6px;
-            border-bottom: 2px solid #e2e8f0;
+            border-bottom: 2px solid rgba(255, 255, 255, .08);
             white-space: nowrap;
             position: sticky;
             top: 0;
@@ -267,12 +267,12 @@
         }
 
         .jo-table thead tr.sub-header th {
-            background: #f8fafc;
+            background: #334155;
             font-size: 9px;
             font-weight: 700;
-            color: #94a3b8;
+            color: rgba(255, 255, 255, .6);
             padding: 5px 8px;
-            border-bottom: 2px solid #cbd5e1;
+            border-bottom: 2px solid rgba(255, 255, 255, .08);
         }
 
         .jo-table tbody tr {
@@ -641,23 +641,23 @@
                     record(s)</span>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button type="button" class="btn-export" style="background:#16a34a;color:#fff;border:none;cursor:pointer;" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()">
+                <button type="button" class="btn-export" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;cursor:pointer;" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()">
                     <i class="bi bi-file-earmark-arrow-down-fill"></i> Export Settings
                 </button>
                 <button type="button" class="btn-export" id="btn-open-import"
-                    style="background:#f0fdf4;color:#166534;border:1.5px solid #bbf7d0;"
+                    style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;"
                     onclick="document.getElementById('import-modal-bg').classList.add('open')">
                     <i class="bi bi-upload"></i> Import Excel
                 </button>
                 <a href="{{ route('job-orders.import.history') }}" class="btn-export"
-                    style="background:#f3f4f6;color:#4b5563;border:1.5px solid #e5e7eb;">
+                    style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;">
                     <i class="bi bi-clock-history"></i> Import History
                 </a>
                 <a href="{{ route('job-orders.create') }}" class="btn-create" id="btn-create-jo">
                     <i class="bi bi-plus-lg"></i> Add JO Record
                 </a>
                 @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                    <button type="button" class="jo-action-btn jo-add-btn" id="toggle-select-multiple" style="background:#3b82f6;color:#fff;">
+                    <button type="button" class="btn-export" id="toggle-select-multiple" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;">
                         <i class="bi bi-ui-checks-grid"></i> Select Multiple
                     </button>
                 @endif
@@ -699,35 +699,31 @@
                         {{-- NAME group --}}
                         <th colspan="4">NAME</th>
                         <th rowspan="2">POSITION</th>
-                        <th rowspan="2">NATURE OF WORK</th>
-                        <th rowspan="2">OFFICE</th>
+                        <th rowspan="2">NATURE<br>OF WORK</th>
+                        <th rowspan="2">OFFICE<br>ASSIGNED</th>
                         <th rowspan="2">RATE/DAY</th>
                         <th rowspan="2">FIRST DAY<br>OF SERVICE</th>
-                        <th rowspan="2">REEMPLOYMENT</th>
                         {{-- LENGTH OF SERVICE --}}
                         <th colspan="2">LENGTH OF SERVICE</th>
                         <th rowspan="2">BIRTHDATE</th>
+                        <th rowspan="2">STATUS</th>
                         <th rowspan="2">ADDRESS</th>
                         <th rowspan="2">ELIGIBILITY</th>
-                        {{-- GENDER --}}
-                        <th colspan="2">GENDER</th>
-                        {{-- ELIGIBILITY LEVEL --}}
-                        <th rowspan="2">1st<br>LEVEL</th>
-                        <th rowspan="2">2nd<br>LEVEL</th>
+                        <th rowspan="2">NATURE<br>OF WORK</th>
+                        <th rowspan="2">GENDER</th>
+                        <th rowspan="2">LEVEL</th>
                         <th rowspan="2">IP COMMUNITY<br>MEMBERSHIP</th>
                         <th rowspan="2">SOLO<br>PARENT</th>
                         <th rowspan="2">REMARKS</th>
                         <th rowspan="2">ACTIONS</th>
                     </tr>
                     <tr class="sub-header">
-                        <th>FAMILY</th>
-                        <th>FIRST</th>
+                        <th>LASTNAME</th>
+                        <th>FIRSTNAME</th>
                         <th>M.I.</th>
-                        <th>EXT</th>
-                        <th>YEARS</th>
-                        <th>MONTHS</th>
-                        <th>M</th>
-                        <th>F</th>
+                        <th>EXT.</th>
+                        <th>YEAR/S</th>
+                        <th>MONTH/S</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -756,14 +752,9 @@
                             </td>
                             <td>
                                 @if($jo->first_day_of_service)
-                                    {{ $jo->first_day_of_service->format('Y-m-d') }}
+                                    {{ $jo->first_day_of_service->format('Y/m/d') }}
                                 @else
                                     <span class="no-record">—</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($jo->reemployment)
-                                    <span class="check-mark">✓</span>
                                 @endif
                             </td>
                             <td>{{ $jo->first_day_of_service ? $jo->years_of_service : '—' }}</td>
@@ -775,30 +766,19 @@
                                     <span class="no-record">—</span>
                                 @endif
                             </td>
+                            <td>{{ $jo->civil_status }}</td>
                             <td class="text-left">{{ $jo->address }}</td>
                             <td>{{ $jo->eligibility }}</td>
-                            {{-- Gender checkmarks --}}
+                            <td>{{ $jo->nature_of_work_detail }}</td>
+                            {{-- Gender single column --}}
                             <td>
                                 @if($jo->gender === 'M')
                                     <span class="gender-badge gender-m">M</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($jo->gender === 'F')
+                                @elseif($jo->gender === 'F')
                                     <span class="gender-badge gender-f">F</span>
                                 @endif
                             </td>
-                            {{-- Level checkmarks --}}
-                            <td>
-                                @if($jo->first_level_eligibility)
-                                    <span class="check-mark">✓</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($jo->second_level_eligibility)
-                                    <span class="check-mark">✓</span>
-                                @endif
-                            </td>
+                            <td>{{ $jo->level }}</td>
                             <td>{{ $jo->ip_community_membership }}</td>
                             <td>
                                 @if($jo->solo_parent)
@@ -1174,6 +1154,11 @@
             document.getElementById('import-modal-bg').classList.add('open');
         @endif
     </script>
+
+    
+    <div style="padding: 12px 18px; border-top: 1px solid #f1f5f9; background: #fff; border-radius: 0 0 12px 12px;">
+        {{ $records->links('pagination::bootstrap-5') }}
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>

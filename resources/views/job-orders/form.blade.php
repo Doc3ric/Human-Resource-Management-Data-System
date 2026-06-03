@@ -131,6 +131,16 @@
                 @error('gender')<span class="field-error">{{ $message }}</span>@enderror
             </div>
             <div class="jo-form-group">
+                <label>Status (Civil Status)</label>
+                <select name="civil_status" id="f-civil-status">
+                    <option value="">— Select —</option>
+                    @foreach(['SINGLE','MARRIED','WIDOW','WIDOWER','SEPARATED','DIVORCED'] as $cs)
+                        <option value="{{ $cs }}" {{ old('civil_status', $jo->civil_status ?? '') === $cs ? 'selected' : '' }}>{{ $cs }}</option>
+                    @endforeach
+                </select>
+                @error('civil_status')<span class="field-error">{{ $message }}</span>@enderror
+            </div>
+            <div class="jo-form-group">
                 <label>Birthdate</label>
                 <input type="date" name="birthdate" id="f-birthdate"
                        value="{{ old('birthdate', isset($jo->birthdate) ? $jo->birthdate->format('Y-m-d') : '') }}">
@@ -167,22 +177,49 @@
                        placeholder="Administrative Aide II" required class="{{ $errors->has('position_title') ? 'input-error' : '' }}">
                 @error('position_title')<span class="field-error">{{ $message }}</span>@enderror
             </div>
-            <div class="jo-form-group">
-                <label>Nature of Work</label>
+            <div class="jo-form-group" style="grid-column:span 2;">
+                <label>Nature of Work <span style="font-size:10px;color:#64748b;font-weight:400;text-transform:none;">(Category: Clerical services, Trades and crafts/laborer, Technical services…)</span></label>
                 <input type="text" name="nature_of_work" id="f-nature" value="{{ old('nature_of_work', $jo->nature_of_work ?? '') }}"
-                       placeholder="Clerical Services" list="nature-list">
+                       placeholder="Clerical services" list="nature-list">
                 <datalist id="nature-list">
                     @foreach($natures as $n)<option value="{{ $n }}">@endforeach
-                    <option value="Clerical Services">
-                    <option value="Trades and Crafts-laborer">
-                    <option value="Technical Services">
+                    <option value="Clerical services">
+                    <option value="Trades and crafts/laborer">
+                    <option value="Technical services">
+                    <option value="Health and allied services">
+                    <option value="Janitorial services">
                 </datalist>
                 @error('nature_of_work')<span class="field-error">{{ $message }}</span>@enderror
             </div>
+            <div class="jo-form-group" style="grid-column:span 2;">
+                <label>Nature of Work (Specific) <span style="font-size:10px;color:#64748b;font-weight:400;text-transform:none;">(e.g. CLERICAL SERVICES, JANITORIAL SERVICES, OTHERS…)</span></label>
+                <input type="text" name="nature_of_work_detail" id="f-nature-detail" value="{{ old('nature_of_work_detail', $jo->nature_of_work_detail ?? '') }}"
+                       placeholder="e.g. CLERICAL SERVICES" list="nature-detail-list">
+                <datalist id="nature-detail-list">
+                    <option value="CLERICAL SERVICES">
+                    <option value="JANITORIAL SERVICES">
+                    <option value="MESSENGERIAL SERVICES">
+                    <option value="TRADES AND CRAFTS/LABORER">
+                    <option value="TECHNICAL SERVICES">
+                    <option value="HEALTH AND ALLIED SERVICES">
+                    <option value="OTHERS">
+                </datalist>
+                @error('nature_of_work_detail')<span class="field-error">{{ $message }}</span>@enderror
+            </div>
             <div class="jo-form-group">
-                <label>Office</label>
+                <label>Level</label>
+                <select name="level" id="f-level">
+                    <option value="">— Select —</option>
+                    @foreach(['M1','F1','M2','F2'] as $lv)
+                        <option value="{{ $lv }}" {{ old('level', $jo->level ?? '') === $lv ? 'selected' : '' }}>{{ $lv }}</option>
+                    @endforeach
+                </select>
+                @error('level')<span class="field-error">{{ $message }}</span>@enderror
+            </div>
+            <div class="jo-form-group">
+                <label>Office Assigned</label>
                 <input type="text" name="office" id="f-office" value="{{ old('office', $jo->office ?? '') }}"
-                       placeholder="e.g. BEMO" list="office-list">
+                       placeholder="e.g. BENRO" list="office-list">
                 <datalist id="office-list">
                     @foreach($offices as $o)<option value="{{ $o }}">@endforeach
                 </datalist>
