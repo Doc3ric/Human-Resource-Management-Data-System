@@ -411,7 +411,8 @@
                 font-size: 24px;
             }
         }
-            /* Modern Dashboard Cards */
+
+        /* Modern Dashboard Cards */
         .dash-card {
             background: #ffffff;
             border-radius: 12px;
@@ -423,39 +424,71 @@
             position: relative;
             overflow: hidden;
         }
+
         .dash-card::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; right: 0; height: 4px;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
             background: linear-gradient(90deg, #3b82f6, #6366f1);
             opacity: 0;
             transition: opacity 0.3s ease;
         }
+
         .dash-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             border-color: #cbd5e1;
         }
+
         .dash-card:hover::before {
             opacity: 1;
         }
+
         .dash-card-content {
-            display: flex; justify-content: space-between; align-items: flex-start;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
+
         .dash-card-title {
-            margin: 0; color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+            margin: 0;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+
         .dash-card-value {
-            margin: 8px 0 0 0; color: #0f172a; font-size: 32px; font-weight: 800; line-height: 1.1;
+            margin: 8px 0 0 0;
+            color: #0f172a;
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1.1;
         }
+
         .dash-card-subtext {
-            margin: 4px 0 0 0; color: #94a3b8; font-size: 12px;
+            margin: 4px 0 0 0;
+            color: #94a3b8;
+            font-size: 12px;
         }
+
         .dash-card-icon {
-            width: 54px; height: 54px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;
-            background: #eff6ff; color: #3b82f6; /* Default */
+            width: 54px;
+            height: 54px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: #eff6ff;
+            color: #3b82f6;
+            /* Default */
         }
-        
+
         /* Alert Box Restyling */
         .premium-alert {
             background: #fff1f2 !important;
@@ -464,10 +497,24 @@
             box-shadow: 0 4px 12px rgba(244, 63, 94, 0.08) !important;
             border-radius: 12px !important;
         }
-        .premium-alert .alert-heading { color: #881337 !important; }
-        .premium-alert p { color: #9f1239 !important; }
-        .premium-alert a { color: #be123c !important; text-decoration: underline; font-weight: 700; }
-        .premium-alert i { color: #f43f5e !important; }
+
+        .premium-alert .alert-heading {
+            color: #881337 !important;
+        }
+
+        .premium-alert p {
+            color: #9f1239 !important;
+        }
+
+        .premium-alert a {
+            color: #be123c !important;
+            text-decoration: underline;
+            font-weight: 700;
+        }
+
+        .premium-alert i {
+            color: #f43f5e !important;
+        }
 
         }
     </style>
@@ -481,14 +528,16 @@
             <img src="{{ asset('img/phrmologo.png') }}" alt="PHRMO Logo" class="sidebar-logo"
                 onerror="this.style.display='none'">
             <div class="sidebar-title-container">
-                <span class="sidebar-title-main" style="line-height: 1.3; font-size: 14.5px; padding-top: 2px;">Human Resource<br>Data Management<br>System</span>
+                <span class="sidebar-title-main" style="line-height: 1.3; font-size: 14.5px; padding-top: 2px;">Human
+                    Resource<br>Data Management<br>System</span>
             </div>
         </div>
 
         <!-- Navigation -->
         <nav class="sidebar-nav">
             <div class="nav-item">
-                <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                <a href="{{ route('dashboard') }}"
+                    class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <i class="nav-icon bi bi-house-door"></i>
                     <span>Dashboard</span>
                 </a>
@@ -496,7 +545,8 @@
 
             @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin()))
                 <div class="nav-item">
-                    <a href="{{ route('all-data.index') }}" class="nav-link {{ request()->routeIs('all-data.*') ? 'active' : '' }}">
+                    <a href="{{ route('all-data.index') }}"
+                        class="nav-link {{ request()->routeIs('all-data.*') ? 'active' : '' }}">
                         <i class="nav-icon bi bi-table"></i>
                         <span>All Data</span>
                     </a>
@@ -505,36 +555,42 @@
 
             @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
                 <div class="nav-item">
-                    <a href="{{ route('plantilla.index') }}" class="nav-link {{ request()->routeIs('plantilla.*') ? 'active' : '' }}">
+                    <a href="{{ route('plantilla.index') }}"
+                        class="nav-link {{ request()->routeIs('plantilla.*') ? 'active' : '' }}">
                         <i class="nav-icon bi bi-person-badge"></i>
                         <span>Inventory of Personnel</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="{{ route('job-orders.index') }}" class="nav-link {{ request()->routeIs('job-orders.*') ? 'active' : '' }}">
+                    <a href="{{ route('job-orders.index') }}"
+                        class="nav-link {{ request()->routeIs('job-orders.*') ? 'active' : '' }}">
                         <i class="nav-icon bi bi-file-earmark-person"></i>
                         <span>Job Orders</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="{{ route('casual.index') }}" class="nav-link {{ request()->routeIs('casual.*') ? 'active' : '' }}">
+                    <a href="{{ route('casual.index') }}"
+                        class="nav-link {{ request()->routeIs('casual.*') ? 'active' : '' }}">
                         <i class="nav-icon bi bi-person-lines-fill"></i>
                         <span>Casual</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="{{ route('permanent.index') }}" class="nav-link {{ request()->routeIs('permanent.*') ? 'active' : '' }}">
+                    <a href="{{ route('permanent.index') }}"
+                        class="nav-link {{ request()->routeIs('permanent.*') ? 'active' : '' }}">
                         <i class="nav-icon bi bi-shield-check"></i>
                         <span>Permanent</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="{{ route('retirement.index') }}" class="nav-link {{ request()->routeIs('retirement.*') ? 'active' : '' }}">
+                    <a href="{{ route('retirement.index') }}"
+                        class="nav-link {{ request()->routeIs('retirement.*') ? 'active' : '' }}">
                         <i class="nav-icon bi bi-clock-history"></i>
                         <span>Retirement</span>
                         @php $retCount = \App\Models\PlantillaRecord::retirementDue()->count(); @endphp
                         @if($retCount > 0)
-                            <span style="margin-left:auto; background:#dc3545; color:white; font-size:10px; font-weight:bold; padding:2px 8px; border-radius:99px;">{{ $retCount }}</span>
+                            <span
+                                style="margin-left:auto; background:#dc3545; color:white; font-size:10px; font-weight:bold; padding:2px 8px; border-radius:99px;">{{ $retCount }}</span>
                         @endif
                     </a>
                 </div>
@@ -542,19 +598,22 @@
 
             @if(auth()->user()->isSuperAdmin() || auth()->user()->isSalaryAdmin())
                 <div class="nav-item">
-                    <a href="{{ route('step-increment.hub') }}" class="nav-link {{ request()->routeIs('step-increment.*') ? 'active' : '' }}">
+                    <a href="{{ route('step-increment.hub') }}"
+                        class="nav-link {{ request()->routeIs('step-increment.*') ? 'active' : '' }}">
                         <i class="nav-icon bi bi-building-fill-gear"></i>
                         <span>Plantilla of Personnel</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="{{ route('salary-grades.index') }}" class="nav-link {{ request()->routeIs('salary-grades.*') ? 'active' : '' }}">
+                    <a href="{{ route('salary-grades.index') }}"
+                        class="nav-link {{ request()->routeIs('salary-grades.*') ? 'active' : '' }}">
                         <i class="nav-icon bi bi-currency-dollar"></i>
                         <span>Salary Grades</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="{{ route('salary-schedules.index') }}" class="nav-link {{ request()->routeIs('salary-schedules.*') ? 'active' : '' }}">
+                    <a href="{{ route('salary-schedules.index') }}"
+                        class="nav-link {{ request()->routeIs('salary-schedules.*') ? 'active' : '' }}">
                         <i class="nav-icon bi bi-layers"></i>
                         <span>SSL Schedules</span>
                     </a>
@@ -563,7 +622,8 @@
 
             @if(auth()->user()->isSuperAdmin())
                 <div class="nav-item">
-                    <a href="{{ route('imports.index') }}" class="nav-link {{ request()->routeIs('imports.*') ? 'active' : '' }}">
+                    <a href="{{ route('imports.index') }}"
+                        class="nav-link {{ request()->routeIs('imports.*') ? 'active' : '' }}">
                         <i class="nav-icon bi bi-file-earmark-spreadsheet"></i>
                         <span>Import Data</span>
                     </a>
@@ -572,21 +632,24 @@
 
 
             <div class="nav-item">
-                <a href="{{ route('profile.edit') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                <a href="{{ route('profile.edit') }}"
+                    class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
                     <i class="nav-icon bi bi-person-circle"></i>
                     <span>Profile</span>
                 </a>
             </div>
-            
+
             @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
                 <div class="nav-item">
-                    <a href="{{ route('users.index') }}" class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                    <a href="{{ route('users.index') }}"
+                        class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
                         <i class="nav-icon bi bi-people-fill"></i>
                         <span>User Management</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="{{ route('audit-logs.index') }}" class="nav-link {{ request()->routeIs('audit-logs.*') ? 'active' : '' }}">
+                    <a href="{{ route('audit-logs.index') }}"
+                        class="nav-link {{ request()->routeIs('audit-logs.*') ? 'active' : '' }}">
                         <i class="nav-icon bi bi-shield-lock-fill"></i>
                         <span>Audit Trail</span>
                     </a>
@@ -712,8 +775,7 @@
         <div class="container-fluid" style="padding: 20px;">
             <!-- Proactive Reminders Alert -->
             @if(($retirementDueCount ?? 0) > 0 || ($stepDueCount ?? 0) > 0)
-                <div class="alert premium-alert d-flex align-items-center mb-4" role="alert"
-                    >
+                <div class="alert premium-alert d-flex align-items-center mb-4" role="alert">
                     <i class="bi bi-bell-fill fs-3 me-3"></i>
                     <div>
                         <h5 class="alert-heading mb-1" style="font-size: 16px; font-weight: 800;">Action Required
@@ -721,14 +783,12 @@
                         <p class="mb-0" style="font-size: 14px;">
                             You have
                             @if(($retirementDueCount ?? 0) > 0)
-                                <a href="{{ route('retirement.index') }}"
-                                    >{{ $retirementDueCount }} employees
+                                <a href="{{ route('retirement.index') }}">{{ $retirementDueCount }} employees
                                     due for retirement</a>
                             @endif
                             @if(($retirementDueCount ?? 0) > 0 && ($stepDueCount ?? 0) > 0) and @endif
                             @if(($stepDueCount ?? 0) > 0)
-                                <a href="{{ route('step-increment.index') }}"
-                                    >{{ $stepDueCount }} employees due for
+                                <a href="{{ route('step-increment.index') }}">{{ $stepDueCount }} employees due for
                                     step increment</a>
                             @endif
                             that need your attention.
@@ -743,9 +803,7 @@
                 <!-- Total Employees Card -->
                 <a href="{{ route('all-data.index', ['vacant' => 'filled']) }}"
                     style="text-decoration: none; color: inherit; display: block;">
-                    <div class="dash-card"
-                        
-                        >
+                    <div class="dash-card">
                         <div class="dash-card-content">
                             <div>
                                 <p class="dash-card-title">Total Employees
@@ -754,8 +812,7 @@
                                     {{ $filledPositions ?? 0 }}
                                 </h3>
                             </div>
-                            <div
-                                class="dash-card-icon icon-blue">
+                            <div class="dash-card-icon icon-blue">
                                 <i class="bi bi-people"></i>
                             </div>
                         </div>
@@ -764,9 +821,7 @@
 
                 <!-- Total Records Card -->
                 <a href="{{ route('all-data.index') }}" style="text-decoration: none; color: inherit; display: block;">
-                    <div class="dash-card"
-                        
-                        >
+                    <div class="dash-card">
                         <div class="dash-card-content">
                             <div>
                                 <p class="dash-card-title">Plantilla
@@ -776,30 +831,26 @@
                                     {{ $totalPositions ?? 0 }}
                                 </h3>
                             </div>
-                            <div
-                                class="dash-card-icon icon-purple">
+                            <div class="dash-card-icon icon-purple">
                                 <i class="bi bi-person-badge"></i>
                             </div>
                         </div>
                     </div>
                 </a>
 
-                <!-- Filled Positions Card -->
-                <a href="{{ route('all-data.index', ['vacant' => 'filled']) }}"
+                <!-- Permanent Filled Position Card -->
+                <a href="{{ route('all-data.index', ['vacant' => 'filled', 'status' => 'P']) }}"
                     style="text-decoration: none; color: inherit; display: block;">
-                    <div class="dash-card"
-                        
-                        >
+                    <div class="dash-card">
                         <div class="dash-card-content">
                             <div>
-                                <p class="dash-card-title">Filled
-                                    Positions</p>
+                                <p class="dash-card-title">Permanent Filled
+                                    Position</p>
                                 <h3 class="dash-card-value">
-                                    {{ $filledPositions ?? 0 }}
+                                    {{ $permanentFilledPositions ?? 0 }}
                                 </h3>
                             </div>
-                            <div
-                                class="dash-card-icon icon-green">
+                            <div class="dash-card-icon icon-green">
                                 <i class="bi bi-check-circle"></i>
                             </div>
                         </div>
@@ -809,9 +860,7 @@
                 <!-- Vacant Positions Card -->
                 <a href="{{ route('all-data.index', ['vacant' => 'vacant']) }}"
                     style="text-decoration: none; color: inherit; display: block;">
-                    <div class="dash-card"
-                        
-                        >
+                    <div class="dash-card">
                         <div class="dash-card-content">
                             <div>
                                 <p class="dash-card-title">Vacant
@@ -820,8 +869,7 @@
                                     {{ $vacantPositions ?? 0 }}
                                 </h3>
                             </div>
-                            <div
-                                class="dash-card-icon icon-orange">
+                            <div class="dash-card-icon icon-orange">
                                 <i class="bi bi-exclamation-circle"></i>
                             </div>
                         </div>
@@ -835,9 +883,7 @@
                 <!-- Permanent Card -->
                 <a href="{{ route('all-data.index', ['status' => 'P', 'vacant' => 'filled']) }}"
                     style="text-decoration: none; color: inherit; display: block;">
-                    <div class="dash-card"
-                        
-                        >
+                    <div class="dash-card">
                         <div class="dash-card-content">
                             <div>
                                 <p class="dash-card-title">Permanent</p>
@@ -845,8 +891,7 @@
                                     {{ $permanentEmployeesCount ?? 0 }}
                                 </h3>
                             </div>
-                            <div
-                                class="dash-card-icon icon-blue">
+                            <div class="dash-card-icon icon-blue">
                                 <i class="bi bi-briefcase"></i>
                             </div>
                         </div>
@@ -857,9 +902,7 @@
 
                 <!-- Overdue Retirements Card -->
                 <a href="{{ route('retirement.index') }}" style="text-decoration: none; color: inherit;">
-                    <div class="dash-card"
-                        
-                        >
+                    <div class="dash-card">
                         <div class="dash-card-content">
                             <div>
                                 <p class="dash-card-title">Overdue
@@ -868,8 +911,7 @@
                                     {{ $retirementDueCount ?? 0 }}
                                 </h3>
                             </div>
-                            <div
-                                class="dash-card-icon icon-red">
+                            <div class="dash-card-icon icon-red">
                                 <i class="bi bi-clock-history"></i>
                             </div>
                         </div>
@@ -878,9 +920,7 @@
 
                 <!-- Step Increments Due Card -->
                 <a href="{{ route('step-increment.index') }}" style="text-decoration: none; color: inherit;">
-                    <div class="dash-card"
-                        
-                        >
+                    <div class="dash-card">
                         <div class="dash-card-content">
                             <div>
                                 <p class="dash-card-title">Step Increments
@@ -889,8 +929,7 @@
                                     {{ $stepDueCount ?? 0 }}
                                 </h3>
                             </div>
-                            <div
-                                class="dash-card-icon icon-purple">
+                            <div class="dash-card-icon icon-purple">
                                 <i class="bi bi-graph-up-arrow"></i>
                             </div>
                         </div>
@@ -904,9 +943,7 @@
 
                 <!-- Casual Employees Card -->
                 <a href="{{ route('casual.index') }}" style="text-decoration: none; color: inherit; display: block;">
-                    <div class="dash-card"
-                        
-                        >
+                    <div class="dash-card">
                         <div class="dash-card-content">
                             <div>
                                 <p class="dash-card-title">Casual
@@ -919,8 +956,7 @@
                                     position{{ $casualVacant != 1 ? 's' : '' }}
                                 </p>
                             </div>
-                            <div
-                                class="dash-card-icon icon-orange">
+                            <div class="dash-card-icon icon-orange">
                                 <i class="bi bi-person-lines-fill"></i>
                             </div>
                         </div>
@@ -930,22 +966,37 @@
                 <!-- Job Orders Card -->
                 <a href="{{ route('job-orders.index') }}"
                     style="text-decoration: none; color: inherit; display: block;">
-                    <div class="dash-card"
-                        
-                        >
+                    <div class="dash-card">
                         <div class="dash-card-content">
                             <div>
                                 <p class="dash-card-title">Job Orders</p>
                                 <h3 class="dash-card-value">
                                     {{ number_format($jobOrderTotal) }}
                                 </h3>
-                                <p
-                                    class="dash-card-subtext">
+                                <p class="dash-card-subtext">
                                     Total job order records</p>
                             </div>
-                            <div
-                                class="dash-card-icon icon-blue">
+                            <div class="dash-card-icon icon-blue">
                                 <i class="bi bi-file-earmark-person-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Plantilla Positions (Casual) Card -->
+                <a href="{{ route('casual.index') }}" style="text-decoration: none; color: inherit; display: block;">
+                    <div class="dash-card">
+                        <div class="dash-card-content">
+                            <div>
+                                <p class="dash-card-title">Plantilla Positions
+                                    <span style="color:#f59e0b;">(Casual)</span></p>
+                                <h3 class="dash-card-value">
+                                    {{ $casualInPlantilla ?? 0 }}
+                                </h3>
+                                <p class="dash-card-subtext">Casual in plantilla records</p>
+                            </div>
+                            <div class="dash-card-icon" style="background:#fffbeb; color:#f59e0b;">
+                                <i class="bi bi-person-lines-fill"></i>
                             </div>
                         </div>
                     </div>
@@ -1017,7 +1068,134 @@
                 </div>
             </div>
 
-            <!-- FIFTH ROW: New Analytics Charts -->
+            <!-- SIXTH ROW: Plantilla Positions (Regular) Pie Chart + Casual Card + Casual Pie Chart -->
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px;">
+
+                <!-- Pie Chart: Plantilla Positions (Regular) -->
+                <div
+                    style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                        <h3 style="margin:0; color: #111827; font-size: 18px; font-weight: 600;">Plantilla Positions
+                            <span style="font-size:13px; font-weight:500; color:#6b7280;">(Regular)</span>
+                        </h3>
+                        @php
+                            $ppTotal = ($plantillaPermCount ?? 0) + ($plantillaElectCount ?? 0) + ($plantillaCoterCount ?? 0) + ($plantillaTempCount ?? 0) + ($plantillaPartCount ?? 0);
+                        @endphp
+                        <span
+                            style="font-size:12px; color:#6b7280; background:#f3f4f6; padding:4px 10px; border-radius:99px;">Total:
+                            {{ $ppTotal }}</span>
+                    </div>
+                    <div style="position: relative; height: 260px;">
+                        <canvas id="plantillaRegularPieChart"></canvas>
+                    </div>
+                    @php
+                        $ppPermPct = $ppTotal > 0 ? round(($plantillaPermCount ?? 0) / $ppTotal * 100, 1) : 0;
+                        $ppElectPct = $ppTotal > 0 ? round(($plantillaElectCount ?? 0) / $ppTotal * 100, 1) : 0;
+                        $ppCoterPct = $ppTotal > 0 ? round(($plantillaCoterCount ?? 0) / $ppTotal * 100, 1) : 0;
+                        $ppTempPct = $ppTotal > 0 ? round(($plantillaTempCount ?? 0) / $ppTotal * 100, 1) : 0;
+                        $ppPartPct = $ppTotal > 0 ? round(($plantillaPartCount ?? 0) / $ppTotal * 100, 1) : 0;
+                    @endphp
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; justify-content:center;">
+                        <div
+                            style="display:flex; align-items:center; gap:6px; background:#ecfdf5; border-radius:8px; padding:6px 10px; flex:1; min-width:100px;">
+                            <span
+                                style="width:10px;height:10px;border-radius:50%;background:#10b981;flex-shrink:0;"></span>
+                            <div>
+                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Permanent</div>
+                                <div style="font-size:14px;font-weight:700;color:#10b981;">{{ $ppPermPct }}%</div>
+                            </div>
+                        </div>
+                        <div
+                            style="display:flex; align-items:center; gap:6px; background:#f5f3ff; border-radius:8px; padding:6px 10px; flex:1; min-width:100px;">
+                            <span
+                                style="width:10px;height:10px;border-radius:50%;background:#7c3aed;flex-shrink:0;"></span>
+                            <div>
+                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Elected</div>
+                                <div style="font-size:14px;font-weight:700;color:#7c3aed;">{{ $ppElectPct }}%</div>
+                            </div>
+                        </div>
+                        <div
+                            style="display:flex; align-items:center; gap:6px; background:#eff6ff; border-radius:8px; padding:6px 10px; flex:1; min-width:100px;">
+                            <span
+                                style="width:10px;height:10px;border-radius:50%;background:#3b82f6;flex-shrink:0;"></span>
+                            <div>
+                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Co-Ter</div>
+                                <div style="font-size:14px;font-weight:700;color:#3b82f6;">{{ $ppCoterPct }}%</div>
+                            </div>
+                        </div>
+                        <div
+                            style="display:flex; align-items:center; gap:6px; background:#fffbeb; border-radius:8px; padding:6px 10px; flex:1; min-width:100px;">
+                            <span
+                                style="width:10px;height:10px;border-radius:50%;background:#f59e0b;flex-shrink:0;"></span>
+                            <div>
+                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Temporary</div>
+                                <div style="font-size:14px;font-weight:700;color:#f59e0b;">{{ $ppTempPct }}%</div>
+                            </div>
+                        </div>
+                        <div
+                            style="display:flex; align-items:center; gap:6px; background:#fff1f2; border-radius:8px; padding:6px 10px; flex:1; min-width:100px;">
+                            <span
+                                style="width:10px;height:10px;border-radius:50%;background:#f43f5e;flex-shrink:0;"></span>
+                            <div>
+                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Part-Time</div>
+                                <div style="font-size:14px;font-weight:700;color:#f43f5e;">{{ $ppPartPct }}%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pie Chart: Casual Employees — Filled vs Unfilled -->
+                <div
+                    style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                        <h3 style="margin:0; color: #111827; font-size: 18px; font-weight: 600;">Casual
+                            <span style="font-size:13px; font-weight:500; color:#6b7280;">Filled vs Unfilled</span>
+                        </h3>
+                        <span
+                            style="font-size:12px; color:#6b7280; background:#f3f4f6; padding:4px 10px; border-radius:99px;">Total:
+                            {{ $casualTotal ?? 0 }}</span>
+                    </div>
+                    <div style="position: relative; height: 260px;">
+                        <canvas id="casualPieChart"></canvas>
+                    </div>
+                    @php
+                        $casTotal = $casualTotal ?? 0;
+                        $casFilled = $casualFilled ?? 0;
+                        $casVacant = $casualVacant ?? 0;
+                        $casFilledPct = $casTotal > 0 ? round($casFilled / $casTotal * 100, 1) : 0;
+                        $casVacantPct = $casTotal > 0 ? round($casVacant / $casTotal * 100, 1) : 0;
+                    @endphp
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; justify-content:center;">
+                        <div
+                            style="display:flex; align-items:center; gap:6px; background:#ecfdf5; border-radius:8px; padding:7px 12px; flex:1; min-width:120px;">
+                            <span
+                                style="width:10px;height:10px;border-radius:50%;background:#10b981;flex-shrink:0;"></span>
+                            <div>
+                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Filled</div>
+                                <div style="font-size:15px;font-weight:700;color:#10b981;">{{ $casFilledPct }}%
+                                    <span
+                                        style="font-size:11px;font-weight:500;color:#6b7280;">({{ $casFilled }})</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            style="display:flex; align-items:center; gap:6px; background:#fff1f2; border-radius:8px; padding:7px 12px; flex:1; min-width:120px;">
+                            <span
+                                style="width:10px;height:10px;border-radius:50%;background:#f43f5e;flex-shrink:0;"></span>
+                            <div>
+                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Unfilled</div>
+                                <div style="font-size:15px;font-weight:700;color:#f43f5e;">{{ $casVacantPct }}%
+                                    <span
+                                        style="font-size:11px;font-weight:500;color:#6b7280;">({{ $casVacant }})</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
             <div
                 style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px;">
                 <!-- Pie Chart: Workforce Distribution -->
@@ -1088,9 +1266,8 @@
                 <!-- PWD Count Card -->
                 <a href="{{ route('all-data.index', ['pwd' => 1]) }}"
                     style="text-decoration: none; color: inherit; display: block;">
-                    <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 5px solid #0d6efd; height: 100%; transition: transform 0.2s;"
-                        
-                        >
+                    <div
+                        style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 5px solid #0d6efd; height: 100%; transition: transform 0.2s;">
                         <div style="display: flex; justify-content: flex-start; align-items: flex-start;">
                             <div>
                                 <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">PWD Count</p>
@@ -1105,9 +1282,8 @@
                 <!-- IP Count Card -->
                 <a href="{{ route('all-data.index', ['ip' => 1]) }}"
                     style="text-decoration: none; color: inherit; display: block;">
-                    <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 5px solid #0d6efd; height: 100%; transition: transform 0.2s;"
-                        
-                        >
+                    <div
+                        style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 5px solid #0d6efd; height: 100%; transition: transform 0.2s;">
                         <div style="display: flex; justify-content: flex-start; align-items: flex-start;">
                             <div>
                                 <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">IP Count</p>
@@ -1122,9 +1298,8 @@
                 <!-- Solo Parent Count Card -->
                 <a href="{{ route('all-data.index', ['solo_parent' => 1]) }}"
                     style="text-decoration: none; color: inherit; display: block;">
-                    <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 5px solid #0d6efd; height: 100%; transition: transform 0.2s;"
-                        
-                        >
+                    <div
+                        style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 5px solid #0d6efd; height: 100%; transition: transform 0.2s;">
                         <div style="display: flex; justify-content: flex-start; align-items: flex-start;">
                             <div>
                                 <p style="margin: 0; color: #6b7280; font-size: 14px; font-weight: 500;">Solo Parent
@@ -1749,9 +1924,9 @@
                     border: 2px dashed #e0e7ff;
                     background: rgba(248, 250, 252, 0.7);
                 }
-            
-        }
-    </style>
+
+                }
+            </style>
 
             <div class="row mt-4">
                 <div class="col-12">
@@ -1837,11 +2012,13 @@
                                                             <div class="bday-fx-name">{{ $emp->first_name }} {{ $emp->last_name }}
                                                             </div>
                                                             <div class="bday-fx-pos" title="{{ $emp->position_title }}">
-                                                                {{ $emp->position_title }}</div>
+                                                                {{ $emp->position_title }}
+                                                            </div>
                                                         </div>
                                                         <div style="flex-shrink:0;text-align:right;margin-left:12px;">
                                                             <div class="bday-date-text is-orange">🗓
-                                                                {{ $emp->date_of_birth->format('M d') }}</div>
+                                                                {{ $emp->date_of_birth->format('M d') }}
+                                                            </div>
                                                             <div class="bday-fx-turns-orange">🎂 Turns {{ $age }}</div>
                                                         </div>
                                                     </div>
@@ -1871,11 +2048,13 @@
                                                             <div class="bday-fx-name">{{ $emp->first_name }} {{ $emp->last_name }}
                                                             </div>
                                                             <div class="bday-fx-pos" title="{{ $emp->position_title }}">
-                                                                {{ $emp->position_title }}</div>
+                                                                {{ $emp->position_title }}
+                                                            </div>
                                                         </div>
                                                         <div style="flex-shrink:0;text-align:right;margin-left:12px;">
                                                             <div class="bday-date-text is-blue">🗓
-                                                                {{ $emp->date_of_birth->format('M d') }}</div>
+                                                                {{ $emp->date_of_birth->format('M d') }}
+                                                            </div>
                                                             <div class="bday-fx-turns-blue">Turns {{ $age }} · {{ $daysLabel }}
                                                             </div>
                                                         </div>
@@ -1916,7 +2095,8 @@
                     <i class="bi bi-box-arrow-right"></i>
                 </div>
                 <h2 class="logout-modal-title">Sign Out?</h2>
-                <p class="logout-modal-subtitle">You're about to leave the HDMS- Human Resource Data Management System portal.</p>
+                <p class="logout-modal-subtitle">You're about to leave the HDMS- Human Resource Data Management System
+                    portal.</p>
             </div>
             <div class="logout-modal-body">
                 <div class="logout-modal-info">
@@ -2108,6 +2288,114 @@
                                 text: distData.permanent + distData.casual + distData.jobOrder,
                                 subText: 'Total Employees',
                                 fontSize: 26,
+                                color: '#111827'
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                titleFont: { size: 13, weight: 'bold' },
+                                bodyFont: { size: 13 },
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function (context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const value = context.parsed;
+                                        const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return ` ${context.label}: ${value} (${pct}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Initialize Pie Chart - Plantilla Positions (Regular)
+            const plantillaRegularCtx = document.getElementById('plantillaRegularPieChart')?.getContext('2d');
+            if (plantillaRegularCtx) {
+                const ppData = {
+                    permanent: {{ $plantillaPermCount ?? 0 }},
+                    elected:   {{ $plantillaElectCount ?? 0 }},
+                    coter:     {{ $plantillaCoterCount ?? 0 }},
+                    temporary: {{ $plantillaTempCount ?? 0 }},
+                    parttime:  {{ $plantillaPartCount ?? 0 }},
+                };
+                const ppTotal = ppData.permanent + ppData.elected + ppData.coter + ppData.temporary + ppData.parttime;
+                new Chart(plantillaRegularCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Permanent', 'Elected', 'Co-Terminous', 'Temporary', 'Part-Time'],
+                        datasets: [{
+                            data: [ppData.permanent, ppData.elected, ppData.coter, ppData.temporary, ppData.parttime],
+                            backgroundColor: ['#10b981', '#7c3aed', '#3b82f6', '#f59e0b', '#f43f5e'],
+                            borderColor: ['#fff', '#fff', '#fff', '#fff', '#fff'],
+                            borderWidth: 3,
+                            hoverOffset: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: {
+                            legend: { display: false },
+                            centerText: {
+                                display: true,
+                                text: ppTotal,
+                                subText: 'Regular Positions',
+                                fontSize: 26,
+                                color: '#111827'
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                titleFont: { size: 13, weight: 'bold' },
+                                bodyFont: { size: 13 },
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function (context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const value = context.parsed;
+                                        const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return ` ${context.label}: ${value} (${pct}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Initialize Pie Chart - Casual Filled vs Unfilled
+            const casualPieCtx = document.getElementById('casualPieChart')?.getContext('2d');
+            if (casualPieCtx) {
+                const casData = {
+                    filled:  {{ $casualFilled ?? 0 }},
+                    unfilled: {{ $casualVacant ?? 0 }},
+                };
+                new Chart(casualPieCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Filled', 'Unfilled'],
+                        datasets: [{
+                            data: [casData.filled, casData.unfilled],
+                            backgroundColor: ['#10b981', '#f43f5e'],
+                            borderColor: ['#fff', '#fff'],
+                            borderWidth: 3,
+                            hoverOffset: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: {
+                            legend: { display: false },
+                            centerText: {
+                                display: true,
+                                text: casData.filled + casData.unfilled,
+                                subText: 'Casual Total',
+                                fontSize: 22,
                                 color: '#111827'
                             },
                             tooltip: {

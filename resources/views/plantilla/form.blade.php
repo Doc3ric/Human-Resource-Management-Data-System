@@ -295,7 +295,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h2 class="text-base font-semibold text-gray-800 mb-1 pb-2 border-b border-gray-100">Appointment History & Separation</h2>
                 <p class="text-xs text-gray-400 mb-4">Used for official personnel reports (Newly Hired, Retirees, Terminated). Leave blank if not applicable.</p>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Nature of Appointment</label>
                         <select name="nature_of_appointment" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
@@ -325,6 +325,16 @@
                             value="{{ old('date_separated', isset($plantilla) && $plantilla->date_separated ? \Carbon\Carbon::parse($plantilla->date_separated)->format('Y-m-d') : '') }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                     </div>
+                </div>
+
+                <div class="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                    <label class="flex items-center gap-2 text-sm font-semibold text-purple-800 cursor-pointer">
+                        <input type="checkbox" name="process_separation" id="process_separation" value="1"
+                            class="rounded text-purple-600 focus:ring-purple-500"> 🛫 Process Separation & Auto-Declare Vacant
+                    </label>
+                    <p class="text-xs text-purple-600 mt-1 pl-6">
+                        Checking this box will record the former employee's details in the annotations and <strong>automatically clear the employee's information</strong> to make the position vacant upon saving.
+                    </p>
                 </div>
             </div>
 
@@ -358,6 +368,36 @@
                     } else {
                         itemInput.classList.remove('hidden');
                         itemInput.value = this.value;
+                        
+                        // Fetch details for the selected item and auto-fill position fields
+                        fetch(`/plantilla/item-details?item=${encodeURIComponent(this.value)}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data && Object.keys(data).length > 0) {
+                                    const fieldsToFill = {
+                                        'position_title': data.position_title,
+                                        'position_classification': data.position_classification,
+                                        'salary_grade': data.salary_grade,
+                                        'step': data.step,
+                                        'authorized_annual_salary': data.authorized_annual_salary,
+                                        'actual_annual_salary': data.actual_annual_salary,
+                                        'employment_status': data.employment_status,
+                                        'area_code': data.area_code,
+                                        'area_type': data.area_type,
+                                        'level': data.level
+                                    };
+                                    
+                                    for (const [name, value] of Object.entries(fieldsToFill)) {
+                                        if (value !== null && value !== undefined) {
+                                            const input = document.querySelector(`[name="${name}"]`);
+                                            if (input) {
+                                                input.value = value;
+                                            }
+                                        }
+                                    }
+                                }
+                            })
+                            .catch(error => console.error('Error fetching item details:', error));
                     }
                 });
             }
@@ -367,7 +407,8 @@
             const orgInput = document.getElementById('org_unit_input');
             if (orgSelect && orgInput) {
                 orgSelect.addEventListener('change', function() {
-                    if (this.value === 'Others') {
+                    let officeVal = this.value;
+                    if (officeVal === 'Others') {
                         orgInput.classList.remove('hidden');
                         let isFromList = false;
                         Array.from(orgSelect.options).forEach(opt => {
@@ -379,7 +420,24 @@
                         orgInput.focus();
                     } else {
                         orgInput.classList.add('hidden');
-                        orgInput.value = this.value;
+                        orgInput.value = officeVal;
+                        
+                        // Filter the Item (Position Code) dropdown based on selected office
+                        if (officeVal && itemSelect && !itemSelect.disabled) {
+                            fetch(`/items-by-office?office=${encodeURIComponent(officeVal)}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    let optionsHtml = '<option value="">Select existing code...</option>';
+                                    if (data && data.length > 0) {
+                                        data.forEach(item => {
+                                            optionsHtml += `<option value="${item.item}">${item.item} (${item.position_title || 'Untitled'})</option>`;
+                                        });
+                                    }
+                                    optionsHtml += '<option value="__others__">Others (Please Specify)</option>';
+                                    itemSelect.innerHTML = optionsHtml;
+                                })
+                                .catch(error => console.error('Error fetching items by office:', error));
+                        }
                     }
                 });
             }

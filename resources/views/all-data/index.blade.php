@@ -260,17 +260,36 @@
             max-height: calc(100vh - 350px);
             min-height: 300px;
             /* Hide native horizontal scrollbar — replaced by custom strip below */
-            scrollbar-width: none; /* Firefox: hide all scrollbars temporarily */
+            scrollbar-width: none;
+            /* Firefox: hide all scrollbars temporarily */
         }
+
         /* Hide only the horizontal scrollbar in WebKit */
         .table-scroll::-webkit-scrollbar {
-            width: 12px;  /* keep vertical scrollbar */
-            height: 0;    /* hide horizontal scrollbar */
+            width: 12px;
+            /* keep vertical scrollbar */
+            height: 0;
+            /* hide horizontal scrollbar */
         }
-        .table-scroll::-webkit-scrollbar-track { background: #f3f4f6; border-radius: 10px; }
-        .table-scroll::-webkit-scrollbar-thumb { background: #9ca3af; border-radius: 10px; border: 2px solid #f3f4f6; }
-        .table-scroll::-webkit-scrollbar-thumb:hover { background: #6b7280; }
-        .table-scroll::-webkit-scrollbar-thumb:active { background: #374151; }
+
+        .table-scroll::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 10px;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 10px;
+            border: 2px solid #f3f4f6;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb:active {
+            background: #374151;
+        }
 
         /* ── Excel-style right-quarter horizontal scrollbar ────────── */
         .ad-hscroll-bar {
@@ -279,6 +298,7 @@
             background: #f3f4f6;
             border-top: 1px solid #e5e7eb;
         }
+
         .ad-hscroll-inner {
             width: 25%;
             overflow-x: auto;
@@ -287,11 +307,28 @@
             scrollbar-width: thin;
             scrollbar-color: #9ca3af #f3f4f6;
         }
-        .ad-hscroll-inner::-webkit-scrollbar { height: 14px; }
-        .ad-hscroll-inner::-webkit-scrollbar-track { background: #f3f4f6; }
-        .ad-hscroll-inner::-webkit-scrollbar-thumb { background: #9ca3af; border-radius: 10px; border: 2px solid #f3f4f6; }
-        .ad-hscroll-inner::-webkit-scrollbar-thumb:hover { background: #6b7280; }
-        .ad-hscroll-ghost { height: 1px; }
+
+        .ad-hscroll-inner::-webkit-scrollbar {
+            height: 14px;
+        }
+
+        .ad-hscroll-inner::-webkit-scrollbar-track {
+            background: #f3f4f6;
+        }
+
+        .ad-hscroll-inner::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 10px;
+            border: 2px solid #f3f4f6;
+        }
+
+        .ad-hscroll-inner::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        .ad-hscroll-ghost {
+            height: 1px;
+        }
 
         /* ── Main data table ─────────────────────────────────────────────────── */
         .data-table {
@@ -626,7 +663,7 @@
     {{-- Filter bar --}}
     <form method="GET" action="{{ route('all-data.index') }}" id="search-form">
         <div class="filter-bar">
-            
+
             {{-- TOP ROW: Filters --}}
             <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
                 {{-- Search input --}}
@@ -676,14 +713,16 @@
 
                 <select name="per_page" class="filter-select" style="min-width:90px;">
                     @foreach([25, 50, 100, 200] as $n)
-                        <option value="{{ $n }}" {{ request('per_page', 50) == $n ? 'selected' : '' }}>{{ $n }} / page</option>
+                        <option value="{{ $n }}" {{ request('per_page', 50) == $n ? 'selected' : '' }}>{{ $n }} / page
+                        </option>
                     @endforeach
                 </select>
             </div>
 
             {{-- BOTTOM ROW: Actions --}}
-            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
-                
+            <div
+                style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+
                 {{-- Left Side: Core Actions --}}
                 <div style="display: flex; gap: 8px;">
                     <button type="submit" class="filter-btn primary">
@@ -703,16 +742,24 @@
                 {{-- Right Side: Extra Utilities --}}
                 <div style="display:flex; gap:6px; align-items:center;">
                     @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                        <button type="button" class="filter-btn" id="toggle-select-multiple" style="background:#fff;color:#334155;border:1px solid #cbd5e1;gap:5px;" onmouseover="this.style.background='#f8fafc';this.style.borderColor='#94a3b8';" onmouseout="this.style.background='#fff';this.style.borderColor='#cbd5e1';">
+                        <button type="button" class="filter-btn" id="toggle-select-multiple"
+                            style="background:#fff;color:#334155;border:1px solid #cbd5e1;gap:5px;"
+                            onmouseover="this.style.background='#f8fafc';this.style.borderColor='#94a3b8';"
+                            onmouseout="this.style.background='#fff';this.style.borderColor='#cbd5e1';">
                             <i class="bi bi-ui-checks-grid"></i> Select Multiple
                         </button>
                     @endif
                     <a href="{{ route('archives.index') }}" class="filter-btn"
-                        style="background:#7c3aed;color:#fff;gap:5px;" onmouseover="this.style.background='#f8fafc';this.style.borderColor='#94a3b8';"
+                        style="background:#7c3aed;color:#fff;gap:5px;"
+                        onmouseover="this.style.background='#f8fafc';this.style.borderColor='#94a3b8';"
                         onmouseout="this.style.background='#fff';this.style.borderColor='#cbd5e1';">
                         <i class="bi bi-archive-fill"></i> View Archives
                     </a>
-                    <button type="button" class="filter-btn" style="background:#fff;color:#334155;border:1px solid #cbd5e1;gap:5px;" onmouseover="this.style.background='#f8fafc';this.style.borderColor='#94a3b8';" onmouseout="this.style.background='#fff';this.style.borderColor='#cbd5e1';" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()">
+                    <button type="button" class="filter-btn"
+                        style="background:#fff;color:#334155;border:1px solid #cbd5e1;gap:5px;"
+                        onmouseover="this.style.background='#f8fafc';this.style.borderColor='#94a3b8';"
+                        onmouseout="this.style.background='#fff';this.style.borderColor='#cbd5e1';"
+                        onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()">
                         <i class="bi bi-file-earmark-arrow-down-fill"></i> Export Settings
                     </button>
                 </div>
@@ -724,22 +771,26 @@
 
     {{-- Bulk Action Bar --}}
     @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-    <div id="bulk-action-bar" style="display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="background: #3b82f6; color: white; border-radius: 9999px; padding: 2px 10px; font-size: 12px; font-weight: 700;" id="bulk-count">0</span>
-            <span style="font-size: 13px; font-weight: 600; color: #334155;">records selected</span>
+        <div id="bulk-action-bar"
+            style="display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span
+                    style="background: #3b82f6; color: white; border-radius: 9999px; padding: 2px 10px; font-size: 12px; font-weight: 700;"
+                    id="bulk-count">0</span>
+                <span style="font-size: 13px; font-weight: 600; color: #334155;">records selected</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <form id="bulk-archive-form" method="POST" action="{{ route('all-data.bulk-archive') }}" style="margin: 0;">
+                    @csrf
+                    <input type="hidden" name="type" value="plantilla">
+                    <div id="bulk-ids-container"></div>
+                    <button type="button" onclick="confirmBulkArchive()" class="filter-btn"
+                        style="background: #7c3aed; color: #fff;">
+                        <i class="bi bi-archive-fill"></i> Archive Selected
+                    </button>
+                </form>
+            </div>
         </div>
-        <div style="display: flex; gap: 8px;">
-            <form id="bulk-archive-form" method="POST" action="{{ route('all-data.bulk-archive') }}" style="margin: 0;">
-                @csrf
-                <input type="hidden" name="type" value="plantilla">
-                <div id="bulk-ids-container"></div>
-                <button type="button" onclick="confirmBulkArchive()" class="filter-btn" style="background: #7c3aed; color: #fff;">
-                    <i class="bi bi-archive-fill"></i> Archive Selected
-                </button>
-            </form>
-        </div>
-    </div>
     @endif
 
     {{-- Table --}}
@@ -779,7 +830,7 @@
                         <th>Status</th>
                         <th>Termination</th>
                         @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                            <th style="text-align:center;">Actions</th>
+                            <th style="text-align:center; min-width: 280px;">Actions</th>
                         @endif
                     </tr>
                 </thead>
@@ -788,7 +839,8 @@
                         <tr>
                             @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
                                 <td class="checkbox-col" style="display:none; text-align:center; padding-left: 16px;">
-                                    <input type="checkbox" class="record-checkbox" value="{{ $r->id }}" style="cursor:pointer; width: 14px; height: 14px;">
+                                    <input type="checkbox" class="record-checkbox" value="{{ $r->id }}"
+                                        style="cursor:pointer; width: 14px; height: 14px;">
                                 </td>
                             @endif
                             {{-- Row # (sticky col) --}}
@@ -934,14 +986,24 @@
 
                             {{-- Actions --}}
                             @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                                <td style="text-align:center;">
-                                    <div style="display:flex;gap:6px;justify-content:center;align-items:center;">
-                                        <a href="{{ route('employees.profile', ['type' => 'plantilla', 'id' => $r->id]) }}" class="row-btn" style="background: #e0e7ff; color: #4338ca; border-color: #c7d2fe;" title="201 Profile">
-                                            <i class="bi bi-person-vcard"></i> 201 Profile
+                                <td style="text-align:center; min-width: 280px; max-width: none; white-space: nowrap;">
+                                    <div
+                                        style="display:flex; flex-wrap: nowrap; gap:6px; justify-content:center; align-items:center;">
+                                        <a href="{{ route('employees.profile', ['type' => 'plantilla', 'id' => $r->id]) }}"
+                                            class="row-btn" style="background: #e0e7ff; color: #4338ca; border-color: #c7d2fe;"
+                                            title="201 Profile">
+                                            <i class="bi bi-person-vcard"></i> Profile
                                         </a>
                                         <a href="{{ route('all-data.edit', $r) }}" class="row-btn edit" title="Edit">
                                             <i class="bi bi-pencil"></i> Edit
                                         </a>
+                                        @if(!$r->is_vacant)
+                                            <a href="{{ route('plantilla.promote.form', $r) }}" class="row-btn"
+                                                style="background: #e0e7ff; color: #4f46e5; border-color: #c7d2fe;"
+                                                title="Promote / Transfer">
+                                                <i class="bi bi-person-up"></i> Promote
+                                            </a>
+                                        @endif
                                         <form method="POST" action="{{ route('all-data.archive', $r) }}"
                                             id="form-archive-{{ $r->id }}" style="display:contents;">
                                             @csrf
@@ -1030,7 +1092,8 @@
     {{-- Export Modal --}}
     <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <div class="modal-content"
+                style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
                 <form id="exportForm" method="GET">
                     {{-- Hidden inputs to preserve filters --}}
                     <input type="hidden" name="search" value="{{ request('search') }}">
@@ -1044,16 +1107,23 @@
                     <input type="hidden" name="solo_parent" value="{{ request('solo_parent') }}">
                     <input type="hidden" name="abolished" value="{{ request('abolished') }}">
 
-                    <div class="modal-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; border-radius: 12px 12px 0 0;">
-                        <h5 class="modal-title" id="exportModalLabel" style="font-weight: 800; color: #0f2942;"><i class="bi bi-download"></i> Export Data Options</h5>
+                    <div class="modal-header"
+                        style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; border-radius: 12px 12px 0 0;">
+                        <h5 class="modal-title" id="exportModalLabel" style="font-weight: 800; color: #0f2942;"><i
+                                class="bi bi-download"></i> Export Data Options</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" style="padding: 24px;">
-                        <p style="font-size: 14px; color: #475569; margin-bottom: 16px;">Select the columns you want to include in your export:</p>
-                        
+                        <p style="font-size: 14px; color: #475569; margin-bottom: 16px;">Select the columns you want to
+                            include in your export:</p>
+
                         <div style="margin-bottom: 12px;">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelectorAll('.export-cb').forEach(cb => cb.checked = true)" style="font-size: 11px; font-weight: 600;">Select All</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelectorAll('.export-cb').forEach(cb => cb.checked = false)" style="font-size: 11px; font-weight: 600;">Deselect All</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                onclick="document.querySelectorAll('.export-cb').forEach(cb => cb.checked = true)"
+                                style="font-size: 11px; font-weight: 600;">Select All</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                onclick="document.querySelectorAll('.export-cb').forEach(cb => cb.checked = false)"
+                                style="font-size: 11px; font-weight: 600;">Deselect All</button>
                         </div>
 
                         <div class="row">
@@ -1088,8 +1158,10 @@
                             @foreach($exportColumns as $key => $label)
                                 <div class="col-md-4 col-sm-6" style="margin-bottom: 8px;">
                                     <div class="form-check">
-                                        <input class="form-check-input export-cb" type="checkbox" name="columns[]" value="{{ $key }}" id="col_{{ $key }}" checked>
-                                        <label class="form-check-label" for="col_{{ $key }}" style="font-size: 13px; color: #1e293b;">
+                                        <input class="form-check-input export-cb" type="checkbox" name="columns[]"
+                                            value="{{ $key }}" id="col_{{ $key }}" checked>
+                                        <label class="form-check-label" for="col_{{ $key }}"
+                                            style="font-size: 13px; color: #1e293b;">
                                             {{ $label }}
                                         </label>
                                     </div>
@@ -1098,11 +1170,16 @@
                         </div>
                     </div>
                     <div class="modal-footer" style="border-top: 1px solid #e2e8f0; padding: 16px 24px;">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 6px;">Cancel</button>
-                        <button type="button" onclick="handleExport('{{ route('all-data.export.excel') }}', 'excel')" class="btn btn-success" style="font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 6px; background: #16a34a; border: none;">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                            style="font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 6px;">Cancel</button>
+                        <button type="button" onclick="handleExport('{{ route('all-data.export.excel') }}', 'excel')"
+                            class="btn btn-success"
+                            style="font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 6px; background: #16a34a; border: none;">
                             <i class="bi bi-file-earmark-excel-fill"></i> Export to Excel
                         </button>
-                        <button type="button" onclick="handleExport('{{ route('all-data.export.pdf') }}', 'pdf')" class="btn btn-danger" style="font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 6px; background: #dc2626; border: none;">
+                        <button type="button" onclick="handleExport('{{ route('all-data.export.pdf') }}', 'pdf')"
+                            class="btn btn-danger"
+                            style="font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 6px; background: #dc2626; border: none;">
                             <i class="bi bi-file-earmark-pdf-fill"></i> Export to PDF
                         </button>
                     </div>
@@ -1115,7 +1192,7 @@
         async function handleExport(url, type) {
             // Close the modal
             bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide();
-            
+
             // Show loading alert
             Swal.fire({
                 title: 'Generating ' + (type === 'pdf' ? 'PDF' : 'Excel') + '...',
@@ -1130,7 +1207,7 @@
             const form = document.getElementById('exportForm');
             const formData = new FormData(form);
             const queryParams = new URLSearchParams(formData).toString();
-            
+
             try {
                 const response = await fetch(`${url}?${queryParams}`, {
                     method: 'GET',
@@ -1153,7 +1230,7 @@
                 // Convert response to blob
                 const blob = await response.blob();
                 const downloadUrl = window.URL.createObjectURL(blob);
-                
+
                 // Create a temporary link to trigger download
                 const a = document.createElement('a');
                 a.style.display = 'none';
@@ -1161,7 +1238,7 @@
                 a.download = filename;
                 document.body.appendChild(a);
                 a.click();
-                
+
                 // Cleanup
                 Swal.fire({
                     icon: 'success',
@@ -1254,7 +1331,7 @@
         }
 
         // Bulk Selection Logic
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const selectAll = document.getElementById('selectAll');
             const checkboxes = document.querySelectorAll('.record-checkbox');
             const bulkBar = document.getElementById('bulk-action-bar');
@@ -1269,7 +1346,7 @@
                 } else {
                     bulkBar.style.display = 'none';
                 }
-                
+
                 // Update hidden inputs
                 bulkIdsContainer.innerHTML = '';
                 checked.forEach(cb => {
@@ -1282,7 +1359,7 @@
             }
 
             if (selectAll) {
-                selectAll.addEventListener('change', function() {
+                selectAll.addEventListener('change', function () {
                     checkboxes.forEach(cb => {
                         cb.checked = selectAll.checked;
                     });
@@ -1291,7 +1368,7 @@
             }
 
             checkboxes.forEach(cb => {
-                cb.addEventListener('change', function() {
+                cb.addEventListener('change', function () {
                     // Update selectAll state
                     if (selectAll) {
                         selectAll.checked = document.querySelectorAll('.record-checkbox:checked').length === checkboxes.length && checkboxes.length > 0;
@@ -1304,7 +1381,7 @@
             const toggleSelectBtn = document.getElementById('toggle-select-multiple');
             const checkboxCols = document.querySelectorAll('.checkbox-col');
             if (toggleSelectBtn) {
-                toggleSelectBtn.addEventListener('click', function() {
+                toggleSelectBtn.addEventListener('click', function () {
                     let isHidden = checkboxCols.length > 0 && checkboxCols[0].style.display === 'none';
                     checkboxCols.forEach(col => {
                         col.style.display = isHidden ? 'table-cell' : 'none';

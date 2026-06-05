@@ -58,6 +58,9 @@ class AllDataController extends Controller
             'admin_charge_to' => 'nullable|date',
             'is_health_worker' => 'boolean',
             'admin_charges' => 'nullable|array',
+            'process_separation' => 'nullable|boolean',
+            'nature_of_separation' => 'nullable|string|max:100',
+            'date_separated' => 'nullable|date',
             'admin_charges.*.from' => 'nullable|date',
             'admin_charges.*.to' => 'nullable|date',
             'admin_charges.*.type' => 'nullable|string|max:255',
@@ -342,6 +345,51 @@ class AllDataController extends Controller
         // This prevents inconsistency where a filled record is marked vacant (or vice versa).
         $hasEmployee = !empty(trim($data['last_name'] ?? '')) || !empty(trim($data['first_name'] ?? ''));
         $data['is_vacant'] = !$hasEmployee;
+
+        // Auto-Process Separation/Retirement if requested
+        if ($request->boolean('process_separation')) {
+            $sepType = $data['nature_of_separation'] ?? 'SEPARATED';
+            $sepDate = $data['date_separated'] ?? now()->toDateString();
+            
+            $formerName = trim(
+                strtoupper($data['last_name'] ?? $allDatum->last_name ?? '') . ', ' .
+                ($data['first_name'] ?? $allDatum->first_name ?? '') . ' ' .
+                ($data['middle_name'] ?? $allDatum->middle_name ?? '')
+            );
+            
+            $dobStr = !empty($data['date_of_birth']) ? \Carbon\Carbon::parse($data['date_of_birth'])->format('m/d/Y') : 'N/A';
+            $sgStr = $data['salary_grade'] ?? $allDatum->salary_grade ?? '?';
+            $stepStr = $data['step'] ?? $allDatum->step ?? '?';
+            $tinStr = $data['tin'] ?? $allDatum->tin ?? 'N/A';
+
+            $annotation = "{$sepType} effective {$sepDate}. "
+                        . "Former employee: {$formerName}. "
+                        . "DOB: {$dobStr}. SG-{$sgStr} Step {$stepStr}. TIN: {$tinStr}.";
+
+            $existing = $data['comment_annotation'] ?? $allDatum->comment_annotation;
+            $data['comment_annotation'] = $existing ? $existing . "\n\n" . $annotation : $annotation;
+
+            // Clear employee fields to auto-declare vacant
+            $data['last_name'] = null;
+            $data['first_name'] = null;
+            $data['middle_name'] = null;
+            $data['sex'] = null;
+            $data['date_of_birth'] = null;
+            $data['tin'] = null;
+            $data['gsis_bp_number'] = null;
+            $data['umid'] = null;
+            $data['employee_code'] = null;
+            $data['is_vacant'] = true;
+            
+            // Set separation columns
+            $data['nature_of_separation'] = $sepType;
+            $data['date_separated'] = $sepDate;
+            
+            // If it's retirement, also set retired_at for the Retirement history
+            if (stripos($sepType, 'retire') !== false) {
+                $data['retired_at'] = $sepDate;
+            }
+        }
 
         // Auto-Calculate Annual Salary from Salary Grades if blank
         if (

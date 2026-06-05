@@ -530,6 +530,9 @@
             </a>
 
             @if(auth()->user()->isSuperAdmin())
+                <a href="{{ route('plantilla.quick-add.form') }}" class="hero-btn" style="background:rgba(255, 255, 255, .18); color:#fff; font-weight:600; border: 1px solid rgba(255, 255, 255, .3);" title="Quickly create an Office and Position Title">
+                    <i class="bi bi-lightning-fill" style="color: #fbbf24;"></i> Quick Add Position
+                </a>
                 <a href="{{ route('plantilla.create') }}" class="hero-btn" style="background:#fff; color:#1e3a8a; font-weight:800; border:none;">
                     <i class="bi bi-plus-lg"></i> Add Record
                 </a>

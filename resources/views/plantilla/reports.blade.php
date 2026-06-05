@@ -662,6 +662,137 @@ function getCatPill($cat) {
     </div>
 </div>
 
+{{-- ─────────────────────────────────────────────────────────────────────────
+     REPORT 7: Custom Status Report
+ ──────────────────────────────────────────────────────────────────────────── --}}
+<div class="office-card" id="r7-container">
+    <button type="button" onclick="rptToggle('r7')" class="office-btn">
+        <div class="off-left">
+            <div class="off-icon-box" style="background: #eef2ff; color: #4338ca;">
+                <i class="bi bi-7-square-fill"></i>
+            </div>
+            <div>
+                <div class="off-name">Custom Status Report</div>
+                <div class="off-sub">Dynamically generate reports by status and period</div>
+            </div>
+        </div>
+        <div class="off-right no-print" style="gap:10px;">
+            @if($r7_status)
+            <div style="display:flex;gap:6px;">
+                <a href="{{ route('plantilla.reports.custom.pdf', ['status' => $r7_status, 'period' => $r7_period, 'from' => $r7_from, 'to' => $r7_to, 'asof' => $r7_asof]) }}" class="export-btn export-btn-pdf"  title="Export PDF">
+                    <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                </a>
+                <a href="{{ route('plantilla.reports.custom.excel', ['status' => $r7_status, 'period' => $r7_period, 'from' => $r7_from, 'to' => $r7_to, 'asof' => $r7_asof]) }}" class="export-btn export-btn-xlsx" title="Export Excel">
+                    <i class="bi bi-file-earmark-excel-fill"></i> Excel
+                </a>
+            </div>
+            @endif
+            <span class="off-view-btn" style="color:#4338ca;">
+                View Report <i class="bi bi-chevron-down chevron" id="r7-chev"></i>
+            </span>
+        </div>
+    </button>
+    <div id="r7" style="border-top:1px solid #f3f4f6; display: {{ $r7_status ? 'block' : 'none' }};">
+        <div class="p-4 bg-gray-50 border-b border-gray-200">
+            <form method="GET" action="{{ route('plantilla.reports') }}#r7-container" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;">
+                <input type="hidden" name="as_of" value="{{ $asOf }}">
+                <div class="filter-field">
+                    <label>Status / Category</label>
+                    <select name="r7_status" required style="width: 200px;">
+                        <option value="">Select Status...</option>
+                        <option value="Newly Hired" {{ $r7_status == 'Newly Hired' ? 'selected' : '' }}>Newly Hired</option>
+                        <option value="Promoted" {{ $r7_status == 'Promoted' ? 'selected' : '' }}>Promoted</option>
+                        <option value="Terminated" {{ $r7_status == 'Terminated' ? 'selected' : '' }}>Terminated / Separated</option>
+                        <option value="Retired" {{ $r7_status == 'Retired' ? 'selected' : '' }}>Retired</option>
+                    </select>
+                </div>
+                
+                <div class="filter-field">
+                    <label>Period Type</label>
+                    <select name="r7_period" id="r7_period_select" onchange="toggleR7Period()" style="width: 150px;">
+                        <option value="range" {{ $r7_period == 'range' ? 'selected' : '' }}>Date Range (From-To)</option>
+                        <option value="asof" {{ $r7_period == 'asof' ? 'selected' : '' }}>As Of Date</option>
+                    </select>
+                </div>
+
+                <div class="filter-field" id="r7_from_div" style="display: {{ $r7_period == 'range' ? 'block' : 'none' }};">
+                    <label>From Date</label>
+                    <input type="date" name="r7_from" value="{{ $r7_from }}">
+                </div>
+
+                <div class="filter-field" id="r7_to_div" style="display: {{ $r7_period == 'range' ? 'block' : 'none' }};">
+                    <label>To Date</label>
+                    <input type="date" name="r7_to" value="{{ $r7_to }}">
+                </div>
+
+                <div class="filter-field" id="r7_asof_div" style="display: {{ $r7_period == 'asof' ? 'block' : 'none' }};">
+                    <label>As Of Date</label>
+                    <input type="date" name="r7_asof" value="{{ $r7_asof }}">
+                </div>
+
+                <button type="submit" style="background:#4338ca;color:#fff;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+                    <i class="bi bi-funnel-fill me-1"></i> Generate
+                </button>
+                @if($r7_status)
+                <a href="{{ route('plantilla.reports') }}#r7-container" style="background:#f3f4f6;color:#4b5563;border:1px solid #d1d5db;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;">
+                    Clear
+                </a>
+                @endif
+            </form>
+        </div>
+        
+        @if($r7_status)
+        <div class="overflow-x-auto p-4">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th style="width:50px;">#</th>
+                        <th>Employee Name</th>
+                        <th>Position Title & Office</th>
+                        <th class="tc">Date Effective</th>
+                        <th>Status Detail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($report7 as $idx => $r)
+                    <tr>
+                        <td style="color:#94a3b8;">{{ $idx + 1 }}</td>
+                        <td style="font-weight:600;">{{ strtoupper($r->last_name ?? '') }}, {{ $r->first_name ?? '' }}</td>
+                        <td>
+                            <div style="font-weight:600;">{{ $r->position_title }}</div>
+                            <div style="color:#64748b; font-size:12px; margin-top:2px;">{{ $r->organizational_unit }}</div>
+                        </td>
+                        <td class="tc" style="font-weight:600; color:#4338ca;">
+                            @if($r7_status === 'Newly Hired')
+                                {{ $r->date_original_appointment ? \Carbon\Carbon::parse($r->date_original_appointment)->format('m/d/Y') : '—' }}
+                            @elseif($r7_status === 'Promoted')
+                                {{ $r->date_last_promotion ? \Carbon\Carbon::parse($r->date_last_promotion)->format('m/d/Y') : '—' }}
+                            @elseif($r7_status === 'Retired' || $r7_status === 'Terminated')
+                                {{ $r->date_separated ? \Carbon\Carbon::parse($r->date_separated)->format('m/d/Y') : '—' }}
+                            @endif
+                        </td>
+                        <td style="font-weight:600; color:#0f172a;">
+                            @if($r7_status === 'Newly Hired' || $r7_status === 'Promoted')
+                                {{ $r->nature_of_appointment ?: 'N/A' }}
+                            @else
+                                {{ $r->nature_of_separation ?: 'N/A' }}
+                            @endif
+                        </td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="5" class="empty-state">No records found for the selected criteria.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        @else
+        <div class="p-8 text-center text-gray-400" style="font-size:14px; font-style:italic;">
+            Please select a Status and Period above, then click Generate to view the custom report.
+        </div>
+        @endif
+    </div>
+</div>
+
 <script>
 function rptToggle(id) {
     const body = document.getElementById(id);
@@ -671,6 +802,18 @@ function rptToggle(id) {
     if(chev) chev.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
 }
 // Open Report 1 by default
-document.addEventListener('DOMContentLoaded', () => rptToggle('r1'));
+document.addEventListener('DOMContentLoaded', () => {
+    // Only toggle r1 if r7 isn't active
+    if (!'{{ $r7_status }}') {
+        rptToggle('r1');
+    }
+});
+
+function toggleR7Period() {
+    const val = document.getElementById('r7_period_select').value;
+    document.getElementById('r7_from_div').style.display = (val === 'range') ? 'block' : 'none';
+    document.getElementById('r7_to_div').style.display = (val === 'range') ? 'block' : 'none';
+    document.getElementById('r7_asof_div').style.display = (val === 'asof') ? 'block' : 'none';
+}
 </script>
 </x-dashboard-app>

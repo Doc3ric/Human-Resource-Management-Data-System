@@ -30,12 +30,12 @@ class PlantillaController extends Controller
 
     // Colours for each category badge
     const CAT_COLORS = [
-        'Elected'         => 'bg-purple-100 text-purple-700',
-        'Co-Terminous'    => 'bg-indigo-100 text-indigo-700',
-        'Permanent'       => 'bg-green-100 text-green-700',
-        'Casual'          => 'bg-amber-100 text-amber-700',
-        'Job Order'       => 'bg-orange-100 text-orange-700',
-        'Vacant Funded'   => 'bg-blue-100 text-blue-700',
+        'Elected' => 'bg-purple-100 text-purple-700',
+        'Co-Terminous' => 'bg-indigo-100 text-indigo-700',
+        'Permanent' => 'bg-green-100 text-green-700',
+        'Casual' => 'bg-amber-100 text-amber-700',
+        'Job Order' => 'bg-orange-100 text-orange-700',
+        'Vacant Funded' => 'bg-blue-100 text-blue-700',
         'Vacant Unfunded' => 'bg-gray-200 text-gray-600',
     ];
 
@@ -45,8 +45,8 @@ class PlantillaController extends Controller
      */
     private function hasZeroSalary(PlantillaRecord $record): bool
     {
-        $auth   = (float) ($record->authorized_annual_salary ?? 0);
-        $actual = (float) ($record->actual_annual_salary     ?? 0);
+        $auth = (float) ($record->authorized_annual_salary ?? 0);
+        $actual = (float) ($record->actual_annual_salary ?? 0);
         return $auth === 0.0 && $actual === 0.0;
     }
 
@@ -65,18 +65,28 @@ class PlantillaController extends Controller
 
         $s = strtolower(trim($record->employment_status ?? ''));
 
-        if (in_array($s, ['elected', 'e']))                                          return 'Elected';
-        if (in_array($s, ['co-terminous','coterminous','co terminous','ct']))         return 'Co-Terminous';
-        if (in_array($s, ['permanent','p']))                                          return 'Permanent';
-        if (in_array($s, ['casual','cas']))                                           return 'Casual';
-        if (in_array($s, ['job order','jo','j.o.','job-order']))                     return 'Job Order';
+        if (in_array($s, ['elected', 'e']))
+            return 'Elected';
+        if (in_array($s, ['co-terminous', 'coterminous', 'co terminous', 'ct']))
+            return 'Co-Terminous';
+        if (in_array($s, ['permanent', 'p']))
+            return 'Permanent';
+        if (in_array($s, ['casual', 'cas']))
+            return 'Casual';
+        if (in_array($s, ['job order', 'jo', 'j.o.', 'job-order']))
+            return 'Job Order';
 
         // Partial matches as fallback
-        if (str_contains($s, 'elect'))      return 'Elected';
-        if (str_contains($s, 'terminous'))  return 'Co-Terminous';
-        if (str_contains($s, 'permanent'))  return 'Permanent';
-        if (str_contains($s, 'casual'))     return 'Casual';
-        if (str_contains($s, 'job'))        return 'Job Order';
+        if (str_contains($s, 'elect'))
+            return 'Elected';
+        if (str_contains($s, 'terminous'))
+            return 'Co-Terminous';
+        if (str_contains($s, 'permanent'))
+            return 'Permanent';
+        if (str_contains($s, 'casual'))
+            return 'Casual';
+        if (str_contains($s, 'job'))
+            return 'Job Order';
 
         return 'Permanent'; // safe default
     }
@@ -92,12 +102,21 @@ class PlantillaController extends Controller
         $stats = cache()->remember('plantilla_stats_v2', 300, function () {
             // Only select necessary columns for stats to save memory
             $allRecords = PlantillaRecord::select(
-                'is_vacant', 'employment_status', 'date_of_birth', 'sex', 
-                'abolished', 'dissolved', 'authorized_annual_salary', 
-                'actual_annual_salary', 'position_title', 'organizational_unit',
-                'first_name', 'last_name', 'middle_name'
+                'is_vacant',
+                'employment_status',
+                'date_of_birth',
+                'sex',
+                'abolished',
+                'dissolved',
+                'authorized_annual_salary',
+                'actual_annual_salary',
+                'position_title',
+                'organizational_unit',
+                'first_name',
+                'last_name',
+                'middle_name'
             )->get();
-            $filledAll  = $allRecords->where('is_vacant', false);
+            $filledAll = $allRecords->where('is_vacant', false);
 
             // Status counts
             $statusCounts = array_fill_keys(self::CATEGORIES, 0);
@@ -113,25 +132,39 @@ class PlantillaController extends Controller
             $ageRanges = ['21-30' => 0, '31-40' => 0, '41-50' => 0, '51-60' => 0, '61-65' => 0, 'Other' => 0];
             $nearRetirement = [];           // employees aged 61–65
             foreach ($filledAll as $r) {
-                if (empty($r->date_of_birth)) continue;
+                if (empty($r->date_of_birth))
+                    continue;
                 try {
                     $age = \Carbon\Carbon::parse($r->date_of_birth)->age;
-                    if ($age >= 61 && $age <= 65)      { $ageRanges['61-65']++; $nearRetirement[] = clone $r; } // Clone to detach from big collection
-                    elseif ($age >= 51 && $age <= 60)  { $ageRanges['51-60']++; }
-                    elseif ($age >= 41 && $age <= 50)  { $ageRanges['41-50']++; }
-                    elseif ($age >= 31 && $age <= 40)  { $ageRanges['31-40']++; }
-                    elseif ($age >= 21 && $age <= 30)  { $ageRanges['21-30']++; }
-                    else                               { $ageRanges['Other']++; }
-                } catch (\Exception) {}
+                    if ($age >= 61 && $age <= 65) {
+                        $ageRanges['61-65']++;
+                        $nearRetirement[] = clone $r;
+                    } // Clone to detach from big collection
+                    elseif ($age >= 51 && $age <= 60) {
+                        $ageRanges['51-60']++;
+                    } elseif ($age >= 41 && $age <= 50) {
+                        $ageRanges['41-50']++;
+                    } elseif ($age >= 31 && $age <= 40) {
+                        $ageRanges['31-40']++;
+                    } elseif ($age >= 21 && $age <= 30) {
+                        $ageRanges['21-30']++;
+                    } else {
+                        $ageRanges['Other']++;
+                    }
+                } catch (\Exception) {
+                }
             }
 
             // Gender counts
             $genderCounts = ['M' => 0, 'F' => 0, 'Unknown' => 0];
             foreach ($filledAll as $r) {
                 $sex = strtoupper(trim($r->sex ?? ''));
-                if ($sex === 'M')      $genderCounts['M']++;
-                elseif ($sex === 'F')  $genderCounts['F']++;
-                else                   $genderCounts['Unknown']++;
+                if ($sex === 'M')
+                    $genderCounts['M']++;
+                elseif ($sex === 'F')
+                    $genderCounts['F']++;
+                else
+                    $genderCounts['Unknown']++;
             }
 
             // Vacant Funded — group by position_title with count
@@ -145,7 +178,8 @@ class PlantillaController extends Controller
 
             // Vacant Unfunded — abolished/dissolved positions OR zero-salary records
             $vacantUnfunded = $allRecords
-                ->filter(fn($r) =>
+                ->filter(
+                    fn($r) =>
                     ($r->is_vacant && ($r->abolished || $r->dissolved))
                     || $this->hasZeroSalary($r)
                 )
@@ -165,13 +199,13 @@ class PlantillaController extends Controller
         });
 
         // Extract cached stats
-        $statusCounts   = $stats['statusCounts'];
-        $ageRanges      = $stats['ageRanges'];
+        $statusCounts = $stats['statusCounts'];
+        $ageRanges = $stats['ageRanges'];
         $nearRetirement = collect($stats['nearRetirement']); // Convert back to collection for view
-        $genderCounts   = $stats['genderCounts'];
-        $vacantFunded   = $stats['vacantFunded'];
+        $genderCounts = $stats['genderCounts'];
+        $vacantFunded = $stats['vacantFunded'];
         $vacantUnfunded = $stats['vacantUnfunded'];
-        $totalAll       = $stats['totalAll'];
+        $totalAll = $stats['totalAll'];
 
         // ── 2. FILTERED LIST: per-office accordion ─────────────────────────
         $query = PlantillaRecord::query()
@@ -184,10 +218,10 @@ class PlantillaController extends Controller
             $isFiltered = true;
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
-                $q->where('last_name',        'like', "%{$search}%")
-                  ->orWhere('first_name',     'like', "%{$search}%")
-                  ->orWhere('item',           'like', "%{$search}%")
-                  ->orWhere('position_title', 'like', "%{$search}%");
+                $q->where('last_name', 'like', "%{$search}%")
+                    ->orWhere('first_name', 'like', "%{$search}%")
+                    ->orWhere('item', 'like', "%{$search}%")
+                    ->orWhere('position_title', 'like', "%{$search}%");
             });
         }
         if ($request->filled('office')) {
@@ -199,13 +233,13 @@ class PlantillaController extends Controller
             $ageRange = $request->input('age_range');
             $parts = explode('-', $ageRange);
             if (count($parts) === 2) {
-                $minAge = (int)$parts[0];
-                $maxAge = (int)$parts[1];
+                $minAge = (int) $parts[0];
+                $maxAge = (int) $parts[1];
                 $now = \Carbon\Carbon::now();
                 $minDate = $now->copy()->subYears($maxAge + 1)->addDay()->format('Y-m-d');
                 $maxDate = $now->copy()->subYears($minAge)->format('Y-m-d');
                 $query->whereDate('date_of_birth', '>=', $minDate)
-                      ->whereDate('date_of_birth', '<=', $maxDate);
+                    ->whereDate('date_of_birth', '<=', $maxDate);
             }
         }
         if ($request->filled('category')) {
@@ -214,32 +248,32 @@ class PlantillaController extends Controller
             if ($cat === 'Vacant Funded') {
                 $query->where('is_vacant', true)->where('abolished', false)->where('dissolved', false);
             } elseif ($cat === 'Vacant Unfunded') {
-                $query->where(function($q) {
+                $query->where(function ($q) {
                     // abolished/dissolved vacants
-                    $q->where(function($q2) {
+                    $q->where(function ($q2) {
                         $q2->where('is_vacant', true)
-                           ->where(function($q3) {
-                               $q3->where('abolished', true)->orWhere('dissolved', true);
-                           });
+                            ->where(function ($q3) {
+                                $q3->where('abolished', true)->orWhere('dissolved', true);
+                            });
                     })
-                    // OR zero-salary records
-                    ->orWhere(function($q2) {
-                        $q2->where(function($q3) {
-                            $q3->whereNull('authorized_annual_salary')
-                               ->orWhere('authorized_annual_salary', 0);
-                        })->where(function($q3) {
-                            $q3->whereNull('actual_annual_salary')
-                               ->orWhere('actual_annual_salary', 0);
+                        // OR zero-salary records
+                        ->orWhere(function ($q2) {
+                            $q2->where(function ($q3) {
+                                $q3->whereNull('authorized_annual_salary')
+                                    ->orWhere('authorized_annual_salary', 0);
+                            })->where(function ($q3) {
+                                $q3->whereNull('actual_annual_salary')
+                                    ->orWhere('actual_annual_salary', 0);
+                            });
                         });
-                    });
                 });
             } else {
                 $statusMap = [
-                    'Elected'      => ['E','Elected'],
-                    'Co-Terminous' => ['CT','Co-Terminous','Coterminous'],
-                    'Permanent'    => ['P','Permanent'],
-                    'Casual'       => ['Casual','Cas'],
-                    'Job Order'    => ['JO','Job Order','J.O.'],
+                    'Elected' => ['E', 'Elected'],
+                    'Co-Terminous' => ['CT', 'Co-Terminous', 'Coterminous'],
+                    'Permanent' => ['P', 'Permanent'],
+                    'Casual' => ['Casual', 'Cas'],
+                    'Job Order' => ['JO', 'Job Order', 'J.O.'],
                 ];
                 $query->where('is_vacant', false)->whereIn('employment_status', $statusMap[$cat] ?? [$cat]);
             }
@@ -255,19 +289,20 @@ class PlantillaController extends Controller
 
         $filtered = $query->get();
 
-        $emptySlots  = array_fill_keys(self::CATEGORIES, []);
-        $grouped     = [];
+        $emptySlots = array_fill_keys(self::CATEGORIES, []);
+        $grouped = [];
 
         foreach ($filtered as $record) {
             $office = $record->organizational_unit ?: 'Unassigned';
-            $cat    = $this->resolveCategory($record);
-            if (!isset($grouped[$office])) $grouped[$office] = $emptySlots;
+            $cat = $this->resolveCategory($record);
+            if (!isset($grouped[$office]))
+                $grouped[$office] = $emptySlots;
             $grouped[$office][$cat][] = $record;
         }
         ksort($grouped);
 
         // Cache offices list since it rarely changes completely
-        $offices = cache()->remember('plantilla_offices_list', 3600, function() {
+        $offices = cache()->remember('plantilla_offices_list', 3600, function () {
             return PlantillaRecord::distinct()
                 ->orderBy('organizational_unit')
                 ->pluck('organizational_unit')
@@ -275,7 +310,7 @@ class PlantillaController extends Controller
         });
 
         // Distinct position titles for the Position filter dropdown
-        $positions = cache()->remember('plantilla_positions_list', 3600, function() {
+        $positions = cache()->remember('plantilla_positions_list', 3600, function () {
             return PlantillaRecord::distinct()
                 ->orderBy('position_title')
                 ->pluck('position_title')
@@ -283,22 +318,22 @@ class PlantillaController extends Controller
         });
 
         return view('plantilla.index', [
-            'grouped'        => $grouped,
-            'offices'        => $offices,
-            'positions'      => $positions,
-            'categories'     => self::CATEGORIES,
-            'catColors'      => self::CAT_COLORS,
-            'totalAll'       => $totalAll,
+            'grouped' => $grouped,
+            'offices' => $offices,
+            'positions' => $positions,
+            'categories' => self::CATEGORIES,
+            'catColors' => self::CAT_COLORS,
+            'totalAll' => $totalAll,
             // Stats
-            'statusCounts'   => $statusCounts,
-            'ageRanges'      => $ageRanges,
+            'statusCounts' => $statusCounts,
+            'ageRanges' => $ageRanges,
             'nearRetirement' => $nearRetirement,
-            'genderCounts'   => $genderCounts,
-            'vacantFunded'   => $vacantFunded,
+            'genderCounts' => $genderCounts,
+            'vacantFunded' => $vacantFunded,
             'vacantUnfunded' => $vacantUnfunded,
-            'isFiltered'     => $isFiltered, // Pass this to view to show a warning if truncated
-            'pwdCount'       => PlantillaRecord::where('is_pwd', true)->where('is_vacant', false)->count(),
-            'ipCount'        => PlantillaRecord::whereNotNull('indigenous_people')->where('indigenous_people', '!=', '')->where('is_vacant', false)->count(),
+            'isFiltered' => $isFiltered, // Pass this to view to show a warning if truncated
+            'pwdCount' => PlantillaRecord::where('is_pwd', true)->where('is_vacant', false)->count(),
+            'ipCount' => PlantillaRecord::whereNotNull('indigenous_people')->where('indigenous_people', '!=', '')->where('is_vacant', false)->count(),
         ]);
     }
 
@@ -308,11 +343,11 @@ class PlantillaController extends Controller
     public function pwdReport()
     {
         $pwdRecords = PlantillaRecord::where('is_pwd', true)
-                        ->where('is_vacant', false)
-                        ->orderBy('organizational_unit')
-                        ->orderBy('last_name')
-                        ->get();
-                        
+            ->where('is_vacant', false)
+            ->orderBy('organizational_unit')
+            ->orderBy('last_name')
+            ->get();
+
         return view('plantilla.pwd-report', compact('pwdRecords'));
     }
 
@@ -322,10 +357,10 @@ class PlantillaController extends Controller
     public function exportPwdPdf()
     {
         $pwdRecords = PlantillaRecord::where('is_pwd', true)
-                        ->where('is_vacant', false)
-                        ->orderBy('organizational_unit')
-                        ->orderBy('last_name')
-                        ->get();
+            ->where('is_vacant', false)
+            ->orderBy('organizational_unit')
+            ->orderBy('last_name')
+            ->get();
 
         $pdf = Pdf::loadView('exports.pwd-pdf', compact('pwdRecords'))
             ->setPaper('a4', 'landscape');
@@ -350,12 +385,12 @@ class PlantillaController extends Controller
     public function ipReport()
     {
         $ipRecords = PlantillaRecord::whereNotNull('indigenous_people')
-                        ->where('indigenous_people', '!=', '')
-                        ->where('is_vacant', false)
-                        ->orderBy('organizational_unit')
-                        ->orderBy('last_name')
-                        ->get();
-                        
+            ->where('indigenous_people', '!=', '')
+            ->where('is_vacant', false)
+            ->orderBy('organizational_unit')
+            ->orderBy('last_name')
+            ->get();
+
         return view('plantilla.ip-report', compact('ipRecords'));
     }
 
@@ -365,11 +400,11 @@ class PlantillaController extends Controller
     public function exportIpPdf()
     {
         $ipRecords = PlantillaRecord::whereNotNull('indigenous_people')
-                        ->where('indigenous_people', '!=', '')
-                        ->where('is_vacant', false)
-                        ->orderBy('organizational_unit')
-                        ->orderBy('last_name')
-                        ->get();
+            ->where('indigenous_people', '!=', '')
+            ->where('is_vacant', false)
+            ->orderBy('organizational_unit')
+            ->orderBy('last_name')
+            ->get();
 
         $pdf = Pdf::loadView('exports.ip-pdf', compact('ipRecords'))
             ->setPaper('a4', 'landscape');
@@ -401,7 +436,7 @@ class PlantillaController extends Controller
 
         $positionInput = $request->input('position', []);
         $position = is_array($positionInput) ? array_filter($positionInput) : (trim($positionInput) ? [$positionInput] : []);
-        $records  = collect();
+        $records = collect();
 
         if (!empty($position)) {
             $records = PlantillaRecord::whereIn('position_title', $position)
@@ -422,7 +457,7 @@ class PlantillaController extends Controller
         $positionInput = $request->input('position', []);
         $position = is_array($positionInput) ? array_filter($positionInput) : (trim($positionInput) ? [$positionInput] : []);
 
-        $records  = PlantillaRecord::whereIn('position_title', $position)
+        $records = PlantillaRecord::whereIn('position_title', $position)
             ->where('is_vacant', false)
             ->orderBy('last_name')
             ->orderBy('first_name')
@@ -442,7 +477,7 @@ class PlantillaController extends Controller
     {
         $positionInput = $request->input('position', []);
         $position = is_array($positionInput) ? array_filter($positionInput) : (trim($positionInput) ? [$positionInput] : []);
-        
+
         $slug = count($position) === 1 ? \Illuminate\Support\Str::slug($position[0]) : 'various';
 
         return Excel::download(
@@ -460,14 +495,15 @@ class PlantillaController extends Controller
         $type = $request->input('type', 'funded'); // 'funded' or 'unfunded'
 
         if ($type === 'unfunded') {
-            $records = PlantillaRecord::where(function($q) {
-                $q->where(function($q2) {
+            $records = PlantillaRecord::where(function ($q) {
+                $q->where(function ($q2) {
                     $q2->where('is_vacant', true)
-                       ->where(function($q3) { $q3->where('abolished', true)->orWhere('dissolved', true); });
-                })->orWhere(function($q2) {
-                    $q2->where(function($q3) {
+                        ->where(function ($q3) {
+                            $q3->where('abolished', true)->orWhere('dissolved', true); });
+                })->orWhere(function ($q2) {
+                    $q2->where(function ($q3) {
                         $q3->whereNull('authorized_annual_salary')->orWhere('authorized_annual_salary', 0);
-                    })->where(function($q3) {
+                    })->where(function ($q3) {
                         $q3->whereNull('actual_annual_salary')->orWhere('actual_annual_salary', 0);
                     });
                 });
@@ -568,25 +604,25 @@ class PlantillaController extends Controller
     {
         $position = $request->input('position', '');
 
-        $records = PlantillaRecord::where(function($q) {
-                // abolished/dissolved vacants
-                $q->where(function($q2) {
-                    $q2->where('is_vacant', true)
-                       ->where(function($q3) {
-                           $q3->where('abolished', true)->orWhere('dissolved', true);
-                       });
-                })
+        $records = PlantillaRecord::where(function ($q) {
+            // abolished/dissolved vacants
+            $q->where(function ($q2) {
+                $q2->where('is_vacant', true)
+                    ->where(function ($q3) {
+                        $q3->where('abolished', true)->orWhere('dissolved', true);
+                    });
+            })
                 // OR zero-salary records
-                ->orWhere(function($q2) {
-                    $q2->where(function($q3) {
+                ->orWhere(function ($q2) {
+                    $q2->where(function ($q3) {
                         $q3->whereNull('authorized_annual_salary')
-                           ->orWhere('authorized_annual_salary', 0);
-                    })->where(function($q3) {
+                            ->orWhere('authorized_annual_salary', 0);
+                    })->where(function ($q3) {
                         $q3->whereNull('actual_annual_salary')
-                           ->orWhere('actual_annual_salary', 0);
+                            ->orWhere('actual_annual_salary', 0);
                     });
                 });
-            })
+        })
             ->where('position_title', $position)
             ->orderBy('organizational_unit')
             ->orderBy('item')
@@ -624,22 +660,22 @@ class PlantillaController extends Controller
         $slug = \Illuminate\Support\Str::slug($position);
         $filename = 'Vacant_Unfunded_' . $slug . '_' . now()->format('Y-m-d') . '.pdf';
 
-        $records = PlantillaRecord::where(function($q) {
-                $q->where(function($q2) {
-                    $q2->where('is_vacant', true)
-                       ->where(function($q3) {
-                           $q3->where('abolished', true)->orWhere('dissolved', true);
-                       });
-                })->orWhere(function($q2) {
-                    $q2->where(function($q3) {
-                        $q3->whereNull('authorized_annual_salary')
-                           ->orWhere('authorized_annual_salary', 0);
-                    })->where(function($q3) {
-                        $q3->whereNull('actual_annual_salary')
-                           ->orWhere('actual_annual_salary', 0);
+        $records = PlantillaRecord::where(function ($q) {
+            $q->where(function ($q2) {
+                $q2->where('is_vacant', true)
+                    ->where(function ($q3) {
+                        $q3->where('abolished', true)->orWhere('dissolved', true);
                     });
+            })->orWhere(function ($q2) {
+                $q2->where(function ($q3) {
+                    $q3->whereNull('authorized_annual_salary')
+                        ->orWhere('authorized_annual_salary', 0);
+                })->where(function ($q3) {
+                    $q3->whereNull('actual_annual_salary')
+                        ->orWhere('actual_annual_salary', 0);
                 });
-            })
+            });
+        })
             ->where('position_title', $position)
             ->orderBy('organizational_unit')
             ->orderBy('item')
@@ -674,11 +710,15 @@ class PlantillaController extends Controller
         $report1 = [];
         foreach ($filled as $r) {
             $office = $r->organizational_unit ?: 'Unassigned';
-            $cat    = $this->resolveCategory($r);
+            $cat = $this->resolveCategory($r);
             if (!isset($report1[$office])) {
                 $report1[$office] = [
-                    'Elected' => 0, 'Co-Terminous' => 0, 'Permanent' => 0,
-                    'Casual' => 0, 'Job Order' => 0, 'Total' => 0
+                    'Elected' => 0,
+                    'Co-Terminous' => 0,
+                    'Permanent' => 0,
+                    'Casual' => 0,
+                    'Job Order' => 0,
+                    'Total' => 0
                 ];
             }
             if (array_key_exists($cat, $report1[$office])) {
@@ -694,9 +734,9 @@ class PlantillaController extends Controller
                 ? \Carbon\Carbon::parse($r->date_of_birth)->age
                 : null;
             return [
-                'record'  => $r,
-                'cat'     => $this->resolveCategory($r),
-                'age'     => $age,
+                'record' => $r,
+                'cat' => $this->resolveCategory($r),
+                'age' => $age,
             ];
         })->groupBy(fn($item) => $item['cat']);
 
@@ -704,14 +744,14 @@ class PlantillaController extends Controller
         $report3 = PlantillaRecord::where('is_vacant', false)
             ->whereNull('nature_of_separation')
             ->whereNotNull('nature_of_appointment')
-            ->where(function($q) use ($year) {
+            ->where(function ($q) use ($year) {
                 $q->whereYear('date_original_appointment', $year)
-                  ->orWhereYear('date_last_promotion', $year);
+                    ->orWhereYear('date_last_promotion', $year);
             })
             ->orderBy('organizational_unit')
             ->orderBy('last_name')
             ->get()
-            ->each(function($r) {
+            ->each(function ($r) {
                 $r->resolved_category = $this->resolveCategory($r);
             });
 
@@ -741,7 +781,7 @@ class PlantillaController extends Controller
         $report6 = [];
         foreach ($filled as $r) {
             $office = $r->organizational_unit ?: 'Unassigned';
-            $cat    = $this->resolveCategory($r);
+            $cat = $this->resolveCategory($r);
             if (!isset($report6[$office][$cat])) {
                 $report6[$office][$cat] = [];
             }
@@ -754,9 +794,69 @@ class PlantillaController extends Controller
             ->pluck('organizational_unit')
             ->filter()->values();
 
+        // ── REPORT 7: Custom Status Report ─────────────────────────────────────────
+        $r7_status = $request->input('r7_status', '');
+        $r7_period = $request->input('r7_period', 'range');
+        $r7_from = $request->input('r7_from');
+        $r7_to = $request->input('r7_to');
+        $r7_asof = $request->input('r7_asof');
+
+        $report7 = collect();
+        if ($r7_status) {
+            $q = PlantillaRecord::query();
+
+            // Date filtering
+            if ($r7_period === 'range' && $r7_from && $r7_to) {
+                if ($r7_status === 'Newly Hired') {
+                    $q->whereBetween('date_original_appointment', [$r7_from, $r7_to]);
+                } elseif ($r7_status === 'Promoted') {
+                    $q->whereBetween('date_last_promotion', [$r7_from, $r7_to]);
+                } elseif ($r7_status === 'Retired' || $r7_status === 'Terminated') {
+                    $q->whereBetween('date_separated', [$r7_from, $r7_to]);
+                }
+            } elseif ($r7_period === 'asof' && $r7_asof) {
+                if ($r7_status === 'Newly Hired') {
+                    $q->where('date_original_appointment', '<=', $r7_asof);
+                } elseif ($r7_status === 'Promoted') {
+                    $q->where('date_last_promotion', '<=', $r7_asof);
+                } elseif ($r7_status === 'Retired' || $r7_status === 'Terminated') {
+                    $q->where('date_separated', '<=', $r7_asof);
+                }
+            }
+
+            // Status filtering
+            if ($r7_status === 'Newly Hired') {
+                $q->whereNotNull('date_original_appointment');
+            } elseif ($r7_status === 'Promoted') {
+                $q->whereNotNull('date_last_promotion');
+            } elseif ($r7_status === 'Retired') {
+                $q->where('nature_of_separation', 'Retired')->whereNotNull('date_separated');
+            } elseif ($r7_status === 'Terminated') {
+                $q->whereNotNull('nature_of_separation')->where('nature_of_separation', '!=', 'Retired')->whereNotNull('date_separated');
+            }
+
+            $report7 = $q->orderBy('organizational_unit')
+                ->orderBy('last_name')
+                ->get();
+        }
+
         return view('plantilla.reports', compact(
-            'report1', 'report2', 'report3', 'report4', 'report5', 'report6',
-            'asOf', 'year', 'month', 'offices'
+            'report1',
+            'report2',
+            'report3',
+            'report4',
+            'report5',
+            'report6',
+            'report7',
+            'asOf',
+            'year',
+            'month',
+            'offices',
+            'r7_status',
+            'r7_period',
+            'r7_from',
+            'r7_to',
+            'r7_asof'
         ));
     }
 
@@ -801,6 +901,125 @@ class PlantillaController extends Controller
     }
 
     /**
+     * Export Custom Report (Report 7) as PDF.
+     * Route: GET plantilla/reports/custom/pdf
+     */
+    public function exportCustomReportPdf(Request $request)
+    {
+        $r7_status = $request->input('status', '');
+        $r7_period = $request->input('period', 'range');
+        $r7_from = $request->input('from');
+        $r7_to = $request->input('to');
+        $r7_asof = $request->input('asof');
+
+        $report7 = collect();
+        if ($r7_status) {
+            $q = PlantillaRecord::query();
+
+            // Date filtering
+            if ($r7_period === 'range' && $r7_from && $r7_to) {
+                if ($r7_status === 'Newly Hired') {
+                    $q->whereBetween('date_original_appointment', [$r7_from, $r7_to]);
+                } elseif ($r7_status === 'Promoted') {
+                    $q->whereBetween('date_last_promotion', [$r7_from, $r7_to]);
+                } elseif ($r7_status === 'Retired' || $r7_status === 'Terminated') {
+                    $q->whereBetween('date_separated', [$r7_from, $r7_to]);
+                }
+            } elseif ($r7_period === 'asof' && $r7_asof) {
+                if ($r7_status === 'Newly Hired') {
+                    $q->where('date_original_appointment', '<=', $r7_asof);
+                } elseif ($r7_status === 'Promoted') {
+                    $q->where('date_last_promotion', '<=', $r7_asof);
+                } elseif ($r7_status === 'Retired' || $r7_status === 'Terminated') {
+                    $q->where('date_separated', '<=', $r7_asof);
+                }
+            }
+
+            // Status filtering
+            if ($r7_status === 'Newly Hired') {
+                $q->whereNotNull('date_original_appointment');
+            } elseif ($r7_status === 'Promoted') {
+                $q->whereNotNull('date_last_promotion');
+            } elseif ($r7_status === 'Retired') {
+                $q->where('nature_of_separation', 'Retired')->whereNotNull('date_separated');
+            } elseif ($r7_status === 'Terminated') {
+                $q->whereNotNull('nature_of_separation')->where('nature_of_separation', '!=', 'Retired')->whereNotNull('date_separated');
+            }
+
+            $report7 = $q->orderBy('organizational_unit')
+                ->orderBy('last_name')
+                ->get();
+        }
+
+        $data = compact('report7', 'r7_status', 'r7_period', 'r7_from', 'r7_to', 'r7_asof');
+
+        $filename = "CustomReport_" . str_replace(' ', '', $r7_status) . ".pdf";
+
+        $pdf = Pdf::loadView('exports.reports.report7-pdf', $data)
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Export Custom Report (Report 7) as Excel.
+     * Route: GET plantilla/reports/custom/excel
+     */
+    public function exportCustomReportExcel(Request $request)
+    {
+        $r7_status = $request->input('status', '');
+        $r7_period = $request->input('period', 'range');
+        $r7_from = $request->input('from');
+        $r7_to = $request->input('to');
+        $r7_asof = $request->input('asof');
+
+        $report7 = collect();
+        if ($r7_status) {
+            $q = PlantillaRecord::query();
+
+            // Date filtering
+            if ($r7_period === 'range' && $r7_from && $r7_to) {
+                if ($r7_status === 'Newly Hired') {
+                    $q->whereBetween('date_original_appointment', [$r7_from, $r7_to]);
+                } elseif ($r7_status === 'Promoted') {
+                    $q->whereBetween('date_last_promotion', [$r7_from, $r7_to]);
+                } elseif ($r7_status === 'Retired' || $r7_status === 'Terminated') {
+                    $q->whereBetween('date_separated', [$r7_from, $r7_to]);
+                }
+            } elseif ($r7_period === 'asof' && $r7_asof) {
+                if ($r7_status === 'Newly Hired') {
+                    $q->where('date_original_appointment', '<=', $r7_asof);
+                } elseif ($r7_status === 'Promoted') {
+                    $q->where('date_last_promotion', '<=', $r7_asof);
+                } elseif ($r7_status === 'Retired' || $r7_status === 'Terminated') {
+                    $q->where('date_separated', '<=', $r7_asof);
+                }
+            }
+
+            // Status filtering
+            if ($r7_status === 'Newly Hired') {
+                $q->whereNotNull('date_original_appointment');
+            } elseif ($r7_status === 'Promoted') {
+                $q->whereNotNull('date_last_promotion');
+            } elseif ($r7_status === 'Retired') {
+                $q->where('nature_of_separation', 'Retired')->whereNotNull('date_separated');
+            } elseif ($r7_status === 'Terminated') {
+                $q->whereNotNull('nature_of_separation')->where('nature_of_separation', '!=', 'Retired')->whereNotNull('date_separated');
+            }
+
+            $report7 = $q->orderBy('organizational_unit')
+                ->orderBy('last_name')
+                ->get();
+        }
+
+        $data = compact('report7', 'r7_status', 'r7_period', 'r7_from', 'r7_to', 'r7_asof');
+
+        $filename = "CustomReport_" . str_replace(' ', '', $r7_status) . ".xlsx";
+
+        return Excel::download(new \App\Exports\Reports\Report7Export($data), $filename);
+    }
+
+    /**
      * Shared helper: build the data array for all 6 reports.
      * Used by both reports() and the export methods.
      */
@@ -808,7 +1027,7 @@ class PlantillaController extends Controller
     {
         $asOf = $request->input('as_of', now()->format('Y-m'));
         $asOfDate = \Carbon\Carbon::parse($asOf . '-01');
-        $year  = $asOfDate->year;
+        $year = $asOfDate->year;
         $month = $asOfDate->month;
 
         $filled = PlantillaRecord::where('is_vacant', false)
@@ -821,11 +1040,15 @@ class PlantillaController extends Controller
         $report1 = [];
         foreach ($filled as $r) {
             $office = $r->organizational_unit ?: 'Unassigned';
-            $cat    = $this->resolveCategory($r);
+            $cat = $this->resolveCategory($r);
             if (!isset($report1[$office])) {
                 $report1[$office] = [
-                    'Elected' => 0, 'Co-Terminous' => 0, 'Permanent' => 0,
-                    'Casual' => 0, 'Job Order' => 0, 'Total' => 0
+                    'Elected' => 0,
+                    'Co-Terminous' => 0,
+                    'Permanent' => 0,
+                    'Casual' => 0,
+                    'Job Order' => 0,
+                    'Total' => 0
                 ];
             }
             if (array_key_exists($cat, $report1[$office])) {
@@ -842,8 +1065,8 @@ class PlantillaController extends Controller
                 : null;
             return [
                 'record' => $r,
-                'cat'    => $this->resolveCategory($r),
-                'age'    => $age,
+                'cat' => $this->resolveCategory($r),
+                'age' => $age,
             ];
         })->groupBy(fn($item) => $item['cat']);
 
@@ -853,7 +1076,7 @@ class PlantillaController extends Controller
             ->whereNotNull('nature_of_appointment')
             ->where(function ($q) use ($year) {
                 $q->whereYear('date_original_appointment', $year)
-                  ->orWhereYear('date_last_promotion', $year);
+                    ->orWhereYear('date_last_promotion', $year);
             })
             ->orderBy('organizational_unit')
             ->orderBy('last_name')
@@ -887,7 +1110,7 @@ class PlantillaController extends Controller
         $report6 = [];
         foreach ($filled as $r) {
             $office = $r->organizational_unit ?: 'Unassigned';
-            $cat    = $this->resolveCategory($r);
+            $cat = $this->resolveCategory($r);
             if (!isset($report6[$office][$cat])) {
                 $report6[$office][$cat] = [];
             }
@@ -895,10 +1118,38 @@ class PlantillaController extends Controller
         }
         ksort($report6);
 
-        return compact('report1', 'report2', 'report3', 'report4', 'report5', 'report6',
-                       'asOf', 'year', 'month');
+        return compact(
+            'report1',
+            'report2',
+            'report3',
+            'report4',
+            'report5',
+            'report6',
+            'asOf',
+            'year',
+            'month'
+        );
     }
 
+
+    /**
+     * Get the details of a specific Item (Position Code).
+     * Route: GET plantilla/item-details
+     */
+    public function getItemDetails(Request $request)
+    {
+        $item = $request->query('item');
+        if (!$item) {
+            return response()->json([]);
+        }
+
+        $record = PlantillaRecord::where('item', $item)->first();
+        if ($record) {
+            return response()->json($record);
+        }
+
+        return response()->json([]);
+    }
 
     /**
      * Show form to create a new plantilla record.
@@ -921,7 +1172,7 @@ class PlantillaController extends Controller
     {
         $validated = $this->validateRecord($request);
         $validated['is_vacant'] = empty($validated['last_name']) ||
-                                  strtoupper(trim($validated['last_name'])) === 'VACANT';
+            strtoupper(trim($validated['last_name'])) === 'VACANT';
 
         // Auto-generate employee code if not provided
         if (empty($validated['employee_code']) && !$validated['is_vacant']) {
@@ -974,7 +1225,7 @@ class PlantillaController extends Controller
     {
         $validated = $this->validateRecord($request, $plantilla->id);
         $validated['is_vacant'] = empty($validated['last_name']) ||
-                                  strtoupper(trim($validated['last_name'])) === 'VACANT';
+            strtoupper(trim($validated['last_name'])) === 'VACANT';
 
         // Auto-generate employee code if cleared and not vacant
         if (empty($validated['employee_code']) && !$validated['is_vacant']) {
@@ -982,6 +1233,51 @@ class PlantillaController extends Controller
                 $validated['last_name'] ?? null,
                 $validated['date_of_birth'] ?? null
             );
+        }
+
+        // Auto-Process Separation/Retirement if requested
+        if ($request->boolean('process_separation')) {
+            $sepType = $request->input('nature_of_separation', 'SEPARATED');
+            $sepDate = $request->input('date_separated', now()->toDateString());
+            
+            $formerName = trim(
+                strtoupper($validated['last_name'] ?? $plantilla->last_name ?? '') . ', ' .
+                ($validated['first_name'] ?? $plantilla->first_name ?? '') . ' ' .
+                ($validated['middle_name'] ?? $plantilla->middle_name ?? '')
+            );
+            
+            $dobStr = !empty($validated['date_of_birth']) ? \Carbon\Carbon::parse($validated['date_of_birth'])->format('m/d/Y') : 'N/A';
+            $sgStr = $validated['salary_grade'] ?? $plantilla->salary_grade ?? '?';
+            $stepStr = $validated['step'] ?? $plantilla->step ?? '?';
+            $tinStr = $validated['tin'] ?? $plantilla->tin ?? 'N/A';
+
+            $annotation = "{$sepType} effective {$sepDate}. "
+                        . "Former employee: {$formerName}. "
+                        . "DOB: {$dobStr}. SG-{$sgStr} Step {$stepStr}. TIN: {$tinStr}.";
+
+            $existing = $validated['comment_annotation'] ?? $plantilla->comment_annotation;
+            $validated['comment_annotation'] = $existing ? $existing . "\n\n" . $annotation : $annotation;
+
+            // Clear employee fields to auto-declare vacant
+            $validated['last_name'] = null;
+            $validated['first_name'] = null;
+            $validated['middle_name'] = null;
+            $validated['sex'] = null;
+            $validated['date_of_birth'] = null;
+            $validated['tin'] = null;
+            $validated['gsis_bp_number'] = null;
+            $validated['umid'] = null;
+            $validated['employee_code'] = null;
+            $validated['is_vacant'] = true;
+            
+            // Set separation columns
+            $validated['nature_of_separation'] = $sepType;
+            $validated['date_separated'] = $sepDate;
+            
+            // If it's retirement, also set retired_at for the Retirement history
+            if (stripos($sepType, 'retire') !== false) {
+                $validated['retired_at'] = $sepDate;
+            }
         }
 
         $plantilla->update($validated);
@@ -1005,7 +1301,7 @@ class PlantillaController extends Controller
     {
         $name = trim($plantilla->first_name . ' ' . $plantilla->last_name);
         $item = $plantilla->item;
-        
+
         $plantilla->delete();
 
         if (Auth::check()) {
@@ -1058,11 +1354,11 @@ class PlantillaController extends Controller
         set_time_limit(600);
 
         $vacantRecords = PlantillaRecord::where('is_vacant', true)
-                            ->where('abolished', false)
-                            ->where('dissolved', false)
-                            ->orderBy('organizational_unit')
-                            ->orderBy('position_title')
-                            ->get();
+            ->where('abolished', false)
+            ->where('dissolved', false)
+            ->orderBy('organizational_unit')
+            ->orderBy('position_title')
+            ->get();
 
         // Legal landscape is often used for CSC Form 9 since it has many columns
         $pdf = Pdf::loadView('plantilla.pdf.form9', compact('vacantRecords'))
@@ -1072,44 +1368,207 @@ class PlantillaController extends Controller
     }
 
     /**
+     * Show form to promote an employee to a vacant position.
+     */
+    public function promoteForm(PlantillaRecord $plantilla)
+    {
+        if ($plantilla->is_vacant) {
+            return redirect()->route('plantilla.show', $plantilla->id)
+                ->with('error', 'Cannot promote a vacant position.');
+        }
+
+        // Get all vacant funded positions grouped by office
+        $vacantPositions = PlantillaRecord::where('is_vacant', true)
+            ->where('abolished', false)
+            ->where('dissolved', false)
+            ->orderBy('organizational_unit')
+            ->orderBy('position_title')
+            ->get()
+            ->groupBy('organizational_unit');
+
+        return view('plantilla.promote', compact('plantilla', 'vacantPositions'));
+    }
+
+    /**
+     * Submit promotion: moves employee details to target position, vacates current.
+     */
+    public function promoteSubmit(Request $request, PlantillaRecord $plantilla)
+    {
+        if ($plantilla->is_vacant) {
+            return redirect()->route('plantilla.show', $plantilla->id)
+                ->with('error', 'Cannot promote a vacant position.');
+        }
+
+        $request->validate([
+            'target_position_id' => 'required|exists:plantilla_records,id',
+            'effective_date' => 'required|date',
+        ]);
+
+        $target = PlantillaRecord::findOrFail($request->target_position_id);
+
+        if (!$target->is_vacant) {
+            return back()->with('error', 'The selected target position is not vacant.');
+        }
+
+        // 1. Copy employee details to target position
+        $target->fill([
+            'last_name' => $plantilla->last_name,
+            'first_name' => $plantilla->first_name,
+            'middle_name' => $plantilla->middle_name,
+            'sex' => $plantilla->sex,
+            'religion' => $plantilla->religion,
+            'date_of_birth' => $plantilla->date_of_birth,
+            'tin' => $plantilla->tin,
+            'date_original_appointment' => $plantilla->date_original_appointment,
+            'date_last_promotion' => $request->effective_date, // set promotion date
+            'date_last_nolp' => $plantilla->date_last_nolp,
+            'employment_status' => $plantilla->employment_status,
+            'civil_service_eligibility' => $plantilla->civil_service_eligibility,
+            'comment_annotation' => $plantilla->comment_annotation,
+            'is_pwd' => $plantilla->is_pwd,
+            'type_of_disability' => $plantilla->type_of_disability,
+            'indigenous_people' => $plantilla->indigenous_people,
+            'solo_parent' => $plantilla->solo_parent,
+            'gsis_bp_number' => $plantilla->gsis_bp_number,
+            'umid' => $plantilla->umid,
+            'employee_code' => $plantilla->employee_code,
+
+            // Set as no longer vacant
+            'is_vacant' => false,
+            'nature_of_appointment' => 'Promoted',
+            'nature_of_separation' => null,
+            'date_separated' => null,
+        ]);
+        $target->save();
+
+        // 2. Clear current position
+        $oldName = trim($plantilla->first_name . ' ' . $plantilla->last_name);
+        $plantilla->fill([
+            'last_name' => null,
+            'first_name' => null,
+            'middle_name' => null,
+            'sex' => null,
+            'religion' => null,
+            'date_of_birth' => null,
+            'tin' => null,
+            'date_original_appointment' => null,
+            'date_last_promotion' => null,
+            'date_last_nolp' => null,
+            'employment_status' => null,
+            'civil_service_eligibility' => null,
+            'comment_annotation' => null,
+            'is_pwd' => false,
+            'type_of_disability' => null,
+            'indigenous_people' => null,
+            'solo_parent' => null,
+            'gsis_bp_number' => null,
+            'umid' => null,
+            'employee_code' => null,
+            'nature_of_appointment' => null,
+            'nature_of_separation' => null,
+            'date_separated' => null,
+
+            // Set as vacant
+            'is_vacant' => true,
+        ]);
+        $plantilla->save();
+
+        if (Auth::check()) {
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'Promoted/Transferred Employee',
+                'description' => "Promoted {$oldName} from Item {$plantilla->item} to Item {$target->item}"
+            ]);
+        }
+
+        return redirect()->route('plantilla.show', $target->id)
+            ->with('success', 'Employee successfully promoted and old position vacated.');
+    }
+
+    /**
+     * Show quick add form for Office/Position.
+     */
+    public function quickAddForm()
+    {
+        $offices = PlantillaRecord::select('organizational_unit')
+            ->distinct()->orderBy('organizational_unit')
+            ->pluck('organizational_unit');
+
+        return view('plantilla.quick-add', compact('offices'));
+    }
+
+    /**
+     * Submit quick add for Office/Position.
+     * This creates a vacant, unfunded record in the system.
+     */
+    public function quickAddSubmit(Request $request)
+    {
+        $validated = $request->validate([
+            'organizational_unit' => 'required|string|max:255',
+            'item' => 'required|string|max:50',
+            'position_title' => 'required|string|max:255',
+            'salary_grade' => 'required|integer|min:1|max:33',
+            'step' => 'required|integer|min:1|max:8',
+        ]);
+
+        // Default properties for a vacant position
+        $validated['is_vacant'] = true;
+        $validated['authorized_annual_salary'] = 0;
+        $validated['actual_annual_salary'] = 0;
+
+        $plantilla = PlantillaRecord::create($validated);
+
+        if (Auth::check()) {
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'Created Position/Office',
+                'description' => 'Quick added vacant position "' . $plantilla->position_title . '" (Item: ' . $plantilla->item . ') in ' . $plantilla->organizational_unit
+            ]);
+        }
+
+        return redirect()->route('plantilla.index')
+            ->with('success', 'New Office/Position slot successfully created.');
+    }
+
+    /**
      * Shared validation rules.
      */
     private function validateRecord(Request $request, ?int $exceptId = null): array
     {
         return $request->validate([
-            'organizational_unit'       => 'required|string|max:255',
-            'item'                      => 'required|string|max:50',
-            'position_title'            => 'required|string|max:255',
-            'salary_grade'              => 'required|integer|min:1|max:33',
-            'authorized_annual_salary'  => 'nullable|numeric|min:0',
-            'actual_annual_salary'      => 'nullable|numeric|min:0',
-            'step'                      => 'required|integer|min:1|max:8',
-            'area_code'                 => 'nullable|string|max:10',
-            'area_type'                 => 'nullable|string|max:5',
-            'level'                     => 'nullable|string|max:5',
-            'last_name'                 => 'nullable|string|max:100',
-            'first_name'                => 'nullable|string|max:100',
-            'middle_name'               => 'nullable|string|max:100',
-            'sex'                       => 'nullable|in:M,F',
-            'date_of_birth'             => 'nullable|date',
-            'tin'                       => 'nullable|string|max:50',
+            'organizational_unit' => 'required|string|max:255',
+            'item' => 'required|string|max:50',
+            'position_title' => 'required|string|max:255',
+            'salary_grade' => 'required|integer|min:1|max:33',
+            'authorized_annual_salary' => 'nullable|numeric|min:0',
+            'actual_annual_salary' => 'nullable|numeric|min:0',
+            'step' => 'required|integer|min:1|max:8',
+            'area_code' => 'nullable|string|max:10',
+            'area_type' => 'nullable|string|max:5',
+            'level' => 'nullable|string|max:5',
+            'last_name' => 'nullable|string|max:100',
+            'first_name' => 'nullable|string|max:100',
+            'middle_name' => 'nullable|string|max:100',
+            'sex' => 'nullable|in:M,F',
+            'date_of_birth' => 'nullable|date',
+            'tin' => 'nullable|string|max:50',
             'date_original_appointment' => 'nullable|date',
-            'date_last_promotion'       => 'nullable|date',
-            'employment_status'         => 'nullable|string|max:20',
+            'date_last_promotion' => 'nullable|date',
+            'employment_status' => 'nullable|string|max:20',
             'civil_service_eligibility' => 'nullable|string|max:255',
-            'comment_annotation'        => 'nullable|string',
-            'is_pwd'                    => 'boolean',
-            'indigenous_people'         => 'nullable|string|max:20',
-            'solo_parent'               => 'nullable|string|max:100',
-            'abolished'                 => 'boolean',
-            'dissolved'                 => 'boolean',
-            'gsis_bp_number'            => 'nullable|string|max:50',
-            'position_classification'   => 'nullable|string|max:100',
-            'umid'                      => 'nullable|string|max:50',
-            'nature_of_appointment'     => 'nullable|string|max:100',
-            'nature_of_separation'      => 'nullable|string|max:100',
-            'date_separated'            => 'nullable|date',
-            'employee_code'             => 'nullable|string|max:20|unique:plantilla_records,employee_code' . ($exceptId ? ",{$exceptId}" : ''),
+            'comment_annotation' => 'nullable|string',
+            'is_pwd' => 'boolean',
+            'indigenous_people' => 'nullable|string|max:20',
+            'solo_parent' => 'nullable|string|max:100',
+            'abolished' => 'boolean',
+            'dissolved' => 'boolean',
+            'gsis_bp_number' => 'nullable|string|max:50',
+            'position_classification' => 'nullable|string|max:100',
+            'umid' => 'nullable|string|max:50',
+            'nature_of_appointment' => 'nullable|string|max:100',
+            'nature_of_separation' => 'nullable|string|max:100',
+            'date_separated' => 'nullable|date',
+            'employee_code' => 'nullable|string|max:20|unique:plantilla_records,employee_code' . ($exceptId ? ",{$exceptId}" : ''),
         ]);
     }
 }

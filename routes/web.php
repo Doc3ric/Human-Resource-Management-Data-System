@@ -64,6 +64,8 @@ Route::middleware('auth')->group(function () {
         Route::get('plantilla/reports', [PlantillaController::class, 'reports'])->name('plantilla.reports');
         Route::get('plantilla/reports/export/pdf/{report}', [PlantillaController::class, 'exportReportPdf'])->name('plantilla.reports.export.pdf');
         Route::get('plantilla/reports/export/excel/{report}', [PlantillaController::class, 'exportReportExcel'])->name('plantilla.reports.export.excel');
+        Route::get('plantilla/reports/custom/pdf', [PlantillaController::class, 'exportCustomReportPdf'])->name('plantilla.reports.custom.pdf');
+        Route::get('plantilla/reports/custom/excel', [PlantillaController::class, 'exportCustomReportExcel'])->name('plantilla.reports.custom.excel');
         Route::get('plantilla/vacant/export/pdf', [PlantillaController::class, 'exportVacantPdf'])->name('plantilla.vacant.export.pdf');
         Route::get('plantilla/vacant/export/excel', [PlantillaController::class, 'exportVacantExcel'])->name('plantilla.vacant.export.excel');
         Route::get('plantilla/vacant-funded/detail', [PlantillaController::class, 'vacantFundedDetail'])->name('plantilla.vacant-funded.detail');
@@ -80,6 +82,16 @@ Route::middleware('auth')->group(function () {
         Route::get('plantilla/attachments/{attachment}/download', [EmployeeAttachmentController::class, 'download'])->name('plantilla.attachments.download');
         Route::get('plantilla/attachments/{attachment}/view', [EmployeeAttachmentController::class, 'view'])->name('plantilla.attachments.view');
         Route::delete('plantilla/attachments/{attachment}', [EmployeeAttachmentController::class, 'destroy'])->name('plantilla.attachments.destroy');
+        
+        // Promotion Module
+        Route::get('plantilla/{plantilla}/promote', [PlantillaController::class, 'promoteForm'])->name('plantilla.promote.form');
+        Route::post('plantilla/{plantilla}/promote', [PlantillaController::class, 'promoteSubmit'])->name('plantilla.promote.submit');
+
+        // Quick Add Office/Position
+        Route::get('plantilla/quick-add/office-position', [PlantillaController::class, 'quickAddForm'])->name('plantilla.quick-add.form');
+        Route::post('plantilla/quick-add/office-position', [PlantillaController::class, 'quickAddSubmit'])->name('plantilla.quick-add.submit');
+
+        Route::get('plantilla/item-details', [PlantillaController::class, 'getItemDetails'])->name('plantilla.item-details');
         Route::resource('plantilla', PlantillaController::class);
     });
 

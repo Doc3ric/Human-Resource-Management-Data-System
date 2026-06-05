@@ -15,47 +15,69 @@ class DashboardController extends Controller
      */
     public function index(): View
     {
-        $totalPositions          = 0;
-        $filledPositions         = 0;
-        $vacantPositions         = 0;
-        $abolishedPositions      = 0;
-        $totalSalaryBudget       = 0;
-        $pwdCount                = 0;
-        $ipCount                 = 0;
-        $soloParentCount         = 0;
-        $stepDueCount            = 0;
-        $retirementDueCount      = 0;
-        $monthlyBirthdays        = [];
-        $vacantFundedPositions   = 0;
+        $totalPositions = 0;
+        $filledPositions = 0;
+        $permanentFilledPositions = 0;
+        $vacantPositions = 0;
+        $abolishedPositions = 0;
+        $totalSalaryBudget = 0;
+        $pwdCount = 0;
+        $ipCount = 0;
+        $soloParentCount = 0;
+        $stepDueCount = 0;
+        $retirementDueCount = 0;
+        $monthlyBirthdays = [];
+        $vacantFundedPositions = 0;
         $vacantUnfundedPositions = 0;
-        $employeesPerUnit        = [];
-        $statusBreakdown         = [];
-        $casualTotal             = 0;
-        $casualVacant            = 0;
-        $jobOrderTotal           = 0;
-        $ageBrackets             = [
+        $employeesPerUnit = [];
+        $statusBreakdown = [];
+        $casualTotal = 0;
+        $casualVacant = 0;
+        $jobOrderTotal = 0;
+        // Plantilla status breakdown counts
+        $plantillaPermCount   = 0;
+        $plantillaElectCount  = 0;
+        $plantillaCoterCount  = 0;
+        $plantillaTempCount   = 0;
+        $plantillaPartCount   = 0;
+        $casualInPlantilla    = 0;
+        $ageBrackets = [
             '20-29' => 0,
             '30-39' => 0,
             '40-49' => 0,
             '50-59' => 0,
-            '60+'   => 0,
+            '60+' => 0,
         ];
 
         try {
-            $totalPositions     = PlantillaRecord::count();
-            $filledPositions    = PlantillaRecord::filled()->count();
-            $vacantPositions    = PlantillaRecord::vacant()->count();
+            $totalPositions = PlantillaRecord::count();
+            $filledPositions = PlantillaRecord::filled()->count();
+            $vacantPositions = PlantillaRecord::vacant()->count();
             $vacantFundedPositions = PlantillaRecord::vacant()->where('authorized_annual_salary', '>', 0)->count();
-            $vacantUnfundedPositions = PlantillaRecord::vacant()->where(function($q) {
+            $vacantUnfundedPositions = PlantillaRecord::vacant()->where(function ($q) {
                 $q->whereNull('authorized_annual_salary')->orWhere('authorized_annual_salary', '<=', 0);
             })->count();
             $abolishedPositions = PlantillaRecord::abolished()->count();
-            $permanentEmployeesCount = PlantillaRecord::filled()->whereIn('employment_status', ['P', 'Permanent'])->count();
+
+            // Permanent Filled Positions (only P/Permanent — excludes Casual, JO, etc.)
+            $permanentFilledPositions = PlantillaRecord::filled()
+                ->whereIn('employment_status', ['P', 'Permanent'])
+                ->count();
+            $permanentEmployeesCount = $permanentFilledPositions;
+
+            // Plantilla Positions pie chart breakdown (Regular types + Casual)
+            $plantillaPermCount  = PlantillaRecord::filled()->whereIn('employment_status', ['P', 'Permanent'])->count();
+            $plantillaElectCount = PlantillaRecord::filled()->whereIn('employment_status', ['E', 'Elected'])->count();
+            $plantillaCoterCount = PlantillaRecord::filled()->whereIn('employment_status', ['CT', 'Co-Terminous', 'Coterminous'])->count();
+            $plantillaTempCount  = PlantillaRecord::filled()->whereIn('employment_status', ['Temporary', 'T', 'Temp'])->count();
+            $plantillaPartCount  = PlantillaRecord::filled()->whereIn('employment_status', ['Part-Time', 'PT', 'Part Time'])->count();
+            // Casual positions inside plantilla_records
+            $casualInPlantilla   = PlantillaRecord::filled()->whereIn('employment_status', ['Casual', 'Cas', 'C'])->count();
 
             $totalSalaryBudget = PlantillaRecord::filled()->sum('actual_annual_salary');
 
-            $pwdCount        = PlantillaRecord::filled()->where('is_pwd', true)->count();
-            $ipCount         = PlantillaRecord::filled()->whereNotNull('indigenous_people')->where('indigenous_people', '!=', '')->count();
+            $pwdCount = PlantillaRecord::filled()->where('is_pwd', true)->count();
+            $ipCount = PlantillaRecord::filled()->whereNotNull('indigenous_people')->where('indigenous_people', '!=', '')->count();
             $soloParentCount = PlantillaRecord::filled()->whereNotNull('solo_parent')->where('solo_parent', '!=', '')->where('solo_parent', '!=', '-')->count();
 
             // Employees per organizational unit (top 15 for chart)
@@ -76,7 +98,7 @@ class DashboardController extends Controller
 
             // Step increment stats — fast SQL-only COUNT (no PHP loops)
             $threeYearsAgo = now()->subYears(3)->toDateString();
-            $fiveYearsAgo  = now()->subYears(5)->toDateString();
+            $fiveYearsAgo = now()->subYears(5)->toDateString();
             $stepDueCount = PlantillaRecord::filled()
                 ->where('is_apprehended', false)
                 ->where('is_admin_charge', false)
@@ -86,10 +108,10 @@ class DashboardController extends Controller
                 ->where(function ($q) use ($threeYearsAgo, $fiveYearsAgo) {
                     $q->where(function ($q2) use ($threeYearsAgo) {
                         $q2->whereNotNull('date_last_promotion')
-                           ->where('date_last_promotion', '<=', $threeYearsAgo);
+                            ->where('date_last_promotion', '<=', $threeYearsAgo);
                     })->orWhere(function ($q2) use ($threeYearsAgo) {
                         $q2->whereNull('date_last_promotion')
-                           ->where('date_original_appointment', '<=', $threeYearsAgo);
+                            ->where('date_original_appointment', '<=', $threeYearsAgo);
                     })->orWhere(function ($q3) use ($fiveYearsAgo) {
                         $q3->where(function ($qOu) {
                             $qOu->where('organizational_unit', 'like', '%BPH%')
@@ -97,10 +119,10 @@ class DashboardController extends Controller
                                 ->orWhere('organizational_unit', 'like', '%MEDICAL%');
                         })->where(function ($q4) use ($fiveYearsAgo) {
                             $q4->whereNotNull('date_last_nolp')
-                               ->where('date_last_nolp', '<=', $fiveYearsAgo);
+                                ->where('date_last_nolp', '<=', $fiveYearsAgo);
                         })->orWhere(function ($q4) use ($fiveYearsAgo) {
                             $q4->whereNull('date_last_nolp')
-                               ->where('date_original_appointment', '<=', $fiveYearsAgo);
+                                ->where('date_original_appointment', '<=', $fiveYearsAgo);
                         });
                     });
                 })
@@ -110,7 +132,7 @@ class DashboardController extends Controller
             $retirementDueCount = PlantillaRecord::retirementDue()->count();
 
             // Casual Employees
-            $casualTotal  = CasualEmployee::count();
+            $casualTotal = CasualEmployee::count();
             $casualVacant = CasualEmployee::where('is_vacant', true)->count();
 
             // Job Orders
@@ -128,7 +150,7 @@ class DashboardController extends Controller
                 ->where('is_vacant', false)->where('abolished', false)->whereNotNull('date_of_birth')->whereNull('deleted_at')
                 ->selectRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) as age')
                 ->pluck('age');
-                
+
             $casualAges = DB::table('casual_employees')
                 ->where('is_vacant', false)->whereNotNull('birthdate')->whereNull('deleted_at')
                 ->selectRaw('TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) as age')
@@ -138,7 +160,7 @@ class DashboardController extends Controller
                 ->whereNotNull('birthdate')->whereNull('deleted_at')
                 ->selectRaw('TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) as age')
                 ->pluck('age');
-            
+
             $allAges = $plantillaAges->concat($casualAges)->concat($joAges);
 
             foreach ($allAges as $age) {
@@ -162,27 +184,35 @@ class DashboardController extends Controller
         }
 
         return view('dashboard', [
-            'totalPositions'          => $totalPositions,
-            'filledPositions'         => $filledPositions,
-            'vacantPositions'         => $vacantPositions,
-            'vacantFundedPositions'   => $vacantFundedPositions,
-            'vacantUnfundedPositions' => $vacantUnfundedPositions,
-            'abolishedPositions'      => $abolishedPositions,
-            'permanentEmployeesCount' => $permanentEmployeesCount ?? 0,
-            'totalSalaryBudget'       => $totalSalaryBudget,
-            'pwdCount'                => $pwdCount,
-            'ipCount'                 => $ipCount,
-            'soloParentCount'         => $soloParentCount,
-            'stepDueCount'            => $stepDueCount,
-            'retirementDueCount'      => $retirementDueCount,
-            'monthlyBirthdays'        => $monthlyBirthdays,
-            'employeesPerUnit'        => $employeesPerUnit,
-            'statusBreakdown'         => $statusBreakdown,
-            'casualTotal'             => $casualTotal,
-            'casualVacant'            => $casualVacant,
-            'casualFilled'            => $casualTotal - $casualVacant,
-            'jobOrderTotal'           => $jobOrderTotal,
-            'ageBrackets'             => $ageBrackets,
+            'totalPositions'           => $totalPositions,
+            'filledPositions'          => $filledPositions,
+            'permanentFilledPositions' => $permanentFilledPositions,
+            'vacantPositions'          => $vacantPositions,
+            'vacantFundedPositions'    => $vacantFundedPositions,
+            'vacantUnfundedPositions'  => $vacantUnfundedPositions,
+            'abolishedPositions'       => $abolishedPositions,
+            'permanentEmployeesCount'  => $permanentEmployeesCount ?? 0,
+            'totalSalaryBudget'        => $totalSalaryBudget,
+            'pwdCount'                 => $pwdCount,
+            'ipCount'                  => $ipCount,
+            'soloParentCount'          => $soloParentCount,
+            'stepDueCount'             => $stepDueCount,
+            'retirementDueCount'       => $retirementDueCount,
+            'monthlyBirthdays'         => $monthlyBirthdays,
+            'employeesPerUnit'         => $employeesPerUnit,
+            'statusBreakdown'          => $statusBreakdown,
+            'casualTotal'              => $casualTotal,
+            'casualVacant'             => $casualVacant,
+            'casualFilled'             => $casualTotal - $casualVacant,
+            'jobOrderTotal'            => $jobOrderTotal,
+            'ageBrackets'              => $ageBrackets,
+            // Plantilla pie chart data
+            'plantillaPermCount'       => $plantillaPermCount,
+            'plantillaElectCount'      => $plantillaElectCount,
+            'plantillaCoterCount'      => $plantillaCoterCount,
+            'plantillaTempCount'       => $plantillaTempCount,
+            'plantillaPartCount'       => $plantillaPartCount,
+            'casualInPlantilla'        => $casualInPlantilla,
         ]);
     }
 }

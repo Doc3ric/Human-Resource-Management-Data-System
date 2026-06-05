@@ -1,17 +1,26 @@
 <x-dashboard-app>
     <div class="max-w-4xl mx-auto space-y-6">
         {{-- Header --}}
-        <div class="flex items-center gap-4">
-            <a href="{{ route('all-data.index') }}" class="text-gray-400 hover:text-gray-600 transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-            </a>
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">Edit Record</h1>
-                <p class="text-gray-500 text-sm">Update the plantilla record — <span
-                        class="font-semibold text-gray-700">{{ $plantilla->item }}</span></p>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="{{ route('all-data.index') }}" class="text-gray-400 hover:text-gray-600 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </a>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Edit Record</h1>
+                    <p class="text-gray-500 text-sm">Update the plantilla record — <span
+                            class="font-semibold text-gray-700">{{ $plantilla->item }}</span></p>
+                </div>
             </div>
+            @if(!$plantilla->is_vacant)
+            <div>
+                <a href="{{ route('plantilla.promote.form', $plantilla) }}" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition shadow-sm">
+                    <i class="bi bi-person-up"></i> Promote / Transfer
+                </a>
+            </div>
+            @endif
         </div>
 
         {{-- Errors --}}
@@ -372,6 +381,35 @@
                                 Worker</span>
                         </label>
                         {{-- Vacant status is auto-detected: cleared employee name → Vacant; name present → Filled --}}
+                        <div class="flex flex-col gap-2 p-3 bg-purple-50 rounded-lg border border-purple-200 w-full sm:col-span-3">
+                            <label class="flex items-center gap-2 text-sm font-semibold text-purple-800 cursor-pointer"
+                                title="Process separation (e.g. Retirement, Resignation) and auto-declare vacant">
+                                <input type="checkbox" name="process_separation" id="process_separation" value="1"
+                                    class="rounded text-purple-600 focus:ring-purple-500"> 🛫 Mark Employee as Separated/Retired
+                            </label>
+                            <div id="separation_details" class="hidden flex flex-col gap-2 pl-6 mt-2">
+                                <p class="text-xs text-purple-600 mb-1">Checking this will record the separation and <strong>automatically clear the employee's information</strong> to make the position vacant upon saving.</p>
+                                <div class="flex flex-wrap gap-4">
+                                    <div class="flex-1 min-w-[200px]">
+                                        <label class="block text-[10px] font-bold text-purple-700 uppercase mb-1">Nature of Separation</label>
+                                        <select name="nature_of_separation" class="w-full border border-purple-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 bg-white outline-none">
+                                            <option value="COMPULSORY RETIREMENT">Compulsory Retirement</option>
+                                            <option value="OPTIONAL RETIREMENT">Optional Retirement</option>
+                                            <option value="RESIGNED">Resigned</option>
+                                            <option value="TERMINATED">Terminated</option>
+                                            <option value="DECEASED">Deceased</option>
+                                            <option value="DROPPED FROM ROLLS">Dropped from Rolls</option>
+                                            <option value="TRANSFERRED">Transferred</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex-1 min-w-[200px]">
+                                        <label class="block text-[10px] font-bold text-purple-700 uppercase mb-1">Effectivity Date</label>
+                                        <input type="date" name="date_separated" value="{{ date('Y-m-d') }}" class="w-full border border-purple-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 bg-white outline-none">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                             <input type="checkbox" name="abolished" value="1" {{ old('abolished', $plantilla->abolished) ? 'checked' : '' }} class="rounded"> Abolished
                         </label>
@@ -619,6 +657,16 @@
                     typeOfDisabilitySelect.classList.add('hidden');
                     typeOfDisabilitySelect.required = false;
                 }
+            }
+
+            // Separation details toggle
+            const processSeparationCheck = document.getElementById('process_separation');
+            const separationDetails = document.getElementById('separation_details');
+            if (processSeparationCheck && separationDetails) {
+                processSeparationCheck.addEventListener('change', function () {
+                    if (this.checked) separationDetails.classList.remove('hidden');
+                    else separationDetails.classList.add('hidden');
+                });
             }
 
             // Apprehended and Admin Charge Toggles
@@ -959,9 +1007,62 @@
             itemCodeSelectEl.addEventListener('change', function() {
                 if (this.value && itemCodeInputEl) {
                     itemCodeInputEl.value = this.value;
-                    // Also attempt to auto-fill position title and SG if needed, like in create
-                    // Let's trigger input event just in case
                     itemCodeInputEl.dispatchEvent(new Event('input', { bubbles: true }));
+                    
+                    // Fetch details for the selected item and auto-fill position fields
+                    fetch(`/plantilla/item-details?item=${encodeURIComponent(this.value)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && Object.keys(data).length > 0) {
+                                // Auto-fill fields if they exist in the response
+                                const fieldsToFill = {
+                                    'pos_title_select': data.position_title,
+                                    'position_classification': data.position_classification,
+                                    'salary_grade': data.salary_grade,
+                                    'step': data.step,
+                                    'authorized_annual_salary': data.authorized_annual_salary,
+                                    'actual_annual_salary': data.actual_annual_salary,
+                                    'emp_status_select': data.employment_status,
+                                    'area_code': data.area_code,
+                                    'area_type': data.area_type,
+                                    'level': data.level
+                                };
+                                
+                                for (const [idOrName, value] of Object.entries(fieldsToFill)) {
+                                    if (value !== null && value !== undefined) {
+                                        // Try by ID first (for custom selects), then by name
+                                        let input = document.getElementById(idOrName) || document.querySelector(`[name="${idOrName}"]`);
+                                        if (input) {
+                                            // Handle specific cases for "Others" dropdowns
+                                            if (idOrName === 'pos_title_select') {
+                                                let optionExists = Array.from(input.options).some(opt => opt.value === value);
+                                                if (optionExists) {
+                                                    input.value = value;
+                                                    window.handlePosTitleChange(input);
+                                                } else {
+                                                    input.value = 'Others';
+                                                    window.handlePosTitleChange(input);
+                                                    document.getElementById('pos_title_input').value = value;
+                                                }
+                                            } else if (idOrName === 'emp_status_select') {
+                                                let optionExists = Array.from(input.options).some(opt => opt.value === value);
+                                                if (optionExists) {
+                                                    input.value = value;
+                                                    window.handleEmpStatusChange(input);
+                                                } else {
+                                                    input.value = '__others__';
+                                                    window.handleEmpStatusChange(input);
+                                                    document.getElementById('emp_status_input').value = value;
+                                                }
+                                            } else {
+                                                input.value = value;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        })
+                        .catch(error => console.error('Error fetching item details:', error));
                 }
             });
         }
