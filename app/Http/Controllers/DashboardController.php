@@ -26,7 +26,7 @@ class DashboardController extends Controller
         $soloParentCount = 0;
         $stepDueCount = 0;
         $retirementDueCount = 0;
-        $monthlyBirthdays = [];
+        $monthlyBirthdays = collect();
         $vacantFundedPositions = 0;
         $vacantUnfundedPositions = 0;
         $employeesPerUnit = [];
@@ -159,11 +159,11 @@ class DashboardController extends Controller
                 ->selectRaw("CONCAT(UPPER(TRIM(last_name)), ',', UPPER(TRIM(first_name))) as name_key")
                 ->pluck('name_key');
             $casualEmployeesList = DB::table('casual_employees')
-                ->where('is_vacant', false)->whereNull('deleted_at')->whereNull('nature_of_separation')
+                ->where('is_vacant', false)->whereNull('deleted_at')
                 ->selectRaw("CONCAT(UPPER(TRIM(last_name)), ',', UPPER(TRIM(first_name))) as name_key")
                 ->pluck('name_key');
             $joEmployeesList = DB::table('job_orders')
-                ->whereNull('deleted_at')->whereNull('nature_of_separation')
+                ->whereNull('deleted_at')
                 ->selectRaw("CONCAT(UPPER(TRIM(last_name)), ',', UPPER(TRIM(first_name))) as name_key")
                 ->pluck('name_key');
             $totalEmployeesUnique = $plantillaEmployees->concat($casualEmployeesList)->concat($joEmployeesList)->filter()->unique()->count();
@@ -213,12 +213,12 @@ class DashboardController extends Controller
                 ->pluck('age');
 
             $casualAges = DB::table('casual_employees')
-                ->where('is_vacant', false)->whereNotNull('birthdate')->whereNull('deleted_at')->whereNull('nature_of_separation')
+                ->where('is_vacant', false)->whereNotNull('birthdate')->whereNull('deleted_at')
                 ->selectRaw('TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) as age')
                 ->pluck('age');
 
             $joAges = DB::table('job_orders')
-                ->whereNotNull('birthdate')->whereNull('deleted_at')->whereNull('nature_of_separation')
+                ->whereNotNull('birthdate')->whereNull('deleted_at')
                 ->selectRaw('TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) as age')
                 ->pluck('age');
 
