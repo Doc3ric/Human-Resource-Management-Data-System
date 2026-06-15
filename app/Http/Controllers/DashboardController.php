@@ -155,15 +155,15 @@ class DashboardController extends Controller
             // --- New specific arrangement calculations ---
             // 1. TOTAL EMPLOYEES: Active Only, No Duplication
             $plantillaEmployees = DB::table('plantilla_records')
-                ->where('is_vacant', false)->where('abolished', false)->whereNull('deleted_at')
+                ->where('is_vacant', false)->where('abolished', false)->whereNull('deleted_at')->whereNull('nature_of_separation')
                 ->selectRaw("CONCAT(UPPER(TRIM(last_name)), ',', UPPER(TRIM(first_name))) as name_key")
                 ->pluck('name_key');
             $casualEmployeesList = DB::table('casual_employees')
-                ->where('is_vacant', false)->whereNull('deleted_at')
+                ->where('is_vacant', false)->whereNull('deleted_at')->whereNull('nature_of_separation')
                 ->selectRaw("CONCAT(UPPER(TRIM(last_name)), ',', UPPER(TRIM(first_name))) as name_key")
                 ->pluck('name_key');
             $joEmployeesList = DB::table('job_orders')
-                ->whereNull('deleted_at')
+                ->whereNull('deleted_at')->whereNull('nature_of_separation')
                 ->selectRaw("CONCAT(UPPER(TRIM(last_name)), ',', UPPER(TRIM(first_name))) as name_key")
                 ->pluck('name_key');
             $totalEmployeesUnique = $plantillaEmployees->concat($casualEmployeesList)->concat($joEmployeesList)->filter()->unique()->count();
@@ -208,17 +208,17 @@ class DashboardController extends Controller
 
             // Age Demographics
             $plantillaAges = DB::table('plantilla_records')
-                ->where('is_vacant', false)->where('abolished', false)->whereNotNull('date_of_birth')->whereNull('deleted_at')
+                ->where('is_vacant', false)->where('abolished', false)->whereNotNull('date_of_birth')->whereNull('deleted_at')->whereNull('nature_of_separation')
                 ->selectRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) as age')
                 ->pluck('age');
 
             $casualAges = DB::table('casual_employees')
-                ->where('is_vacant', false)->whereNotNull('birthdate')->whereNull('deleted_at')
+                ->where('is_vacant', false)->whereNotNull('birthdate')->whereNull('deleted_at')->whereNull('nature_of_separation')
                 ->selectRaw('TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) as age')
                 ->pluck('age');
 
             $joAges = DB::table('job_orders')
-                ->whereNotNull('birthdate')->whereNull('deleted_at')
+                ->whereNotNull('birthdate')->whereNull('deleted_at')->whereNull('nature_of_separation')
                 ->selectRaw('TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) as age')
                 ->pluck('age');
 

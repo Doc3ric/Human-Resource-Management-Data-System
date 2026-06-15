@@ -307,11 +307,11 @@ class PlantillaRecord extends Model
 
     // ── Scopes ───────────────────────────────────────────────────────────────
 
-    /** Only filled (non-vacant, non-abolished) records */
     public function scopeFilled($query)
     {
         return $query->where('is_vacant', false)
-            ->where('abolished', false);
+            ->where('abolished', false)
+            ->whereNull('nature_of_separation');
     }
 
     /** Only vacant records */
