@@ -73,6 +73,7 @@ class AllDataController extends Controller
     public function index(Request $request)
     {
         $query = PlantillaRecord::query()
+            ->whereNull('nature_of_separation')
             ->orderBy('organizational_unit')
             ->orderBy('item');
 
@@ -173,7 +174,7 @@ class AllDataController extends Controller
             ->pluck('organizational_unit')->filter()->values();
         $positions = PlantillaRecord::distinct()->orderBy('position_title')
             ->pluck('position_title')->filter()->values();
-        $total = PlantillaRecord::count();
+        $total = PlantillaRecord::whereNull('nature_of_separation')->count();
 
         return view('all-data.index', compact('records', 'offices', 'positions', 'total'));
     }

@@ -789,6 +789,18 @@
                         <i class="bi bi-archive-fill"></i> Archive Selected
                     </button>
                 </form>
+
+                @if(auth()->user()->isSuperAdmin())
+                    <form id="bulk-force-delete-form" method="POST" action="{{ route('all-data.bulk-force-delete') }}" style="margin: 0;">
+                        @csrf
+                        <input type="hidden" name="type" value="plantilla">
+                        <div id="bulk-ids-container-fd"></div>
+                        <button type="button" onclick="confirmBulkForceDelete()" class="filter-btn"
+                            style="background: #dc2626; color: #fff;">
+                            <i class="bi bi-trash-fill"></i> Permanently Delete
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
     @endif
@@ -805,32 +817,15 @@
                             </th>
                         @endif
                         <th>#</th>
-                        <th>Org. Unit</th>
-                        <th>Item</th>
-                        <th>Emp. Code</th>
-                        <th>Position Title</th>
-                        <th>SG</th>
-                        <th>Auth. Annual Salary</th>
-                        <th>Actual Annual Salary</th>
-                        <th>Step</th>
-                        <th>Area Code</th>
-                        <th>Area Type</th>
-                        <th>Level</th>
-                        <th>Last Name</th>
-                        <th>First Name</th>
-                        <th>Middle Name</th>
-                        <th>Gender</th>
-                        <th>Religion</th>
-                        <th>Date of Birth</th>
-                        <th>TIN</th>
-                        <th>Date Orig. Appointment</th>
-                        <th>Date Last Promotion</th>
-                        <th style="text-align:center;">PWD</th>
-                        <th>Civil Service Eligibility</th>
-                        <th>Status</th>
-                        <th>Termination</th>
+                        <th>OFFICE</th>
+                        <th>LAST NAME</th>
+                        <th>FIRST NAME</th>
+                        <th>MIDDLE NAME</th>
+                        <th>EXT.</th>
+                        <th>POSITION</th>
+                        <th>STATUS</th>
                         @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                            <th style="text-align:center; min-width: 280px;">Actions</th>
+                            <th style="text-align:center; min-width: 280px;">ACTION</th>
                         @endif
                     </tr>
                 </thead>
@@ -851,52 +846,6 @@
                             {{-- Organizational Unit --}}
                             <td title="{{ $r->organizational_unit }}">{{ $r->organizational_unit }}</td>
 
-                            {{-- Item --}}
-                            <td style="font-family:monospace;font-size:11px;color:#1e40af;font-weight:700;">
-                                {{ $r->item }}
-                            </td>
-
-                            {{-- Employee Code --}}
-                            <td style="font-family:monospace;font-size:11px;color:#2563eb;font-weight:700;">
-                                {{ $r->employee_code ?: '-' }}
-                            </td>
-
-                            {{-- Position Title --}}
-                            <td title="{{ $r->position_title }}" style="font-weight:600;color:#0f172a;">
-                                {{ $r->position_title }}
-                            </td>
-
-                            {{-- Salary Grade --}}
-                            <td style="text-align:center;font-weight:700;color:#0369a1;">
-                                SG-{{ $r->salary_grade }}
-                            </td>
-
-                            {{-- Authorized Annual Salary --}}
-                            <td style="text-align:right;font-family:monospace;font-size:11px;">
-                                @if($r->authorized_annual_salary)
-                                    ₱{{ number_format($r->authorized_annual_salary, 2) }}
-                                @else<span style="color:#d1d5db;">—</span>@endif
-                            </td>
-
-                            {{-- Actual Annual Salary --}}
-                            <td style="text-align:right;font-family:monospace;font-size:11px;">
-                                @if($r->actual_annual_salary)
-                                    ₱{{ number_format($r->actual_annual_salary, 2) }}
-                                @else<span style="color:#d1d5db;">—</span>@endif
-                            </td>
-
-                            {{-- Step --}}
-                            <td style="text-align:center;font-weight:700;">{{ $r->step }}</td>
-
-                            {{-- Area Code --}}
-                            <td style="color:#6b7280;">{{ $r->area_code ?: '—' }}</td>
-
-                            {{-- Area Type --}}
-                            <td style="color:#6b7280;">{{ $r->area_type ?: '—' }}</td>
-
-                            {{-- Level --}}
-                            <td style="color:#6b7280;">{{ $r->level ?: '—' }}</td>
-
                             {{-- Last Name --}}
                             <td style="font-weight:700;text-transform:uppercase;color:#0f172a;">
                                 @if($r->is_vacant)
@@ -912,52 +861,12 @@
                             {{-- Middle Name --}}
                             <td style="color:#6b7280;">{{ $r->middle_name ?: '—' }}</td>
 
-                            {{-- Sex --}}
-                            <td style="text-align:center;font-weight:700;color:#374151;">
-                                {{ $r->sex ?: '—' }}
-                            </td>
+                            {{-- Extension --}}
+                            <td style="color:#6b7280;">—</td>
 
-                            {{-- Religion --}}
-                            <td style="color:#6b7280;">
-                                {{ $r->religion ?: '—' }}
-                            </td>
-
-                            {{-- Date of Birth --}}
-                            <td style="color:#6b7280;font-size:11px;">
-                                {{ $r->date_of_birth?->format('m/d/Y') ?: '—' }}
-                            </td>
-
-                            {{-- TIN --}}
-                            <td style="font-family:monospace;font-size:11px;color:#6b7280;">
-                                {{ $r->tin ?: '—' }}
-                            </td>
-
-                            {{-- Date Original Appointment --}}
-                            <td style="font-size:11px;color:#6b7280;">
-                                {{ $r->date_original_appointment?->format('m/d/Y') ?: '—' }}
-                            </td>
-
-                            {{-- Date Last Promotion --}}
-                            <td style="font-size:11px;color:#6b7280;">
-                                {{ $r->date_last_promotion?->format('m/d/Y') ?: '—' }}
-                            </td>
-
-                            {{-- PWD --}}
-                            <td style="text-align:center;">
-                                @if($r->is_pwd)
-                                    <span
-                                        style="background:#fefce8;color:#a16207;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;border:1px solid #fef08a;"
-                                        title="{{ $r->type_of_disability ?: 'Unspecified' }}">
-                                        YES
-                                    </span>
-                                @else
-                                    <span style="color:#d1d5db;">—</span>
-                                @endif
-                            </td>
-
-                            {{-- Civil Service Eligibility --}}
-                            <td title="{{ $r->civil_service_eligibility }}" style="color:#374151;">
-                                {{ $r->civil_service_eligibility ?: '—' }}
+                            {{-- Position Title --}}
+                            <td title="{{ $r->position_title }}" style="font-weight:600;color:#0f172a;">
+                                {{ $r->position_title }}
                             </td>
 
                             {{-- Employment Status --}}
@@ -975,13 +884,6 @@
                                     };
                                 @endphp
                                 <span class="status-badge {{ $badge[0] }}">{{ $badge[1] }}</span>
-                            </td>
-
-                            {{-- Termination --}}
-                            <td>
-                                <span style="color:#6b7280; font-size: 11px;">
-                                    {{ $r->nature_of_separation ?: '—' }}
-                                </span>
                             </td>
 
                             {{-- Actions --}}
@@ -1018,7 +920,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="22" style="text-align:center;padding:48px;color:#9ca3af;font-style:italic;">
+                            <td colspan="9" style="text-align:center;padding:48px;color:#9ca3af;font-style:italic;">
                                 No records found matching your search.
                             </td>
                         </tr>
@@ -1153,6 +1055,13 @@
                                     'civil_service_eligibility' => 'Civil Service Eligibility',
                                     'admin_charges' => 'Admin Charges',
                                     'nature_of_separation' => 'Termination',
+                                    'indigenous_people' => 'Indigenous People',
+                                    'solo_parent' => 'Solo Parent',
+                                    'abolished' => 'Abolished',
+                                    'dissolved' => 'Dissolved',
+                                    'gsis_bp_number' => 'GSIS BP Number',
+                                    'position_classification' => 'Position Classification',
+                                    'employee_code' => 'Employee No.',
                                 ];
                             @endphp
                             @foreach($exportColumns as $key => $label)
@@ -1356,6 +1265,19 @@
                     input.value = cb.value;
                     bulkIdsContainer.appendChild(input);
                 });
+
+                // Update Force Delete form as well
+                const bulkIdsContainerFd = document.getElementById('bulk-ids-container-fd');
+                if (bulkIdsContainerFd) {
+                    bulkIdsContainerFd.innerHTML = '';
+                    checked.forEach(cb => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'ids[]';
+                        input.value = cb.value;
+                        bulkIdsContainerFd.appendChild(input);
+                    });
+                }
             }
 
             if (selectAll) {
@@ -1410,6 +1332,24 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     document.getElementById('bulk-archive-form').submit();
+                }
+            });
+        }
+
+        function confirmBulkForceDelete() {
+            const count = document.getElementById('bulk-count').textContent;
+            Swal.fire({
+                title: `Permanently delete ${count} records?`,
+                html: '<span style="color:#dc2626;font-weight:bold;">WARNING:</span> This action cannot be undone!<br>The selected records will be permanently removed from the system.',
+                icon: 'warning',
+                iconColor: '#dc2626',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, permanently delete!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('bulk-force-delete-form').submit();
                 }
             });
         }

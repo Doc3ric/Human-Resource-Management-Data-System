@@ -22,6 +22,7 @@ class PermanentController extends Controller
     public function index(Request $request)
     {
         $query = PlantillaRecord::whereIn('employment_status', self::STATUSES)
+            ->where('is_vacant', false)
             ->orderBy('organizational_unit')
             ->orderBy('last_name');
 
@@ -47,10 +48,6 @@ class PermanentController extends Controller
 
         if ($request->filled('sex')) {
             $query->where('sex', $request->input('sex'));
-        }
-
-        if ($request->filled('vacant')) {
-            $query->where('is_vacant', $request->input('vacant') === 'vacant');
         }
 
         $total       = (clone $query)->count();
@@ -121,6 +118,7 @@ class PermanentController extends Controller
 
         $query = PlantillaRecord::select($dbColumns)
             ->whereIn('employment_status', self::STATUSES)
+            ->where('is_vacant', false)
             ->orderBy('organizational_unit')
             ->orderBy('last_name');
 
@@ -139,9 +137,6 @@ class PermanentController extends Controller
         }
         if ($request->filled('sex')) {
             $query->where('sex', $request->input('sex'));
-        }
-        if ($request->filled('vacant')) {
-            $query->where('is_vacant', $request->input('vacant') === 'vacant');
         }
 
         // Use array instead of Eloquent collection — much lighter in memory
@@ -166,6 +161,32 @@ class PermanentController extends Controller
         }
 
         return $pdf->download($filename);
+    }
+
+    // ── Delete All (Super Admin Only) ─────────────────────────────────────────
+
+    /**
+     * Permanently delete ALL Permanent (P, CT, E) PlantillaRecord entries.
+     * Restricted to Super Admin only. For data-reset purposes.
+     */
+    public function deleteAll(Request $request)
+    {
+        if (!Auth::check() || !Auth::user()->isSuperAdmin()) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $count = PlantillaRecord::whereIn('employment_status', self::STATUSES)->count();
+
+        PlantillaRecord::whereIn('employment_status', self::STATUSES)->delete();
+
+        ActivityLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'Deleted All Permanent Data',
+            'description' => "Permanently wiped {$count} Permanent/CT/Elected PlantillaRecord entries.",
+        ]);
+
+        return redirect()->route('permanent.index')
+            ->with('success', "All {$count} Permanent/CT/Elected record(s) have been permanently deleted.");
     }
 }
 

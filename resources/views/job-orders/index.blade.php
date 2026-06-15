@@ -247,7 +247,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 11.5px;
-            min-width: 1400px;
+            min-width: 900px;
         }
 
         .jo-table thead tr th {
@@ -605,25 +605,17 @@
                 </select>
             </div>
             <div class="filter-group">
-                <label>Nature of Work</label>
-                <select name="nature_of_work" id="jo-nature">
-                    <option value="">All Types</option>
-                    @foreach($natures as $n)
-                        <option value="{{ $n }}" {{ request('nature_of_work') == $n ? 'selected' : '' }}>{{ $n }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="filter-group">
-                <label>Gender</label>
-                <select name="gender" id="jo-gender">
+                <label>Detailed / Reassigned</label>
+                <select name="detail" id="jo-detail">
                     <option value="">All</option>
-                    <option value="M" {{ request('gender') == 'M' ? 'selected' : '' }}>Male</option>
-                    <option value="F" {{ request('gender') == 'F' ? 'selected' : '' }}>Female</option>
+                    @foreach($detailList as $d)
+                        <option value="{{ $d }}" {{ request('detail') == $d ? 'selected' : '' }}>{{ $d }}</option>
+                    @endforeach
                 </select>
             </div>
             <div class="filter-btn-group">
                 <button type="submit" class="btn-filter btn-filter-apply" id="btn-apply-filter">
-                    <i class="bi bi-funnel-fill"></i> Filter
+                    <i class="bi bi-funnel-fill"></i> Apply
                 </button>
                 <a href="{{ route('job-orders.index') }}" class="btn-filter btn-filter-clear">
                     <i class="bi bi-x-circle"></i> Clear
@@ -661,6 +653,13 @@
                         <i class="bi bi-ui-checks-grid"></i> Select Multiple
                     </button>
                 @endif
+                @if(auth()->user()->isSuperAdmin())
+                    <button type="button" id="delete-all-btn"
+                        style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;background:#ffffff;color:#334155;border:1px solid #cbd5e1;transition:all .15s;"
+                        onclick="document.getElementById('jo-delete-all-overlay').classList.add('active')">
+                        <i class="bi bi-trash3-fill"></i> Delete All Data
+                    </button>
+                @endif
             </div>
         </div>
 
@@ -680,13 +679,23 @@
                         <i class="bi bi-archive-fill"></i> Archive Selected
                     </button>
                 </form>
+                @if(auth()->user()->isSuperAdmin())
+                    <form id="bulk-force-delete-form" method="POST" action="{{ route('job-orders.bulk-force-delete') }}" style="margin: 0;">
+                        @csrf
+                        <input type="hidden" name="type" value="job_orders">
+                        <div id="bulk-ids-container-fd"></div>
+                        <button type="button" onclick="confirmBulkForceDelete()" style="display: inline-flex; align-items: center; gap: 5px; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; background: #dc2626; color: #fff;">
+                            <i class="bi bi-trash-fill"></i> Permanently Delete
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
         @endif
 
         {{-- ── DATA TABLE ── --}}
         <div class="jo-table-wrap" id="jo-table-wrap">
-            <table class="jo-table" id="jo-inventory-table">
+            <table class="jo-table" id="jo-inventory-table" style="min-width: 1000px;">
                 <thead>
                     <tr>
                         @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
@@ -695,35 +704,18 @@
                             </th>
                         @endif
                         <th rowspan="2">NO.</th>
-                        <th rowspan="2">CHARGES</th>
+                        <th rowspan="2">OFFICE</th>
                         {{-- NAME group --}}
                         <th colspan="4">NAME</th>
                         <th rowspan="2">POSITION</th>
-                        <th rowspan="2">NATURE<br>OF WORK</th>
-                        <th rowspan="2">OFFICE<br>ASSIGNED</th>
-                        <th rowspan="2">RATE/DAY</th>
-                        <th rowspan="2">FIRST DAY<br>OF SERVICE</th>
-                        {{-- LENGTH OF SERVICE --}}
-                        <th colspan="2">LENGTH OF SERVICE</th>
-                        <th rowspan="2">BIRTHDATE</th>
-                        <th rowspan="2">STATUS</th>
-                        <th rowspan="2">ADDRESS</th>
-                        <th rowspan="2">ELIGIBILITY</th>
-                        <th rowspan="2">NATURE<br>OF WORK</th>
                         <th rowspan="2">GENDER</th>
-                        <th rowspan="2">LEVEL</th>
-                        <th rowspan="2">IP COMMUNITY<br>MEMBERSHIP</th>
-                        <th rowspan="2">SOLO<br>PARENT</th>
-                        <th rowspan="2">REMARKS</th>
                         <th rowspan="2">ACTIONS</th>
                     </tr>
                     <tr class="sub-header">
                         <th>LASTNAME</th>
                         <th>FIRSTNAME</th>
-                        <th>M.I.</th>
+                        <th>MIDDLE NAME</th>
                         <th>EXT.</th>
-                        <th>YEAR/S</th>
-                        <th>MONTH/S</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -735,42 +727,13 @@
                                 </td>
                             @endif
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ $jo->charges }}</td>
+                            <td>{{ $jo->office }}</td>
                             <td class="text-left" style="font-weight:700;">{{ strtoupper($jo->last_name) }}</td>
                             <td class="text-left">{{ $jo->first_name }}</td>
                             <td>{{ $jo->middle_initial }}</td>
                             <td>{{ $jo->name_extension }}</td>
                             <td class="text-left">{{ $jo->position_title }}</td>
-                            <td>{{ $jo->nature_of_work }}</td>
-                            <td>{{ $jo->office }}</td>
-                            <td style="font-weight:700;">
-                                @if($jo->rate_per_day)
-                                    ₱{{ number_format($jo->rate_per_day, 2) }}
-                                @else
-                                    <span class="no-record">—</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($jo->first_day_of_service)
-                                    {{ $jo->first_day_of_service->format('Y/m/d') }}
-                                @else
-                                    <span class="no-record">—</span>
-                                @endif
-                            </td>
-                            <td>{{ $jo->first_day_of_service ? $jo->years_of_service : '—' }}</td>
-                            <td>{{ $jo->first_day_of_service ? $jo->months_of_service : '—' }}</td>
-                            <td>
-                                @if($jo->birthdate)
-                                    {{ $jo->birthdate->format('Y-m-d') }}
-                                @else
-                                    <span class="no-record">—</span>
-                                @endif
-                            </td>
-                            <td>{{ $jo->civil_status }}</td>
-                            <td class="text-left">{{ $jo->address }}</td>
-                            <td>{{ $jo->eligibility }}</td>
-                            <td>{{ $jo->nature_of_work_detail }}</td>
-                            {{-- Gender single column --}}
+                            {{-- Gender --}}
                             <td>
                                 @if($jo->gender === 'M')
                                     <span class="gender-badge gender-m">M</span>
@@ -778,14 +741,6 @@
                                     <span class="gender-badge gender-f">F</span>
                                 @endif
                             </td>
-                            <td>{{ $jo->level }}</td>
-                            <td>{{ $jo->ip_community_membership }}</td>
-                            <td>
-                                @if($jo->solo_parent)
-                                    <span class="check-mark">✓</span>
-                                @endif
-                            </td>
-                            <td class="text-left">{{ $jo->remarks }}</td>
                             <td>
                                 <div style="display:flex;gap:4px;justify-content:center;">
                                     <a href="{{ route('employees.profile', ['type' => 'job_orders', 'id' => $jo->id]) }}" class="action-btn" style="background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;" title="201 Profile">
@@ -807,11 +762,11 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="25">
+                            <td colspan="9">
                                 <div class="empty-state">
                                     <i class="bi bi-file-earmark-person" style="color:#cbd5e1;"></i>
                                     <p>No Job Order records found</p>
-                                    <small>{{ request()->anyFilled(['search', 'office', 'charges', 'nature_of_work', 'gender']) ? 'Try adjusting your filters.' : 'Start by adding your first JO record.' }}</small>
+                                    <small>{{ request()->anyFilled(['search', 'office', 'charges', 'detail']) ? 'Try adjusting your filters.' : 'Start by adding your first JO record.' }}</small>
                                 </div>
                             </td>
                         </tr>
@@ -1205,6 +1160,18 @@
                     input.value = cb.value;
                     bulkIdsContainer.appendChild(input);
                 });
+
+                const bulkIdsContainerFd = document.getElementById('bulk-ids-container-fd');
+                if (bulkIdsContainerFd) {
+                    bulkIdsContainerFd.innerHTML = '';
+                    checked.forEach(cb => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'ids[]';
+                        input.value = cb.value;
+                        bulkIdsContainerFd.appendChild(input);
+                    });
+                }
             }
 
             if (selectAll) {
@@ -1262,5 +1229,79 @@
                 }
             });
         }
+
+        function confirmBulkForceDelete() {
+            const count = document.getElementById('bulk-count').textContent;
+            Swal.fire({
+                title: `Permanently delete ${count} records?`,
+                html: '<span style="color:#dc2626;font-weight:bold;">WARNING:</span> This action cannot be undone!<br>The selected records will be permanently removed from the system.',
+                icon: 'warning',
+                iconColor: '#dc2626',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, permanently delete!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('bulk-force-delete-form').submit();
+                }
+            });
+        }
     </script>
+
+    {{-- Delete All Modal (Super Admin Only) --}}
+    @if(auth()->user()->isSuperAdmin())
+        <style>
+            .jo-delete-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(15, 23, 42, .55);
+                z-index: 9999;
+                align-items: center;
+                justify-content: center;
+                backdrop-filter: blur(3px);
+            }
+            .jo-delete-overlay.active { display: flex; }
+            .jo-delete-card {
+                background: #fff;
+                border-radius: 16px;
+                width: 100%;
+                max-width: 480px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, .18);
+                padding: 32px;
+                border-top: 5px solid #dc2626;
+                animation: slideUpModal .22s ease;
+            }
+        </style>
+        <div id="jo-delete-all-overlay" class="jo-delete-overlay"
+            onclick="if(event.target===this) this.classList.remove('active')">
+            <div class="jo-delete-card">
+                <div class="import-modal-title" style="color:#dc2626;">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Delete ALL Job Order Data
+                </div>
+                <p style="font-size:14px;color:#4b5563;margin:12px 0 24px;">
+                    <strong style="color:#dc2626;">WARNING:</strong> This action will
+                    <strong>permanently delete EVERY</strong> Job Order record in the database.
+                    <br><br>
+                    This action <strong>cannot be undone</strong> automatically.
+                </p>
+                <form method="POST" action="{{ route('job-orders.delete-all') }}">
+                    @csrf
+                    @method('DELETE')
+                    <div style="display:flex;gap:10px;justify-content:flex-end;">
+                        <button type="button"
+                            style="padding:10px 20px;background:#f1f5f9;color:#475569;border:1.5px solid #e2e8f0;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;"
+                            onclick="document.getElementById('jo-delete-all-overlay').classList.remove('active')">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            style="padding:10px 22px;background:#dc2626;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                            <i class="bi bi-trash3-fill"></i> Yes, Delete All
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 </x-dashboard-app>

@@ -797,20 +797,16 @@
                 </div>
             @endif
 
-            <!-- TOP ROW: 4 Cards -->
-            <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
-                <!-- Total Employees Card -->
-                <a href="{{ route('all-data.index', ['vacant' => 'filled']) }}"
-                    style="text-decoration: none; color: inherit; display: block;">
+            <!-- ROW 1: 4 Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                <!-- 1. Total Employees -->
+                <a href="{{ route('all-data.index', ['vacant' => 'filled']) }}" style="text-decoration: none; color: inherit; display: block;">
                     <div class="dash-card">
                         <div class="dash-card-content">
                             <div>
-                                <p class="dash-card-title">Total Employees
-                                </p>
-                                <h3 class="dash-card-value">
-                                    {{ $filledPositions ?? 0 }}
-                                </h3>
+                                <p class="dash-card-title">Total Employees</p>
+                                <h3 class="dash-card-value">{{ number_format($totalEmployeesUnique ?? 0) }}</h3>
+                                <p class="dash-card-subtext">Active Only, No Duplication</p>
                             </div>
                             <div class="dash-card-icon icon-blue">
                                 <i class="bi bi-people"></i>
@@ -819,142 +815,50 @@
                     </div>
                 </a>
 
-                <!-- Total Records Card -->
-                <a href="{{ route('all-data.index') }}" style="text-decoration: none; color: inherit; display: block;">
+                <!-- 2. REGULAR -->
+                <a href="{{ route('all-data.index', ['vacant' => 'filled', 'status' => 'P']) }}" style="text-decoration: none; color: inherit; display: block;">
                     <div class="dash-card">
                         <div class="dash-card-content">
                             <div>
-                                <p class="dash-card-title">Plantilla
-                                    Position
-                                </p>
-                                <h3 class="dash-card-value">
-                                    {{ $totalPositions ?? 0 }}
-                                </h3>
+                                <p class="dash-card-title">Regular</p>
+                                <h3 class="dash-card-value">{{ number_format($regularTotalCount ?? 0) }}</h3>
+                                <p class="dash-card-subtext" style="font-size:10px;">Elected, Coterminus, Permanent...</p>
                             </div>
-                            <div class="dash-card-icon icon-purple">
+                            <div class="dash-card-icon icon-green">
                                 <i class="bi bi-person-badge"></i>
                             </div>
                         </div>
                     </div>
                 </a>
 
-                <!-- Permanent Filled Position Card -->
-                <a href="{{ route('all-data.index', ['vacant' => 'filled', 'status' => 'P']) }}"
-                    style="text-decoration: none; color: inherit; display: block;">
-                    <div class="dash-card">
-                        <div class="dash-card-content">
-                            <div>
-                                <p class="dash-card-title">Permanent Filled
-                                    Position</p>
-                                <h3 class="dash-card-value">
-                                    {{ $permanentFilledPositions ?? 0 }}
-                                </h3>
-                            </div>
-                            <div class="dash-card-icon icon-green">
-                                <i class="bi bi-check-circle"></i>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Vacant Positions Card -->
-                <a href="{{ route('all-data.index', ['vacant' => 'vacant']) }}"
-                    style="text-decoration: none; color: inherit; display: block;">
-                    <div class="dash-card">
-                        <div class="dash-card-content">
-                            <div>
-                                <p class="dash-card-title">Vacant
-                                    Positions</p>
-                                <h3 class="dash-card-value">
-                                    {{ $vacantPositions ?? 0 }}
-                                </h3>
-                            </div>
-                            <div class="dash-card-icon icon-orange">
-                                <i class="bi bi-exclamation-circle"></i>
+                <!-- 3. MALE vs FEMALE (REGULAR) -->
+                <div class="dash-card">
+                    <div class="dash-card-content" style="width: 100%;">
+                        <div style="width: 100%;">
+                            <p class="dash-card-title mb-2">Male vs Female <span style="font-size: 11px; color:#6b7280; text-transform:none;">(Regular)</span></p>
+                            <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 10px;">
+                                <div style="display: flex; flex-direction: column; align-items: center;">
+                                    <i class="bi bi-gender-male" style="font-size: 24px; color: #3b82f6;"></i>
+                                    <h4 style="margin: 0; font-weight: 700; color: #0f172a;">{{ number_format($regularMale ?? 0) }}</h4>
+                                </div>
+                                <div style="width: 1px; height: 30px; background: #e2e8f0;"></div>
+                                <div style="display: flex; flex-direction: column; align-items: center;">
+                                    <i class="bi bi-gender-female" style="font-size: 24px; color: #ec4899;"></i>
+                                    <h4 style="margin: 0; font-weight: 700; color: #0f172a;">{{ number_format($regularFemale ?? 0) }}</h4>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </a>
-            </div>
+                </div>
 
-            <!-- SECOND ROW: 2 Cards -->
-            <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
-                <!-- Permanent Card -->
-                <a href="{{ route('all-data.index', ['status' => 'P', 'vacant' => 'filled']) }}"
-                    style="text-decoration: none; color: inherit; display: block;">
-                    <div class="dash-card">
-                        <div class="dash-card-content">
-                            <div>
-                                <p class="dash-card-title">Permanent</p>
-                                <h3 class="dash-card-value">
-                                    {{ $permanentEmployeesCount ?? 0 }}
-                                </h3>
-                            </div>
-                            <div class="dash-card-icon icon-blue">
-                                <i class="bi bi-briefcase"></i>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-
-
-                <!-- Overdue Retirements Card -->
-                <a href="{{ route('retirement.index') }}" style="text-decoration: none; color: inherit;">
-                    <div class="dash-card">
-                        <div class="dash-card-content">
-                            <div>
-                                <p class="dash-card-title">Overdue
-                                    Retirements</p>
-                                <h3 class="dash-card-value">
-                                    {{ $retirementDueCount ?? 0 }}
-                                </h3>
-                            </div>
-                            <div class="dash-card-icon icon-red">
-                                <i class="bi bi-clock-history"></i>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Step Increments Due Card -->
-                <a href="{{ route('step-increment.index') }}" style="text-decoration: none; color: inherit;">
-                    <div class="dash-card">
-                        <div class="dash-card-content">
-                            <div>
-                                <p class="dash-card-title">Step Increments
-                                    Due</p>
-                                <h3 class="dash-card-value">
-                                    {{ $stepDueCount ?? 0 }}
-                                </h3>
-                            </div>
-                            <div class="dash-card-icon icon-purple">
-                                <i class="bi bi-graph-up-arrow"></i>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <!-- THIRD ROW: Casual, Job Orders, Salary Budget -->
-            <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
-
-                <!-- Casual Employees Card -->
+                <!-- 4. CASUAL : Total -->
                 <a href="{{ route('casual.index') }}" style="text-decoration: none; color: inherit; display: block;">
                     <div class="dash-card">
                         <div class="dash-card-content">
                             <div>
-                                <p class="dash-card-title">Casual
-                                    Employees</p>
-                                <h3 class="dash-card-value">
-                                    {{ number_format($casualTotal) }}
-                                </h3>
-                                <p class="dash-card-subtext">
-                                    {{ number_format($casualVacant) }} vacant
-                                    position{{ $casualVacant != 1 ? 's' : '' }}
-                                </p>
+                                <p class="dash-card-title">Casual</p>
+                                <h3 class="dash-card-value">{{ number_format($casualOnlyTotal ?? 0) }}</h3>
+                                <p class="dash-card-subtext">Total</p>
                             </div>
                             <div class="dash-card-icon icon-orange">
                                 <i class="bi bi-person-lines-fill"></i>
@@ -962,96 +866,121 @@
                         </div>
                     </div>
                 </a>
+            </div>
 
-                <!-- Job Orders Card -->
-                <a href="{{ route('job-orders.index') }}"
-                    style="text-decoration: none; color: inherit; display: block;">
+            <!-- ROW 2: 4 Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                
+                <!-- 5. MALE vs FEMALE (CASUAL) -->
+                <div class="dash-card">
+                    <div class="dash-card-content" style="width: 100%;">
+                        <div style="width: 100%;">
+                            <p class="dash-card-title mb-2">Male vs Female <span style="font-size: 11px; color:#6b7280; text-transform:none;">(Casual)</span></p>
+                            <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 10px;">
+                                <div style="display: flex; flex-direction: column; align-items: center;">
+                                    <i class="bi bi-gender-male" style="font-size: 24px; color: #3b82f6;"></i>
+                                    <h4 style="margin: 0; font-weight: 700; color: #0f172a;">{{ number_format($casualMale ?? 0) }}</h4>
+                                </div>
+                                <div style="width: 1px; height: 30px; background: #e2e8f0;"></div>
+                                <div style="display: flex; flex-direction: column; align-items: center;">
+                                    <i class="bi bi-gender-female" style="font-size: 24px; color: #ec4899;"></i>
+                                    <h4 style="margin: 0; font-weight: 700; color: #0f172a;">{{ number_format($casualFemale ?? 0) }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. JOB ORDER -->
+                <a href="{{ route('job-orders.index') }}" style="text-decoration: none; color: inherit; display: block;">
                     <div class="dash-card">
                         <div class="dash-card-content">
                             <div>
-                                <p class="dash-card-title">Job Orders</p>
-                                <h3 class="dash-card-value">
-                                    {{ number_format($jobOrderTotal) }}
-                                </h3>
-                                <p class="dash-card-subtext">
-                                    Total job order records</p>
+                                <p class="dash-card-title">Job Order</p>
+                                <h3 class="dash-card-value">{{ number_format($joTotalActive ?? 0) }}</h3>
                             </div>
-                            <div class="dash-card-icon icon-blue">
+                            <div class="dash-card-icon icon-purple">
                                 <i class="bi bi-file-earmark-person-fill"></i>
                             </div>
                         </div>
                     </div>
                 </a>
 
-                <!-- Plantilla Positions (Casual) Card -->
-                <a href="{{ route('casual.index') }}" style="text-decoration: none; color: inherit; display: block;">
+                <!-- 7. VACANT POSITIONS -->
+                <a href="{{ route('all-data.index', ['vacant' => 'vacant']) }}" style="text-decoration: none; color: inherit; display: block;">
                     <div class="dash-card">
                         <div class="dash-card-content">
                             <div>
-                                <p class="dash-card-title">Plantilla Positions
-                                    <span style="color:#f59e0b;">(Casual)</span></p>
-                                <h3 class="dash-card-value">
-                                    {{ $casualInPlantilla ?? 0 }}
-                                </h3>
-                                <p class="dash-card-subtext">Casual in plantilla records</p>
+                                <p class="dash-card-title">Vacant Positions</p>
+                                <h3 class="dash-card-value">{{ number_format($vacantPositionsTotal ?? 0) }}</h3>
                             </div>
-                            <div class="dash-card-icon" style="background:#fffbeb; color:#f59e0b;">
-                                <i class="bi bi-person-lines-fill"></i>
+                            <div class="dash-card-icon" style="background:#fff1f2; color:#e11d48;">
+                                <i class="bi bi-exclamation-circle"></i>
                             </div>
                         </div>
                     </div>
                 </a>
+
+                <!-- 8. MALE vs. FEMALE (JO) -->
+                <div class="dash-card">
+                    <div class="dash-card-content" style="width: 100%;">
+                        <div style="width: 100%;">
+                            <p class="dash-card-title mb-2">Male vs Female <span style="font-size: 11px; color:#6b7280; text-transform:none;">(JO)</span></p>
+                            <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 10px;">
+                                <div style="display: flex; flex-direction: column; align-items: center;">
+                                    <i class="bi bi-gender-male" style="font-size: 24px; color: #3b82f6;"></i>
+                                    <h4 style="margin: 0; font-weight: 700; color: #0f172a;">{{ number_format($joMale ?? 0) }}</h4>
+                                </div>
+                                <div style="width: 1px; height: 30px; background: #e2e8f0;"></div>
+                                <div style="display: flex; flex-direction: column; align-items: center;">
+                                    <i class="bi bi-gender-female" style="font-size: 24px; color: #ec4899;"></i>
+                                    <h4 style="margin: 0; font-weight: 700; color: #0f172a;">{{ number_format($joFemale ?? 0) }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
             </div>
 
             <!-- FOURTH ROW: Charts -->
             <div
                 style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px;">
-                <!-- Pie Chart: Filled vs Vacant -->
+                <!-- Pie Chart: Filled vs Vacant (REGULAR PLANTILLA ONLY) -->
                 <div
                     style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                         <h3 style="margin:0; color: #111827; font-size: 18px; font-weight: 600;">Filled vs Vacant
-                            Positions</h3>
+                            Positions <span style="font-size:13px; font-weight:500; color:#6b7280; text-transform:none;">(Regular Plantilla Only)</span></h3>
                         <span
                             style="font-size:12px; color:#6b7280; background:#f3f4f6; padding:4px 10px; border-radius:99px;">Total:
-                            {{ ($filledPositions ?? 0) + ($vacantFundedPositions ?? 0) + ($vacantUnfundedPositions ?? 0) }}</span>
+                            {{ ($regularTotalCount ?? 0) + ($vacantPositionsTotal ?? 0) }}</span>
                     </div>
                     <div style="position: relative; height: 260px;">
                         <canvas id="pieChart"></canvas>
                     </div>
                     @php
-                        $pvTotal = ($filledPositions ?? 0) + ($vacantFundedPositions ?? 0) + ($vacantUnfundedPositions ?? 0);
-                        $pvFilledPct = $pvTotal > 0 ? round(($filledPositions ?? 0) / $pvTotal * 100, 1) : 0;
-                        $pvVFundPct = $pvTotal > 0 ? round(($vacantFundedPositions ?? 0) / $pvTotal * 100, 1) : 0;
-                        $pvVUnfundPct = $pvTotal > 0 ? round(($vacantUnfundedPositions ?? 0) / $pvTotal * 100, 1) : 0;
+                        $pvTotal = ($regularTotalCount ?? 0) + ($vacantPositionsTotal ?? 0);
+                        $pvFilledPct = $pvTotal > 0 ? round(($regularTotalCount ?? 0) / $pvTotal * 100, 1) : 0;
+                        $pvVFundPct = $pvTotal > 0 ? round(($vacantPositionsTotal ?? 0) / $pvTotal * 100, 1) : 0;
                     @endphp
                     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; justify-content:center;">
                         <div
                             style="display:flex; align-items:center; gap:6px; background:#eff6ff; border-radius:8px; padding:7px 12px; flex:1; min-width:120px;">
                             <span
-                                style="width:10px;height:10px;border-radius:50%;background:#0048d9;flex-shrink:0;"></span>
+                                style="width:10px;height:10px;border-radius:50%;background:#3b82f6;flex-shrink:0;"></span>
                             <div>
-                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Filled</div>
-                                <div style="font-size:15px;font-weight:700;color:#0048d9;">{{ $pvFilledPct }}%</div>
-                            </div>
-                        </div>
-                        <div
-                            style="display:flex; align-items:center; gap:6px; background:#eff6ff; border-radius:8px; padding:7px 12px; flex:1; min-width:120px;">
-                            <span
-                                style="width:10px;height:10px;border-radius:50%;background:#062655;flex-shrink:0;"></span>
-                            <div>
-                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Vacant Funded</div>
-                                <div style="font-size:15px;font-weight:700;color:#062655;">{{ $pvVFundPct }}%</div>
+                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Filled (Regular)</div>
+                                <div style="font-size:15px;font-weight:700;color:#3b82f6;">{{ $pvFilledPct }}%</div>
                             </div>
                         </div>
                         <div
                             style="display:flex; align-items:center; gap:6px; background:#fff5f5; border-radius:8px; padding:7px 12px; flex:1; min-width:120px;">
                             <span
-                                style="width:10px;height:10px;border-radius:50%;background:#dc3545;flex-shrink:0;"></span>
+                                style="width:10px;height:10px;border-radius:50%;background:#f43f5e;flex-shrink:0;"></span>
                             <div>
-                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Vacant Unfunded</div>
-                                <div style="font-size:15px;font-weight:700;color:#dc3545;">{{ $pvVUnfundPct }}%</div>
+                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Vacant</div>
+                                <div style="font-size:15px;font-weight:700;color:#f43f5e;">{{ $pvVFundPct }}%</div>
                             </div>
                         </div>
                     </div>
@@ -1068,198 +997,7 @@
                 </div>
             </div>
 
-            <!-- SIXTH ROW: Plantilla Positions (Regular) Pie Chart + Casual Card + Casual Pie Chart -->
-            <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px;">
-
-                <!-- Pie Chart: Plantilla Positions (Regular) -->
-                <div
-                    style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                        <h3 style="margin:0; color: #111827; font-size: 18px; font-weight: 600;">Plantilla Positions
-                            <span style="font-size:13px; font-weight:500; color:#6b7280;">(Regular)</span>
-                        </h3>
-                        @php
-                            $ppTotal = ($plantillaPermCount ?? 0) + ($plantillaElectCount ?? 0) + ($plantillaCoterCount ?? 0) + ($plantillaTempCount ?? 0) + ($plantillaPartCount ?? 0);
-                        @endphp
-                        <span
-                            style="font-size:12px; color:#6b7280; background:#f3f4f6; padding:4px 10px; border-radius:99px;">Total:
-                            {{ $ppTotal }}</span>
-                    </div>
-                    <div style="position: relative; height: 260px;">
-                        <canvas id="plantillaRegularPieChart"></canvas>
-                    </div>
-                    @php
-                        $ppPermPct = $ppTotal > 0 ? round(($plantillaPermCount ?? 0) / $ppTotal * 100, 1) : 0;
-                        $ppElectPct = $ppTotal > 0 ? round(($plantillaElectCount ?? 0) / $ppTotal * 100, 1) : 0;
-                        $ppCoterPct = $ppTotal > 0 ? round(($plantillaCoterCount ?? 0) / $ppTotal * 100, 1) : 0;
-                        $ppTempPct = $ppTotal > 0 ? round(($plantillaTempCount ?? 0) / $ppTotal * 100, 1) : 0;
-                        $ppPartPct = $ppTotal > 0 ? round(($plantillaPartCount ?? 0) / $ppTotal * 100, 1) : 0;
-                    @endphp
-                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; justify-content:center;">
-                        <div
-                            style="display:flex; align-items:center; gap:6px; background:#ecfdf5; border-radius:8px; padding:6px 10px; flex:1; min-width:100px;">
-                            <span
-                                style="width:10px;height:10px;border-radius:50%;background:#10b981;flex-shrink:0;"></span>
-                            <div>
-                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Permanent</div>
-                                <div style="font-size:14px;font-weight:700;color:#10b981;">{{ $ppPermPct }}%</div>
-                            </div>
-                        </div>
-                        <div
-                            style="display:flex; align-items:center; gap:6px; background:#f5f3ff; border-radius:8px; padding:6px 10px; flex:1; min-width:100px;">
-                            <span
-                                style="width:10px;height:10px;border-radius:50%;background:#7c3aed;flex-shrink:0;"></span>
-                            <div>
-                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Elected</div>
-                                <div style="font-size:14px;font-weight:700;color:#7c3aed;">{{ $ppElectPct }}%</div>
-                            </div>
-                        </div>
-                        <div
-                            style="display:flex; align-items:center; gap:6px; background:#eff6ff; border-radius:8px; padding:6px 10px; flex:1; min-width:100px;">
-                            <span
-                                style="width:10px;height:10px;border-radius:50%;background:#3b82f6;flex-shrink:0;"></span>
-                            <div>
-                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Co-Ter</div>
-                                <div style="font-size:14px;font-weight:700;color:#3b82f6;">{{ $ppCoterPct }}%</div>
-                            </div>
-                        </div>
-                        <div
-                            style="display:flex; align-items:center; gap:6px; background:#fffbeb; border-radius:8px; padding:6px 10px; flex:1; min-width:100px;">
-                            <span
-                                style="width:10px;height:10px;border-radius:50%;background:#f59e0b;flex-shrink:0;"></span>
-                            <div>
-                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Temporary</div>
-                                <div style="font-size:14px;font-weight:700;color:#f59e0b;">{{ $ppTempPct }}%</div>
-                            </div>
-                        </div>
-                        <div
-                            style="display:flex; align-items:center; gap:6px; background:#fff1f2; border-radius:8px; padding:6px 10px; flex:1; min-width:100px;">
-                            <span
-                                style="width:10px;height:10px;border-radius:50%;background:#f43f5e;flex-shrink:0;"></span>
-                            <div>
-                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Part-Time</div>
-                                <div style="font-size:14px;font-weight:700;color:#f43f5e;">{{ $ppPartPct }}%</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pie Chart: Casual Employees — Filled vs Unfilled -->
-                <div
-                    style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                        <h3 style="margin:0; color: #111827; font-size: 18px; font-weight: 600;">Casual
-                            <span style="font-size:13px; font-weight:500; color:#6b7280;">Filled vs Unfilled</span>
-                        </h3>
-                        <span
-                            style="font-size:12px; color:#6b7280; background:#f3f4f6; padding:4px 10px; border-radius:99px;">Total:
-                            {{ $casualTotal ?? 0 }}</span>
-                    </div>
-                    <div style="position: relative; height: 260px;">
-                        <canvas id="casualPieChart"></canvas>
-                    </div>
-                    @php
-                        $casTotal = $casualTotal ?? 0;
-                        $casFilled = $casualFilled ?? 0;
-                        $casVacant = $casualVacant ?? 0;
-                        $casFilledPct = $casTotal > 0 ? round($casFilled / $casTotal * 100, 1) : 0;
-                        $casVacantPct = $casTotal > 0 ? round($casVacant / $casTotal * 100, 1) : 0;
-                    @endphp
-                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; justify-content:center;">
-                        <div
-                            style="display:flex; align-items:center; gap:6px; background:#ecfdf5; border-radius:8px; padding:7px 12px; flex:1; min-width:120px;">
-                            <span
-                                style="width:10px;height:10px;border-radius:50%;background:#10b981;flex-shrink:0;"></span>
-                            <div>
-                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Filled</div>
-                                <div style="font-size:15px;font-weight:700;color:#10b981;">{{ $casFilledPct }}%
-                                    <span
-                                        style="font-size:11px;font-weight:500;color:#6b7280;">({{ $casFilled }})</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div
-                            style="display:flex; align-items:center; gap:6px; background:#fff1f2; border-radius:8px; padding:7px 12px; flex:1; min-width:120px;">
-                            <span
-                                style="width:10px;height:10px;border-radius:50%;background:#f43f5e;flex-shrink:0;"></span>
-                            <div>
-                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Unfilled</div>
-                                <div style="font-size:15px;font-weight:700;color:#f43f5e;">{{ $casVacantPct }}%
-                                    <span
-                                        style="font-size:11px;font-weight:500;color:#6b7280;">({{ $casVacant }})</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px;">
-                <!-- Pie Chart: Workforce Distribution -->
-                <div
-                    style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                        <h3 style="margin:0; color: #111827; font-size: 18px; font-weight: 600;">Employee Classification
-                        </h3>
-                        @php
-                            $ecTotal = ($permanentEmployeesCount ?? 0) + ($casualFilled ?? 0) + ($jobOrderTotal ?? 0);
-                        @endphp
-                        <span
-                            style="font-size:12px; color:#6b7280; background:#f3f4f6; padding:4px 10px; border-radius:99px;">Total:
-                            {{ $ecTotal }}</span>
-                    </div>
-                    <div style="position: relative; height: 260px;">
-                        <canvas id="distChart"></canvas>
-                    </div>
-                    @php
-                        $ecPermPct = $ecTotal > 0 ? round(($permanentEmployeesCount ?? 0) / $ecTotal * 100, 1) : 0;
-                        $ecCasPct = $ecTotal > 0 ? round(($casualFilled ?? 0) / $ecTotal * 100, 1) : 0;
-                        $ecJoPct = $ecTotal > 0 ? round(($jobOrderTotal ?? 0) / $ecTotal * 100, 1) : 0;
-                    @endphp
-                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; justify-content:center;">
-                        <div
-                            style="display:flex; align-items:center; gap:6px; background:#ecfdf5; border-radius:8px; padding:7px 12px; flex:1; min-width:110px;">
-                            <span
-                                style="width:10px;height:10px;border-radius:50%;background:#10b981;flex-shrink:0;"></span>
-                            <div>
-                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Plantilla</div>
-                                <div style="font-size:15px;font-weight:700;color:#10b981;">{{ $ecPermPct }}%</div>
-                            </div>
-                        </div>
-                        <div
-                            style="display:flex; align-items:center; gap:6px; background:#eff6ff; border-radius:8px; padding:7px 12px; flex:1; min-width:110px;">
-                            <span
-                                style="width:10px;height:10px;border-radius:50%;background:#3b82f6;flex-shrink:0;"></span>
-                            <div>
-                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Casual</div>
-                                <div style="font-size:15px;font-weight:700;color:#3b82f6;">{{ $ecCasPct }}%</div>
-                            </div>
-                        </div>
-                        <div
-                            style="display:flex; align-items:center; gap:6px; background:#fffbeb; border-radius:8px; padding:7px 12px; flex:1; min-width:110px;">
-                            <span
-                                style="width:10px;height:10px;border-radius:50%;background:#f59e0b;flex-shrink:0;"></span>
-                            <div>
-                                <div style="font-size:11px;color:#6b7280;font-weight:500;">Job Order</div>
-                                <div style="font-size:15px;font-weight:700;color:#f59e0b;">{{ $ecJoPct }}%</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Bar Chart: Age Demographics -->
-                <div
-                    style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <h3 style="margin: 0 0 20px 0; color: #111827; font-size: 18px; font-weight: 600;">Age Demographics
-                    </h3>
-                    <div style="position: relative; height: 300px;">
-                        <canvas id="ageChart"></canvas>
-                    </div>
-                </div>
-            </div>
+            <!-- Extra charts removed as per arrangement -->
 
             <!-- BOTTOM ROW: 3 Special Counts -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
@@ -2146,9 +1884,8 @@
         const pieCtx = document.getElementById('pieChart')?.getContext('2d');
         if (pieCtx) {
             const chartData = {
-                filled: {{ $filledPositions ?? 0 }},
-                vacantFunded: {{ $vacantFundedPositions ?? 0 }},
-                vacantUnfunded: {{ $vacantUnfundedPositions ?? 0 }}
+                regularFilled: {{ $regularTotalCount ?? 0 }},
+                vacantTotal: {{ $vacantPositionsTotal ?? 0 }}
             };
 
             // Register center-text plugin for doughnut charts
@@ -2178,11 +1915,11 @@
             myPieChart = new Chart(pieCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Filled', 'Vacant Funded', 'Vacant Unfunded'],
+                    labels: ['Filled (Regular)', 'Vacant'],
                     datasets: [{
-                        data: [chartData.filled, chartData.vacantFunded, chartData.vacantUnfunded],
-                        backgroundColor: ['#3b82f6', '#1e293b', '#f43f5e'],
-                        borderColor: ['#fff', '#fff', '#fff'],
+                        data: [chartData.regularFilled, chartData.vacantTotal],
+                        backgroundColor: ['#3b82f6', '#f43f5e'],
+                        borderColor: ['#fff', '#fff'],
                         borderWidth: 3,
                         hoverOffset: 6
                     }]
@@ -2195,12 +1932,10 @@
                         if (elements.length > 0) {
                             const index = elements[0].index;
                             const label = this.data.labels[index];
-                            if (label === 'Filled') {
+                            if (label === 'Filled (Regular)') {
                                 window.location.href = "{{ route('all-data.index', ['vacant' => 'filled']) }}";
-                            } else if (label === 'Vacant Funded') {
-                                window.location.href = "{{ route('all-data.index', ['vacant' => 'vacant_funded']) }}";
-                            } else if (label === 'Vacant Unfunded') {
-                                window.location.href = "{{ route('all-data.index', ['vacant' => 'vacant_unfunded']) }}";
+                            } else if (label === 'Vacant') {
+                                window.location.href = "{{ route('all-data.index', ['vacant' => 'vacant']) }}";
                             }
                         }
                     },
@@ -2211,7 +1946,7 @@
                         legend: { display: false },
                         centerText: {
                             display: true,
-                            text: chartData.filled + chartData.vacantFunded + chartData.vacantUnfunded,
+                            text: chartData.regularFilled + chartData.vacantTotal,
                             subText: 'Total Positions',
                             fontSize: 26,
                             color: '#111827'

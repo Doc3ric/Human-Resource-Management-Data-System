@@ -86,7 +86,7 @@ class JobOrderImport implements ToCollection, WithStartRow
             $soloParent = $this->bool($row, 20);
 
             try {
-                JobOrder::create([
+                $joData = [
                     'charges'               => $this->str($row, 0),
                     'last_name'             => $lastName,
                     'first_name'            => $firstName,
@@ -107,10 +107,22 @@ class JobOrderImport implements ToCollection, WithStartRow
                     'ip_community_membership' => $this->str($row, 19),
                     'solo_parent'           => $soloParent,
                     'remarks'               => $this->str($row, 21),
-                ]);
+                ];
+
+                $existingJo = JobOrder::withTrashed()
+                    ->where('first_name', $firstName)
+                    ->where('last_name', $lastName)
+                    ->first();
+                    
+                if ($existingJo) {
+                    if ($existingJo->trashed()) $existingJo->restore();
+                    $existingJo->update(array_filter($joData, fn($v) => $v !== null));
+                } else {
+                    JobOrder::create($joData);
+                }
 
                 // Sync data to ALL DATA (PlantillaRecord)
-                \App\Models\PlantillaRecord::create([
+                $prData = [
                     'organizational_unit'       => $this->str($row, 7),
                     'last_name'                 => $lastName,
                     'first_name'                => $firstName,
@@ -122,8 +134,22 @@ class JobOrderImport implements ToCollection, WithStartRow
                     'civil_service_eligibility' => $this->str($row, 15),
                     'employment_status'         => 'JO',
                     'is_vacant'                 => false,
-                    'item'                      => null,
-                ]);
+                    'nature_of_separation'      => null, // Clear separation if any
+                    'date_separated'            => null,
+                ];
+
+                $existingPr = \App\Models\PlantillaRecord::withTrashed()
+                    ->where('first_name', $firstName)
+                    ->where('last_name', $lastName)
+                    ->first();
+
+                if ($existingPr) {
+                    if ($existingPr->trashed()) $existingPr->restore();
+                    $existingPr->update(array_filter($prData, fn($v) => $v !== null));
+                } else {
+                    $prData['item'] = null;
+                    \App\Models\PlantillaRecord::create($prData);
+                }
 
                 $this->imported++;
             } catch (\Throwable $e) {

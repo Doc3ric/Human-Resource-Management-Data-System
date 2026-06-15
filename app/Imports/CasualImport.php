@@ -105,7 +105,7 @@ class CasualImport implements ToCollection, WithStartRow
             $office = $this->str($row, 0);
 
             try {
-                $casual = CasualEmployee::create([
+                $casualData = [
                     'office'               => $office,
                     'item_no_old'          => $this->str($row, 1),
                     'item_no_new'          => $this->str($row, 2),
@@ -128,7 +128,24 @@ class CasualImport implements ToCollection, WithStartRow
                     'birthdate'            => $this->date($row, 19),
                     'first_day_of_service' => $this->date($row, 20),
                     'eligibility'          => $this->str($row, 21),
-                ]);
+                ];
+
+                if ($isVacant || empty($casualData['first_name'])) {
+                    $casual = CasualEmployee::create($casualData);
+                } else {
+                    $existingCasual = CasualEmployee::withTrashed()
+                        ->where('first_name', $casualData['first_name'])
+                        ->where('last_name', $casualData['last_name'])
+                        ->first();
+                        
+                    if ($existingCasual) {
+                        if ($existingCasual->trashed()) $existingCasual->restore();
+                        $existingCasual->update(array_filter($casualData, fn($v) => $v !== null));
+                        $casual = $existingCasual;
+                    } else {
+                        $casual = CasualEmployee::create($casualData);
+                    }
+                }
 
                 $plantillaId = $this->syncToAllData($casual, $office);
 
@@ -226,7 +243,7 @@ class CasualImport implements ToCollection, WithStartRow
             [$lastName, $firstName, $mi, $ext] = $this->parseName($incumbentRaw, $isVacant);
 
             try {
-                $casual = CasualEmployee::create([
+                $casualData = [
                     'office'               => $currentOffice,
                     'item_no_old'          => $itemOld,
                     'item_no_new'          => $itemNew,
@@ -245,7 +262,24 @@ class CasualImport implements ToCollection, WithStartRow
                     'increase_decrease'    => $increaseDec,
                     'previous_rate'        => $prevRate,
                     'current_rate'         => $curRate,
-                ]);
+                ];
+
+                if ($isVacant || empty($firstName) || empty($lastName)) {
+                    $casual = CasualEmployee::create($casualData);
+                } else {
+                    $existingCasual = CasualEmployee::withTrashed()
+                        ->where('first_name', $firstName)
+                        ->where('last_name', $lastName)
+                        ->first();
+                        
+                    if ($existingCasual) {
+                        if ($existingCasual->trashed()) $existingCasual->restore();
+                        $existingCasual->update(array_filter($casualData, fn($v) => $v !== null));
+                        $casual = $existingCasual;
+                    } else {
+                        $casual = CasualEmployee::create($casualData);
+                    }
+                }
 
                 $plantillaId = $this->syncToAllData($casual, $currentOffice);
 
@@ -266,7 +300,7 @@ class CasualImport implements ToCollection, WithStartRow
     private function syncToAllData(CasualEmployee $casual, ?string $office): ?int
     {
         try {
-            $pr = PlantillaRecord::create([
+            $prData = [
                 'organizational_unit'       => $office,
                 'last_name'                 => $casual->last_name,
                 'first_name'                => $casual->first_name,
@@ -283,8 +317,28 @@ class CasualImport implements ToCollection, WithStartRow
                 'employment_status'         => 'Casual',
                 'is_vacant'                 => $casual->is_vacant,
                 'item'                      => $casual->item_no_new ?? $casual->item_no_old,
-            ]);
-            return $pr->id;
+                'nature_of_separation'      => null,
+                'date_separated'            => null,
+            ];
+
+            if ($casual->is_vacant || empty($casual->first_name) || empty($casual->last_name)) {
+                $pr = PlantillaRecord::create($prData);
+                return $pr->id;
+            }
+
+            $existingPr = PlantillaRecord::withTrashed()
+                ->where('first_name', $casual->first_name)
+                ->where('last_name', $casual->last_name)
+                ->first();
+
+            if ($existingPr) {
+                if ($existingPr->trashed()) $existingPr->restore();
+                $existingPr->update(array_filter($prData, fn($v) => $v !== null));
+                return $existingPr->id;
+            } else {
+                $pr = PlantillaRecord::create($prData);
+                return $pr->id;
+            }
         } catch (\Throwable) {
             // Sync failure is non-fatal — the casual record still saves.
             return null;

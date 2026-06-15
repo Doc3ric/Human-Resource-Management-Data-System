@@ -53,17 +53,16 @@
             font-weight: 700;
         }
 
-        /* Stats bar */
         .cas-stats {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 16px;
             margin-bottom: 24px;
         }
 
         @media (max-width: 1024px) {
             .cas-stats {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(3, 1fr);
             }
         }
 
@@ -292,7 +291,7 @@
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            min-width: 1600px;
+            min-width: 900px;
         }
 
         .cas-table thead tr {
@@ -673,16 +672,6 @@
             </div>
             <div class="cas-stat-sub">Female employees</div>
         </div>
-        <div class="cas-stat">
-            <div class="cas-stat-top">
-                <div>
-                    <div class="cas-stat-label">Vacant</div>
-                    <div class="cas-stat-value">{{ number_format($vacantCount) }}</div>
-                </div>
-                <div class="cas-stat-icon red"><i class="bi bi-person-dash-fill"></i></div>
-            </div>
-            <div class="cas-stat-sub">Vacant casual positions</div>
-        </div>
     </div>
 
     {{-- Filter bar --}}
@@ -691,8 +680,9 @@
             <input type="text" name="search" value="{{ request('search') }}" class="cas-input"
                 placeholder="🔍  Search name, position, office…" autocomplete="off">
 
-            <select name="office[]" class="cas-select" id="office-select" multiple="multiple" style="min-width:250px;">
+            <select name="office[]" class="cas-select" id="office-select" multiple="multiple" style="min-width:250px;" title="Charges / Office">
                 @php $selectedOffices = (array) request('office', []); @endphp
+                <option value="" disabled>— Charges / Office —</option>
                 @foreach($offices as $office)
                     <option value="{{ $office }}" {{ in_array($office, $selectedOffices) ? 'selected' : '' }}>
                         {{ Str::limit($office, 45) }}
@@ -700,16 +690,13 @@
                 @endforeach
             </select>
 
-            <select name="gender" class="cas-select" style="min-width:110px;">
-                <option value="">All Genders</option>
-                <option value="M" {{ request('gender') === 'M' ? 'selected' : '' }}>Male</option>
-                <option value="F" {{ request('gender') === 'F' ? 'selected' : '' }}>Female</option>
-            </select>
-
-            <select name="vacant" class="cas-select" style="min-width:140px;">
-                <option value="">Position Status</option>
-                <option value="vacant" {{ request('vacant') === 'vacant' ? 'selected' : '' }}>🔴 Vacant Only</option>
-                <option value="filled" {{ request('vacant') === 'filled' ? 'selected' : '' }}>🟢 Filled Only</option>
+            <select name="detail" class="cas-select" style="min-width:180px;">
+                <option value="">— Detailed / Reassigned —</option>
+                @foreach($detailList as $detail)
+                    <option value="{{ $detail }}" {{ request('detail') === $detail ? 'selected' : '' }}>
+                        {{ Str::limit($detail, 40) }}
+                    </option>
+                @endforeach
             </select>
 
             <button type="submit" class="cas-btn primary"><i class="bi bi-search"></i> Search</button>
@@ -764,6 +751,16 @@
                     <i class="bi bi-archive-fill"></i> Archive Selected
                 </button>
             </form>
+            @if(auth()->user()->isSuperAdmin())
+                <form id="bulk-force-delete-form" method="POST" action="{{ route('casual.bulk-force-delete') }}" style="margin: 0;">
+                    @csrf
+                    <input type="hidden" name="type" value="casual">
+                    <div id="bulk-ids-container-fd"></div>
+                    <button type="button" onclick="confirmBulkForceDelete()" class="cas-btn" style="background: #dc2626; color: #fff;">
+                        <i class="bi bi-trash-fill"></i> Permanently Delete
+                    </button>
+                </form>
+            @endif
         </div>
     </div>
     @endif
@@ -780,23 +777,28 @@
                             </th>
                         @endif
                         <th>#</th>
-                        <th>Office / Department</th>
-                        <th>Item No.</th>
-                        <th>Position Title</th>
-                        <th>Name of Incumbent</th>
-                        <th>Legislative District</th>
+                        <th>Office / Dept</th>
+                        <th colspan="4" style="text-align:center;">NAME</th>
+                        <th>Position</th>
                         <th>Gender</th>
-                        <th>SG / Step (Cur)</th>
-                        <th>Annual Salary (Cur)</th>
-                        <th>SG / Step (Prop)</th>
-                        <th>Annual Salary (Prop)</th>
-                        <th>Increase / Decrease</th>
-                        <th>Monthly Rate</th>
-                        <th>Eligibility</th>
-                        <th>Annotation</th>
-                        <th>Status</th>
                         @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
                             <th style="text-align:center;">Actions</th>
+                        @endif
+                    </tr>
+                    <tr>
+                        @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
+                            <th class="checkbox-col" style="display:none;"></th>
+                        @endif
+                        <th style="background:#1a337a;"></th>
+                        <th style="background:#1a337a;"></th>
+                        <th style="background:#1a337a;font-size:9px;">LASTNAME</th>
+                        <th style="background:#1a337a;font-size:9px;">FIRSTNAME</th>
+                        <th style="background:#1a337a;font-size:9px;">MIDDLE NAME</th>
+                        <th style="background:#1a337a;font-size:9px;">EXT.</th>
+                        <th style="background:#1a337a;"></th>
+                        <th style="background:#1a337a;"></th>
+                        @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
+                            <th style="background:#1a337a;"></th>
                         @endif
                     </tr>
                 </thead>
@@ -812,92 +814,25 @@
 
                             <td title="{{ $r->office }}" style="font-size:11px;color:#64748b;">{{ $r->office }}</td>
 
-                            <td style="font-family:monospace;font-size:11px;color:#9d174d;font-weight:700;">
-                                {{ $r->item_no_new ?? $r->item_no_old ?? '—' }}
+                            <td style="font-weight:700;color:#0f172a;">
+                                @if($r->is_vacant)
+                                    <span style="color:#dc2626;font-style:italic;font-size:10px;">VACANT</span>
+                                @else
+                                    {{ strtoupper($r->last_name) }}
+                                @endif
                             </td>
+
+                            <td style="color:#374151;">{{ $r->first_name }}</td>
+
+                            <td style="font-size:11px;color:#64748b;">{{ $r->middle_initial ?: '—' }}</td>
+
+                            <td style="font-size:11px;color:#64748b;">{{ $r->name_extension ?: '—' }}</td>
 
                             <td title="{{ $r->position_title }}" style="font-weight:600;color:#0f172a;">
                                 {{ $r->position_title }}
                             </td>
 
-                            <td style="font-weight:700;color:#0f172a;">
-                                @if($r->is_vacant)
-                                    <span style="color:#dc2626;font-style:italic;font-size:10px;">VACANT</span>
-                                @else
-                                    {{ $r->full_name }}
-                                @endif
-                            </td>
-
-                            <td style="font-size:11px;color:#64748b;">{{ $r->legislative_district ?: '—' }}</td>
-
                             <td style="text-align:center;font-weight:700;">{{ $r->gender ?: '—' }}</td>
-
-                            <td style="text-align:center;">
-                                @if($r->sg_current)
-                                    <span class="badge-sg">SG-{{ $r->sg_current }}/{{ $r->step_current }}</span>
-                                @else
-                                    <span style="color:#d1d5db;">—</span>
-                                @endif
-                            </td>
-
-                            <td style="text-align:right;font-family:monospace;font-size:11px;">
-                                @if($r->salary_current)
-                                    ₱{{ number_format($r->salary_current, 2) }}
-                                @else
-                                    <span style="color:#d1d5db;">—</span>
-                                @endif
-                            </td>
-
-                            <td style="text-align:center;">
-                                @if($r->sg_proposed)
-                                    <span class="badge-sg"
-                                        style="background:#e0e7ff;color:#3730a3;">SG-{{ $r->sg_proposed }}/{{ $r->step_proposed }}</span>
-                                @else
-                                    <span style="color:#d1d5db;">—</span>
-                                @endif
-                            </td>
-
-                            <td style="text-align:right;font-family:monospace;font-size:11px;">
-                                @if($r->salary_proposed)
-                                    ₱{{ number_format($r->salary_proposed, 2) }}
-                                @else
-                                    <span style="color:#d1d5db;">—</span>
-                                @endif
-                            </td>
-
-                            <td style="text-align:right;font-family:monospace;font-size:11px;">
-                                @if($r->increase_decrease !== null)
-                                    @php $inc = (float) $r->increase_decrease; @endphp
-                                    <span style="color:{{ $inc >= 0 ? '#16a34a' : '#dc2626' }};">
-                                        {{ $inc >= 0 ? '+' : '' }}₱{{ number_format($inc, 2) }}
-                                    </span>
-                                @else
-                                    <span style="color:#d1d5db;">—</span>
-                                @endif
-                            </td>
-
-                            <td style="text-align:right;font-family:monospace;font-size:11px;">
-                                @if($r->current_rate)
-                                    ₱{{ number_format($r->current_rate, 2) }}
-                                @else
-                                    <span style="color:#d1d5db;">—</span>
-                                @endif
-                            </td>
-
-                            <td style="font-size:11px;color:#64748b;">{{ Str::limit($r->eligibility, 28) ?: '—' }}</td>
-
-                            <td style="font-size:11px;color:#64748b;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
-                                title="{{ $r->annotation }}">
-                                {{ $r->annotation ?: '—' }}
-                            </td>
-
-                            <td>
-                                @if($r->is_vacant)
-                                    <span class="badge-vacant">Vacant</span>
-                                @else
-                                    <span class="badge-filled">Filled</span>
-                                @endif
-                            </td>
 
                             @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
                                 <td style="text-align:center;white-space:nowrap;">
@@ -919,7 +854,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="15" style="text-align:center;padding:40px;color:#9ca3af;font-size:14px;">
+                            <td colspan="9" style="text-align:center;padding:40px;color:#9ca3af;font-size:14px;">
                                 <i class="bi bi-inbox" style="font-size:32px;display:block;margin-bottom:10px;"></i>
                                 No casual records found.
                                 @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
@@ -944,8 +879,7 @@
             <span class="cas-count">Showing {{ number_format($records->total()) }} record(s)</span>
             <div style="font-size:11px;color:#94a3b8;">
                 Male: <strong>{{ $maleCount }}</strong> &nbsp;|&nbsp;
-                Female: <strong>{{ $femaleCount }}</strong> &nbsp;|&nbsp;
-                Vacant: <strong>{{ $vacantCount }}</strong>
+                Female: <strong>{{ $femaleCount }}</strong>
             </div>
         </div>
     </div>
@@ -1275,6 +1209,18 @@
                     input.value = cb.value;
                     bulkIdsContainer.appendChild(input);
                 });
+
+                const bulkIdsContainerFd = document.getElementById('bulk-ids-container-fd');
+                if (bulkIdsContainerFd) {
+                    bulkIdsContainerFd.innerHTML = '';
+                    checked.forEach(cb => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'ids[]';
+                        input.value = cb.value;
+                        bulkIdsContainerFd.appendChild(input);
+                    });
+                }
             }
 
             if (selectAll) {
@@ -1329,6 +1275,24 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     document.getElementById('bulk-archive-form').submit();
+                }
+            });
+        }
+
+        function confirmBulkForceDelete() {
+            const count = document.getElementById('bulk-count').textContent;
+            Swal.fire({
+                title: `Permanently delete ${count} records?`,
+                html: '<span style="color:#dc2626;font-weight:bold;">WARNING:</span> This action cannot be undone!<br>The selected records will be permanently removed from the system.',
+                icon: 'warning',
+                iconColor: '#dc2626',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, permanently delete!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('bulk-force-delete-form').submit();
                 }
             });
         }

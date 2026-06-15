@@ -98,9 +98,13 @@ class PlantillaController extends Controller
     {
         // ── 1. STATS: Optimize with DB aggregates & caching ─────────────────────
 
-        // Cache the heavy statistics for 5 minutes since they don't change every second
-        $stats = cache()->remember('plantilla_stats_v2', 300, function () {
-            // Only select necessary columns for stats to save memory
+        // Cache stats for 60 seconds — short enough to reflect archives/deletes quickly.
+        // Casual and Job Order employees are tracked in separate tables (casual_employees,
+        // job_orders). Exclude their employment_status values from plantilla_records to
+        // avoid double-counting in the stats.
+        $stats = cache()->remember('plantilla_stats_v3', 60, function () {
+            $casuals = ['Casual', 'Cas'];
+            $jos     = ['JO', 'Job Order', 'J.O.', 'job-order'];
             $allRecords = PlantillaRecord::select(
                 'is_vacant',
                 'employment_status',
@@ -114,8 +118,14 @@ class PlantillaController extends Controller
                 'organizational_unit',
                 'first_name',
                 'last_name',
-                'middle_name'
-            )->get();
+                'middle_name',
+                'nature_of_separation'
+            )
+            ->whereNotIn('employment_status', array_merge($casuals, $jos))
+            ->where(function($q) {
+                $q->whereNull('nature_of_separation')->orWhere('is_vacant', true);
+            })
+            ->get();
             $filledAll = $allRecords->where('is_vacant', false);
 
             // Status counts
@@ -208,7 +218,14 @@ class PlantillaController extends Controller
         $totalAll = $stats['totalAll'];
 
         // ── 2. FILTERED LIST: per-office accordion ─────────────────────────
+        // Exclude Casual and JO — these are stored in separate tables (casual_employees,
+        // job_orders), so any plantilla_records with those statuses are legacy/erroneous.
+        $excludedStatuses = ['Casual', 'Cas', 'JO', 'Job Order', 'J.O.', 'job-order'];
         $query = PlantillaRecord::query()
+            ->whereNotIn('employment_status', $excludedStatuses)
+            ->where(function($q) {
+                $q->whereNull('nature_of_separation')->orWhere('is_vacant', true);
+            })
             ->orderBy('organizational_unit')
             ->orderBy('item');
 
@@ -277,7 +294,11 @@ class PlantillaController extends Controller
                 ];
                 $query->where('is_vacant', false)->whereIn('employment_status', $statusMap[$cat] ?? [$cat]);
             }
+        } else {
+            // Default: hide vacant records so only regular filled employees are displayed.
+            $query->where('is_vacant', false);
         }
+        
         if ($request->filled('sex')) {
             $isFiltered = true;
             $query->where('sex', strtoupper($request->input('sex')));

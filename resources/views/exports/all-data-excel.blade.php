@@ -35,6 +35,13 @@
                 @if(empty($columns) || in_array('pwd', $columns))<th>PWD</th>@endif
                 @if(empty($columns) || in_array('admin_charges', $columns))<th>COMMENT/ ANNOTATION</th>@endif
                 @if(empty($columns) || in_array('nature_of_separation', $columns))<th>TERMINATION</th>@endif
+                @if(empty($columns) || in_array('indigenous_people', $columns))<th>INDIGENOUS PEOPLE</th>@endif
+                @if(empty($columns) || in_array('solo_parent', $columns))<th>SOLO PARENT</th>@endif
+                @if(empty($columns) || in_array('abolished', $columns))<th>ABOLISHED</th>@endif
+                @if(empty($columns) || in_array('dissolved', $columns))<th>DISSOLVED</th>@endif
+                @if(empty($columns) || in_array('gsis_bp_number', $columns))<th>GSIS BP NUMBER</th>@endif
+                @if(empty($columns) || in_array('position_classification', $columns))<th>POSITION CLASSIFICATION</th>@endif
+                @if(empty($columns) || in_array('employee_code', $columns))<th>EMPLOYEE NO.</th>@endif
             </tr>
         </thead>
         <tbody>
@@ -69,6 +76,13 @@
                     {{-- Map admin_charges column to comment_annotation which the legacy importer knows --}}
                     @if(empty($columns) || in_array('admin_charges', $columns))<td>{{ $r->comment_annotation }}</td>@endif
                     @if(empty($columns) || in_array('nature_of_separation', $columns))<td>{{ $r->nature_of_separation }}</td>@endif
+                    @if(empty($columns) || in_array('indigenous_people', $columns))<td>{{ $r->indigenous_people }}</td>@endif
+                    @if(empty($columns) || in_array('solo_parent', $columns))<td>{{ $r->solo_parent }}</td>@endif
+                    @if(empty($columns) || in_array('abolished', $columns))<td>{{ $r->abolished ? 'Y' : 'N' }}</td>@endif
+                    @if(empty($columns) || in_array('dissolved', $columns))<td>{{ $r->dissolved ? 'Y' : 'N' }}</td>@endif
+                    @if(empty($columns) || in_array('gsis_bp_number', $columns))<td>{{ $r->gsis_bp_number }}</td>@endif
+                    @if(empty($columns) || in_array('position_classification', $columns))<td>{{ $r->position_classification }}</td>@endif
+                    @if(empty($columns) || in_array('employee_code', $columns))<td>{{ $r->employee_code }}</td>@endif
                 </tr>
             @endforeach
         </tbody>

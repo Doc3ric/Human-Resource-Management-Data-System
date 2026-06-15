@@ -22,7 +22,7 @@ class CasualController extends Controller
      */
     public function index(Request $request)
     {
-        $query = CasualEmployee::query()->orderBy('office')->orderBy('last_name');
+        $query = CasualEmployee::query()->where('is_vacant', false)->orderBy('office')->orderBy('last_name');
 
         if ($request->filled('search')) {
             $query->search($request->input('search'));
@@ -33,8 +33,8 @@ class CasualController extends Controller
         if ($request->filled('gender')) {
             $query->byGender($request->input('gender'));
         }
-        if ($request->filled('vacant')) {
-            $query->where('is_vacant', $request->input('vacant') === 'vacant');
+        if ($request->filled('detail')) {
+            $query->where('annotation', 'like', '%' . $request->input('detail') . '%');
         }
 
         $total = (clone $query)->count();
@@ -50,7 +50,8 @@ class CasualController extends Controller
         $records = $query->paginate(50)->withQueryString();
 
         // Filter options
-        $offices = CasualEmployee::distinct()->orderBy('office')->pluck('office')->filter()->values();
+        $offices    = CasualEmployee::distinct()->orderBy('office')->pluck('office')->filter()->values();
+        $detailList = CasualEmployee::where('is_vacant', false)->distinct()->orderBy('annotation')->pluck('annotation')->filter()->values();
 
         return view('casual.index', compact(
             'records',
@@ -59,7 +60,8 @@ class CasualController extends Controller
             'femaleCount',
             'vacantCount',
             'byOffice',
-            'offices'
+            'offices',
+            'detailList'
         ));
     }
 

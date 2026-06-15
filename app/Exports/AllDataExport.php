@@ -115,11 +115,12 @@ class AllDataExport implements FromView, WithTitle, ShouldAutoSize, WithStyles, 
                 $sheet->freezePane('A4');
 
                 // Calculate the last column letter dynamically
-                // 24 = full column set (no row-number # column): ORG UNIT, ITEM, POSITION TITLE, SG,
+                // 31 = full column set: ORG UNIT, ITEM, POSITION TITLE, SG,
                 //   AUTH SAL, ACT SAL, STEP, AREA CODE, AREA TYPE, LEVEL, LAST NAME, FIRST NAME,
                 //   MIDDLE NAME, SEX, RELIGION, DOB, TIN, DATE OA, DATE LP, STATUS, CS ELIGIBILITY,
-                //   PWD, COMMENT/ANNOTATION, TERMINATION
-                $totalCols = empty($this->columns) ? 24 : count($this->columns);
+                //   PWD, COMMENT/ANNOTATION, TERMINATION, INDIGENOUS PEOPLE, SOLO PARENT,
+                //   ABOLISHED, DISSOLVED, GSIS BP NUMBER, POSITION CLASSIFICATION, EMPLOYEE NO.
+                $totalCols = empty($this->columns) ? 31 : count($this->columns);
                 $lastColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($totalCols);
 
                 // Row 1: Report title

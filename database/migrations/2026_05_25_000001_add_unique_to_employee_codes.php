@@ -49,8 +49,9 @@ return new class extends Migration
     /** Check whether a named index already exists on a table. */
     private function indexExists(string $table, string $indexName): bool
     {
-        $indexes = DB::select("SHOW INDEX FROM `{$table}` WHERE Key_name = ?", [$indexName]);
-        return !empty($indexes);
+        $sm = Schema::getConnection()->getDoctrineSchemaManager();
+        $indexesFound = $sm->listTableIndexes($table);
+        return array_key_exists($indexName, $indexesFound);
     }
 
     /**

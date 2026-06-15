@@ -106,6 +106,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/import-history', [JobOrderController::class, 'importHistory'])->name('import.history');
             Route::delete('/import-history/{id}/undo', [JobOrderController::class, 'undoImport'])->name('import.undo');
             Route::post('/import', [JobOrderController::class, 'importExcel'])->name('import');
+            Route::delete('/delete-all', [JobOrderController::class, 'deleteAll'])->middleware('role:super_admin')->name('delete-all');
             // JO document attachments
             Route::post('/{jobOrder}/attachments', [EmployeeAttachmentController::class, 'storeForJobOrder'])->name('attachments.store');
             Route::get('/attachments/{attachment}/download', [EmployeeAttachmentController::class, 'download'])->name('attachments.download');
@@ -151,6 +152,7 @@ Route::middleware('auth')->group(function () {
         ->group(function () {
             Route::get('/export/excel', [PermanentController::class, 'exportExcel'])->name('export.excel');
             Route::get('/export/pdf',   [PermanentController::class, 'exportPdf'])->name('export.pdf');
+            Route::delete('/delete-all', [PermanentController::class, 'deleteAll'])->middleware('role:super_admin')->name('delete-all');
             Route::get('/', [PermanentController::class, 'index'])->name('index');
         });
 
@@ -332,20 +334,31 @@ Route::middleware('auth')->group(function () {
     // ── Bulk Archive routes ────────────────────────────────────────────────
     Route::middleware('role:super_admin,inventory_admin')
         ->post('all-data/bulk-archive', [ArchiveController::class, 'bulkArchive'])
-        ->middleware('throttle:30,1')
         ->name('all-data.bulk-archive');
+    Route::middleware('role:super_admin')
+        ->post('all-data/bulk-force-delete', [ArchiveController::class, 'bulkForceDelete'])
+        ->name('all-data.bulk-force-delete');
+
     Route::middleware('role:super_admin,inventory_admin')
         ->post('casual/bulk-archive', [ArchiveController::class, 'bulkArchive'])
-        ->middleware('throttle:30,1')
         ->name('casual.bulk-archive');
+    Route::middleware('role:super_admin')
+        ->post('casual/bulk-force-delete', [ArchiveController::class, 'bulkForceDelete'])
+        ->name('casual.bulk-force-delete');
+
     Route::middleware('role:super_admin,inventory_admin')
         ->post('job-orders/bulk-archive', [ArchiveController::class, 'bulkArchive'])
-        ->middleware('throttle:30,1')
         ->name('job-orders.bulk-archive');
+    Route::middleware('role:super_admin')
+        ->post('job-orders/bulk-force-delete', [ArchiveController::class, 'bulkForceDelete'])
+        ->name('job-orders.bulk-force-delete');
+
     Route::middleware('role:super_admin,inventory_admin')
         ->post('permanent/bulk-archive', [ArchiveController::class, 'bulkArchive'])
-        ->middleware('throttle:30,1')
         ->name('permanent.bulk-archive');
+    Route::middleware('role:super_admin')
+        ->post('permanent/bulk-force-delete', [ArchiveController::class, 'bulkForceDelete'])
+        ->name('permanent.bulk-force-delete');
 
     // ── Global Search ──────────────────────────────────────────────────────
     Route::get('/search', [\App\Http\Controllers\GlobalSearchController::class, 'search'])

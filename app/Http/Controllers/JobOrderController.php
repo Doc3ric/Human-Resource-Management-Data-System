@@ -40,6 +40,9 @@ class JobOrderController extends Controller
         if ($request->filled('gender')) {
             $query->where('gender', strtoupper($request->input('gender')));
         }
+        if ($request->filled('detail')) {
+            $query->where('nature_of_work_detail', 'like', '%' . $request->input('detail') . '%');
+        }
 
         // Stats
         $total       = (clone $query)->count();
@@ -59,13 +62,14 @@ class JobOrderController extends Controller
         $records = $query->paginate(50)->withQueryString();
 
         // Filter options
-        $offices    = JobOrder::distinct()->orderBy('office')->pluck('office')->filter()->values();
+        $offices     = JobOrder::distinct()->orderBy('office')->pluck('office')->filter()->values();
         $chargesList = JobOrder::distinct()->orderBy('charges')->pluck('charges')->filter()->values();
-        $natures    = JobOrder::distinct()->orderBy('nature_of_work')->pluck('nature_of_work')->filter()->values();
+        $natures     = JobOrder::distinct()->orderBy('nature_of_work')->pluck('nature_of_work')->filter()->values();
+        $detailList  = JobOrder::distinct()->orderBy('nature_of_work_detail')->pluck('nature_of_work_detail')->filter()->values();
 
         return view('job-orders.index', compact(
             'records', 'total', 'maleCount', 'femaleCount',
-            'byOffice', 'byNature', 'offices', 'chargesList', 'natures'
+            'byOffice', 'byNature', 'offices', 'chargesList', 'natures', 'detailList'
         ));
     }
 
@@ -618,5 +622,31 @@ class JobOrderController extends Controller
         }
 
         return back()->with('error', 'Could not find any records created by this import (they may have already been deleted).');
+    }
+
+    // ── Delete All (Super Admin Only) ─────────────────────────────────────────
+
+    /**
+     * Permanently delete ALL Job Order records.
+     * Restricted to Super Admin only. For data-reset purposes.
+     */
+    public function deleteAll(Request $request)
+    {
+        if (!Auth::check() || !Auth::user()->isSuperAdmin()) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $joCount = JobOrder::count();
+
+        JobOrder::query()->forceDelete();
+
+        ActivityLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'Deleted All JO Data',
+            'description' => "Permanently wiped {$joCount} Job Order record(s).",
+        ]);
+
+        return redirect()->route('job-orders.index')
+            ->with('success', "All {$joCount} Job Order record(s) have been permanently deleted.");
     }
 }

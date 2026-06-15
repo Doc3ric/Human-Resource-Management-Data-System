@@ -33,7 +33,7 @@
         /* ── Stats ─────────────────────────────────────────────────────── */
         .perm-stats {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 14px;
             margin-bottom: 18px;
         }
@@ -125,7 +125,7 @@
 
         .perm-table {
             width: 100%; border-collapse: separate; border-spacing: 0;
-            min-width: 1600px;
+            min-width: 900px;
         }
         .perm-table thead tr {
             background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
@@ -273,16 +273,7 @@
             </div>
             <div class="perm-stat-sub">Female employees</div>
         </div>
-        <div class="perm-stat">
-            <div class="perm-stat-top">
-                <div>
-                    <div class="perm-stat-label">Vacant</div>
-                    <div class="perm-stat-value">{{ number_format($vacantCount) }}</div>
-                </div>
-                <div class="perm-stat-icon red"><i class="bi bi-person-dash-fill"></i></div>
-            </div>
-            <div class="perm-stat-sub">Vacant positions</div>
-        </div>
+
     </div>
 
     {{-- Filter bar --}}
@@ -313,11 +304,7 @@
                 <option value="F" {{ request('sex') === 'F' ? 'selected' : '' }}>Female</option>
             </select>
 
-            <select name="vacant" class="perm-select" style="min-width:140px;">
-                <option value="">Position Status</option>
-                <option value="vacant" {{ request('vacant') === 'vacant' ? 'selected' : '' }}>🔴 Vacant Only</option>
-                <option value="filled" {{ request('vacant') === 'filled' ? 'selected' : '' }}>🟢 Filled Only</option>
-            </select>
+
 
             <button type="submit" class="perm-btn primary"><i class="bi bi-search"></i> Search</button>
             <a href="{{ route('permanent.index') }}" class="perm-btn reset"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
@@ -326,6 +313,14 @@
                 @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
                     <button type="button" class="perm-btn" id="toggle-select-multiple" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;">
                         <i class="bi bi-ui-checks-grid"></i> Select Multiple
+                    </button>
+                @endif
+                @if(auth()->user()->isSuperAdmin())
+                    <button type="button" id="perm-delete-all-btn"
+                        class="perm-btn"
+                        style="background:#ffffff;color:#dc2626;border:1px solid #fecaca;"
+                        onclick="document.getElementById('perm-delete-all-overlay').classList.add('active')">
+                        <i class="bi bi-trash3-fill"></i> Delete All Data
                     </button>
                 @endif
                 <a href="{{ route('archives.index') }}" class="perm-btn"
@@ -357,6 +352,16 @@
                     <i class="bi bi-archive-fill"></i> Archive Selected
                 </button>
             </form>
+            @if(auth()->user()->isSuperAdmin())
+                <form id="bulk-force-delete-form" method="POST" action="{{ route('permanent.bulk-force-delete') }}" style="margin: 0;">
+                    @csrf
+                    <input type="hidden" name="type" value="permanent">
+                    <div id="bulk-ids-container-fd"></div>
+                    <button type="button" onclick="confirmBulkForceDelete()" class="perm-btn" style="background: #dc2626; color: #fff;">
+                        <i class="bi bi-trash-fill"></i> Permanently Delete
+                    </button>
+                </form>
+            @endif
         </div>
     </div>
     @endif
@@ -373,24 +378,28 @@
                             </th>
                         @endif
                         <th>#</th>
-                        <th>Org. Unit / Office</th>
-                        <th>Item No.</th>
+                        <th>Office</th>
+                        <th colspan="4" style="text-align:center;">NAME</th>
                         <th>Position Title</th>
-                        <th>SG</th>
-                        <th>Step</th>
-                        <th>Annual Salary</th>
+                        <th>Gender</th>
+                        @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
+                            <th style="text-align:center;">Actions</th>
+                        @endif
+                    </tr>
+                    <tr>
+                        @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
+                            <th class="checkbox-col" style="display:none;"></th>
+                        @endif
+                        <th></th>
+                        <th></th>
                         <th>Last Name</th>
                         <th>First Name</th>
                         <th>Middle Name</th>
-                        <th>Gender</th>
-                        <th>Date of Birth</th>
-                        <th>TIN</th>
-                        <th>Date Orig. Appointment</th>
-                        <th>Date Last Promotion</th>
-                        <th>Civil Service Eligibility</th>
-                        <th>Status</th>
+                        <th>Ext.</th>
+                        <th></th>
+                        <th></th>
                         @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                            <th style="text-align:center;">Actions</th>
+                            <th></th>
                         @endif
                     </tr>
                 </thead>
@@ -402,87 +411,35 @@
                                     <input type="checkbox" class="record-checkbox" value="{{ $r->id }}" style="cursor:pointer; width: 14px; height: 14px;">
                                 </td>
                             @endif
+
                             <td style="color:#9ca3af;font-size:10px;font-weight:600;">{{ $i + 1 }}</td>
 
                             <td title="{{ $r->organizational_unit }}" style="font-size:11px;color:#64748b;">
                                 {{ $r->organizational_unit }}
                             </td>
 
-                            <td style="font-family:monospace;font-size:11px;color:#4338ca;font-weight:700;">
-                                {{ $r->item ?: '—' }}
+                            <td style="font-weight:700;text-transform:uppercase;color:#0f172a;">
+                                {{ strtoupper($r->last_name ?: '—') }}
                             </td>
+
+                            <td>{{ $r->first_name ?: '—' }}</td>
+
+                            <td style="color:#6b7280;">{{ $r->middle_name ?: '—' }}</td>
+
+                            <td style="color:#9ca3af;font-size:11px;">—</td>
 
                             <td title="{{ $r->position_title }}" style="font-weight:600;color:#0f172a;">
                                 {{ $r->position_title }}
                             </td>
 
-                            <td style="text-align:center;font-weight:700;color:#0369a1;">
-                                {{ $r->salary_grade ? 'SG-' . $r->salary_grade : '—' }}
-                            </td>
-
-                            <td style="text-align:center;font-weight:700;">{{ $r->step ?: '—' }}</td>
-
-                            <td style="text-align:right;font-family:monospace;font-size:11px;">
-                                @if($r->actual_annual_salary)
-                                    ₱{{ number_format($r->actual_annual_salary, 2) }}
+                            <td style="text-align:center;font-weight:700;">
+                                @if($r->sex === 'M')
+                                    <span style="color:#2563eb;">M</span>
+                                @elseif($r->sex === 'F')
+                                    <span style="color:#be185d;">F</span>
                                 @else
-                                    <span style="color:#d1d5db;">—</span>
+                                    —
                                 @endif
-                            </td>
-
-                            <td style="font-weight:700;text-transform:uppercase;color:#0f172a;">
-                                @if($r->is_vacant)
-                                    <span style="color:#dc2626;font-style:italic;font-size:10px;">VACANT</span>
-                                @else
-                                    {{ $r->last_name ?: '—' }}
-                                @endif
-                            </td>
-
-                            <td>{{ $r->first_name ?: '—' }}</td>
-                            <td style="color:#6b7280;">{{ $r->middle_name ?: '—' }}</td>
-
-                            <td style="text-align:center;font-weight:700;">{{ $r->sex ?: '—' }}</td>
-
-                            <td style="color:#6b7280;font-size:11px;">
-                                {{ $r->date_of_birth?->format('m/d/Y') ?: '—' }}
-                            </td>
-
-                            <td style="font-family:monospace;font-size:11px;color:#6b7280;">
-                                {{ $r->tin ?: '—' }}
-                            </td>
-
-                            <td style="font-size:11px;color:#6b7280;">
-                                {{ $r->date_original_appointment?->format('m/d/Y') ?: '—' }}
-                            </td>
-
-                            <td style="font-size:11px;color:#6b7280;">
-                                {{ $r->date_last_promotion?->format('m/d/Y') ?: '—' }}
-                            </td>
-
-                            <td title="{{ $r->civil_service_eligibility }}" style="color:#374151;">
-                                {{ Str::limit($r->civil_service_eligibility, 30) ?: '—' }}
-                            </td>
-
-                            {{-- Employment Status badge --}}
-                            <td>
-                                @php
-                                    $s = $r->employment_status;
-                                    $badgeClass = match(true) {
-                                        in_array($s, ['P','Permanent'])               => 'badge-perm',
-                                        in_array($s, ['CT','Co-Terminous','Coterminous']) => 'badge-ct',
-                                        in_array($s, ['E','Elected'])                 => 'badge-elected',
-                                        $r->is_vacant                                 => 'badge-vacant',
-                                        default                                       => 'badge-perm',
-                                    };
-                                    $badgeLabel = match(true) {
-                                        in_array($s, ['P','Permanent'])               => 'Permanent',
-                                        in_array($s, ['CT','Co-Terminous','Coterminous']) => 'Co-Term.',
-                                        in_array($s, ['E','Elected'])                 => 'Elected',
-                                        $r->is_vacant                                 => 'Vacant',
-                                        default                                       => $s ?: '—',
-                                    };
-                                @endphp
-                                <span class="{{ $badgeClass }}">{{ $badgeLabel }}</span>
                             </td>
 
                             @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
@@ -509,7 +466,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="18" style="text-align:center;padding:48px;color:#9ca3af;font-style:italic;">
+                            <td colspan="9" style="text-align:center;padding:48px;color:#9ca3af;font-style:italic;">
                                 <i class="bi bi-inbox" style="font-size:32px;display:block;margin-bottom:10px;"></i>
                                 No permanent employee records found.
                             </td>
@@ -530,8 +487,7 @@
             <span class="perm-count">Showing {{ number_format($records->total()) }} record(s)</span>
             <div style="font-size:11px;color:#94a3b8;">
                 Male: <strong>{{ $maleCount }}</strong> &nbsp;|&nbsp;
-                Female: <strong>{{ $femaleCount }}</strong> &nbsp;|&nbsp;
-                Vacant: <strong>{{ $vacantCount }}</strong>
+                Female: <strong>{{ $femaleCount }}</strong>
             </div>
         </div>
     </div>
@@ -620,6 +576,18 @@
                     input.value = cb.value;
                     bulkIdsContainer.appendChild(input);
                 });
+
+                const bulkIdsContainerFd = document.getElementById('bulk-ids-container-fd');
+                if (bulkIdsContainerFd) {
+                    bulkIdsContainerFd.innerHTML = '';
+                    checked.forEach(cb => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'ids[]';
+                        input.value = cb.value;
+                        bulkIdsContainerFd.appendChild(input);
+                    });
+                }
             }
 
             if (selectAll) {
@@ -674,6 +642,24 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     document.getElementById('bulk-archive-form').submit();
+                }
+            });
+        }
+
+        function confirmBulkForceDelete() {
+            const count = document.getElementById('bulk-count').textContent;
+            Swal.fire({
+                title: `Permanently delete ${count} records?`,
+                html: '<span style="color:#dc2626;font-weight:bold;">WARNING:</span> This action cannot be undone!<br>The selected records will be permanently removed from the system.',
+                icon: 'warning',
+                iconColor: '#dc2626',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, permanently delete!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('bulk-force-delete-form').submit();
                 }
             });
         }
@@ -822,4 +808,64 @@
             }
         }
     </script>
+
+    {{-- Delete All Modal (Super Admin Only) --}}
+    @if(auth()->user()->isSuperAdmin())
+        <style>
+            .perm-delete-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(15, 23, 42, .55);
+                z-index: 9999;
+                align-items: center;
+                justify-content: center;
+                backdrop-filter: blur(3px);
+            }
+            .perm-delete-overlay.active { display: flex; }
+            .perm-delete-card {
+                background: #fff;
+                border-radius: 16px;
+                width: 100%;
+                max-width: 480px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, .18);
+                padding: 32px;
+                border-top: 5px solid #dc2626;
+                animation: slideUpModal .22s ease;
+            }
+            @keyframes slideUpModal {
+                from { opacity: 0; transform: translateY(20px); }
+                to   { opacity: 1; transform: translateY(0); }
+            }
+        </style>
+        <div id="perm-delete-all-overlay" class="perm-delete-overlay"
+            onclick="if(event.target===this) this.classList.remove('active')">
+            <div class="perm-delete-card">
+                <div style="font-size:17px;font-weight:800;color:#dc2626;display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Delete ALL Permanent Data
+                </div>
+                <p style="font-size:14px;color:#4b5563;margin:12px 0 24px;line-height:1.65;">
+                    <strong style="color:#dc2626;">WARNING:</strong> This action will
+                    <strong>permanently delete EVERY</strong> Permanent, Co-Terminous and Elected employee record.
+                    <br><br>
+                    This action <strong>cannot be undone</strong> automatically.
+                </p>
+                <form method="POST" action="{{ route('permanent.delete-all') }}">
+                    @csrf
+                    @method('DELETE')
+                    <div style="display:flex;gap:10px;justify-content:flex-end;">
+                        <button type="button"
+                            style="padding:10px 20px;background:#f1f5f9;color:#475569;border:1.5px solid #e2e8f0;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;"
+                            onclick="document.getElementById('perm-delete-all-overlay').classList.remove('active')">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            style="padding:10px 22px;background:#dc2626;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                            <i class="bi bi-trash3-fill"></i> Yes, Delete All
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 </x-dashboard-app>

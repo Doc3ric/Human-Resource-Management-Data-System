@@ -41,6 +41,20 @@ class DashboardController extends Controller
         $plantillaTempCount   = 0;
         $plantillaPartCount   = 0;
         $casualInPlantilla    = 0;
+        
+        // New metrics for arrangement
+        $totalEmployeesUnique = 0;
+        $regularTotalCount = 0;
+        $regularMale = 0;
+        $regularFemale = 0;
+        $casualOnlyTotal = 0;
+        $casualMale = 0;
+        $casualFemale = 0;
+        $joTotalActive = 0;
+        $joMale = 0;
+        $joFemale = 0;
+        $vacantPositionsTotal = 0;
+        
         $ageBrackets = [
             '20-29' => 0,
             '30-39' => 0,
@@ -138,6 +152,53 @@ class DashboardController extends Controller
             // Job Orders
             $jobOrderTotal = JobOrder::count();
 
+            // --- New specific arrangement calculations ---
+            // 1. TOTAL EMPLOYEES: Active Only, No Duplication
+            $plantillaEmployees = DB::table('plantilla_records')
+                ->where('is_vacant', false)->where('abolished', false)->whereNull('deleted_at')
+                ->selectRaw("CONCAT(UPPER(TRIM(last_name)), ',', UPPER(TRIM(first_name))) as name_key")
+                ->pluck('name_key');
+            $casualEmployeesList = DB::table('casual_employees')
+                ->where('is_vacant', false)->whereNull('deleted_at')
+                ->selectRaw("CONCAT(UPPER(TRIM(last_name)), ',', UPPER(TRIM(first_name))) as name_key")
+                ->pluck('name_key');
+            $joEmployeesList = DB::table('job_orders')
+                ->whereNull('deleted_at')
+                ->selectRaw("CONCAT(UPPER(TRIM(last_name)), ',', UPPER(TRIM(first_name))) as name_key")
+                ->pluck('name_key');
+            $totalEmployeesUnique = $plantillaEmployees->concat($casualEmployeesList)->concat($joEmployeesList)->filter()->unique()->count();
+
+            // 2. REGULAR (Elected, Coterminus, Permanent, Part-Time, Temp)
+            $regularTotalCount = PlantillaRecord::filled()->whereNotIn('employment_status', ['Casual', 'Cas', 'C'])->count();
+
+            // 3. MALE vs FEMALE (REGULAR)
+            $regularMale = PlantillaRecord::filled()
+                ->whereNotIn('employment_status', ['Casual', 'Cas', 'C'])
+                ->where(function($q) { $q->where('sex', 'like', 'M%'); })->count();
+            $regularFemale = PlantillaRecord::filled()
+                ->whereNotIn('employment_status', ['Casual', 'Cas', 'C'])
+                ->where(function($q) { $q->where('sex', 'like', 'F%'); })->count();
+
+            // 4. CASUAL : Total
+            $casualOnlyTotal = CasualEmployee::where('is_vacant', false)->count() + PlantillaRecord::filled()->whereIn('employment_status', ['Casual', 'Cas', 'C'])->count();
+
+            // 5. MALE vs FEMALE (CASUAL)
+            $casualMale = CasualEmployee::where('is_vacant', false)->where(function($q) { $q->where('gender', 'like', 'M%'); })->count()
+                        + PlantillaRecord::filled()->whereIn('employment_status', ['Casual', 'Cas', 'C'])->where(function($q) { $q->where('sex', 'like', 'M%'); })->count();
+            $casualFemale = CasualEmployee::where('is_vacant', false)->where(function($q) { $q->where('gender', 'like', 'F%'); })->count()
+                        + PlantillaRecord::filled()->whereIn('employment_status', ['Casual', 'Cas', 'C'])->where(function($q) { $q->where('sex', 'like', 'F%'); })->count();
+
+            // 6. JOB ORDER
+            $joTotalActive = JobOrder::count();
+
+            // 7. VACANT POSITIONS (Using only plantilla vacants since they hold the actual items usually)
+            $vacantPositionsTotal = PlantillaRecord::vacant()->count();
+
+            // 8. MALE vs. FEMALE (JO)
+            $joMale = JobOrder::where(function($q) { $q->where('gender', 'like', 'M%'); })->count();
+            $joFemale = JobOrder::where(function($q) { $q->where('gender', 'like', 'F%'); })->count();
+            // ---------------------------------------------
+
             // Monthly Birthdays
             $monthlyBirthdays = PlantillaRecord::filled()
                 ->whereNotNull('date_of_birth')
@@ -213,6 +274,18 @@ class DashboardController extends Controller
             'plantillaTempCount'       => $plantillaTempCount,
             'plantillaPartCount'       => $plantillaPartCount,
             'casualInPlantilla'        => $casualInPlantilla,
+            // New Dashboard Data
+            'totalEmployeesUnique'     => $totalEmployeesUnique,
+            'regularTotalCount'        => $regularTotalCount,
+            'regularMale'              => $regularMale,
+            'regularFemale'            => $regularFemale,
+            'casualOnlyTotal'          => $casualOnlyTotal,
+            'casualMale'               => $casualMale,
+            'casualFemale'             => $casualFemale,
+            'joTotalActive'            => $joTotalActive,
+            'joMale'                   => $joMale,
+            'joFemale'                 => $joFemale,
+            'vacantPositionsTotal'     => $vacantPositionsTotal,
         ]);
     }
 }

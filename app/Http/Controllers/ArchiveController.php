@@ -57,6 +57,50 @@ class ArchiveController extends Controller
     }
 
     /**
+     * Bulk permanently delete multiple records by IDs.
+     * Restricted to Super Admin.
+     */
+    public function bulkForceDelete(Request $request)
+    {
+        if (!Auth::check() || !Auth::user()->isSuperAdmin()) {
+            abort(403, 'Unauthorized. Only Super Admins can permanently delete records.');
+        }
+
+        $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'required|integer',
+            'type'  => 'required|string|in:plantilla,casual,job_orders,permanent',
+        ]);
+
+        $ids  = $request->input('ids');
+        $type = $request->input('type');
+
+        $model = match ($type) {
+            'plantilla'   => PlantillaRecord::class,
+            'casual'      => CasualEmployee::class,
+            'job_orders'  => JobOrder::class,
+            'permanent'   => PlantillaRecord::class,
+            default       => null,
+        };
+
+        if (!$model) {
+            return back()->with('error', 'Invalid record type for bulk deletion.');
+        }
+
+        $deleted = $model::withTrashed()->whereIn('id', $ids)->forceDelete();
+
+        if (Auth::check()) {
+            ActivityLog::create([
+                'user_id'     => Auth::id(),
+                'action'      => 'Bulk Force Deleted',
+                'description' => "Bulk permanently deleted {$deleted} {$type} record(s) — IDs: " . implode(', ', $ids),
+            ]);
+        }
+
+        return back()->with('success', "{$deleted} record(s) have been permanently deleted.");
+    }
+
+    /**
      * Centralized Archives / Recycle Bin page.
      */
     public function index(Request $request)

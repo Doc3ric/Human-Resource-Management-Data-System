@@ -819,17 +819,29 @@ class ImportController extends Controller
                         $itemCode = $mappedRow['item'] ?? null;
 
                         if ($itemCode) {
-                            $existing = PlantillaRecord::where('item', $itemCode)->first();
+                            $existing = PlantillaRecord::withTrashed()->where('item', $itemCode)->first();
                         }
 
                         if (!$existing && !empty($mappedRow['first_name']) && !empty($mappedRow['last_name'])) {
-                            $existing = PlantillaRecord::where('first_name', $mappedRow['first_name'])
+                            $existing = PlantillaRecord::withTrashed()
+                                ->where('first_name', $mappedRow['first_name'])
                                 ->where('last_name', $mappedRow['last_name'])
                                 ->first();
                         }
                     }
 
                     if ($existing) {
+                        // Restore if it was soft-deleted
+                        if ($existing->trashed()) {
+                            $existing->restore();
+                        }
+                        
+                        // Clear separation if we are importing them again as active
+                        if (!empty($mappedRow['first_name'])) {
+                            $mappedRow['nature_of_separation'] = null;
+                            $mappedRow['date_separated'] = null;
+                        }
+
                         // Only update with fields that are not null, protecting existing data from being wiped by partial imports
                         $updateData = array_filter($mappedRow, fn($value) => $value !== null);
                         $existing->update($updateData);
