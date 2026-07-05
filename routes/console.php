@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 Schedule::command('retirement:process')->daily();
 Schedule::command('step-increments:process')->daily();
 Schedule::command('backup:database --keep=14')->cron('0 */6 * * *')->withoutOverlapping();
+Schedule::command('recruitment:advance-lifecycle')->daily();

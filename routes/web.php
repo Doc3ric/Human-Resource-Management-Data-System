@@ -610,6 +610,18 @@ Route::middleware('auth')->group(function () {
         });
 
 
+    // ── Recruitment View & NAP Retention (Module 2, Track A) — read-side only ─
+    // Reuses the existing "view Recruitment"/"delete Recruitment" permission
+    // bits already granted via the Appointment module rather than
+    // registering a new RBAC matrix row, since this is a read/disposal-
+    // authorization surface over the same records, not a new capability.
+    Route::prefix('recruitment-view')->name('recruitment-view.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\RecruitmentLifecycleController::class, 'index'])
+            ->middleware('permission:view Recruitment')->name('index');
+        Route::post('/{applicant}/authorize-disposal', [\App\Http\Controllers\RecruitmentLifecycleController::class, 'authorizeDisposal'])
+            ->middleware('permission:delete Recruitment')->name('authorize-disposal');
+    });
+
     // ── GAD Analytics Engine (super_admin, inventory_admin, viewer) ──────
     // Module 4A RBAC cutover — live-DB check confirmed "Personnel Records"
     // (inventory_admin), "Viewer", "Appointment", and "Welfare & Benefits"
