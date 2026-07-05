@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\PlantillaRecord;
 use App\Models\CasualEmployee;
 use App\Models\JobOrder;
+use App\Support\Metrics\MetricRegistry;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -90,9 +92,14 @@ class DashboardController extends Controller
 
             $totalSalaryBudget = PlantillaRecord::filled()->sum('base_salary_amount');
 
-            $pwdCount = PlantillaRecord::filled()->where('is_pwd', true)->count();
+            // Module 12.3 non-redundancy: these two are the exact same query as
+            // MetricRegistry's canonical "GAD & Workforce / Analytics" entries
+            // (workforce_pwd_count / workforce_solo_parent_count) — read from
+            // the registry instead of recomputing, so the dashboard and any
+            // other surface can never disagree about these figures.
+            $pwdCount = MetricRegistry::get('workforce_pwd_count', Auth::user())['value'];
             $ipCount = PlantillaRecord::filled()->whereNotNull('indigenous_people')->where('indigenous_people', '!=', '')->count();
-            $soloParentCount = PlantillaRecord::filled()->whereNotNull('solo_parent')->where('solo_parent', '!=', '')->where('solo_parent', '!=', '-')->count();
+            $soloParentCount = MetricRegistry::get('workforce_solo_parent_count', Auth::user())['value'];
 
             // Employees per organizational unit (top 15 for chart)
             $employeesPerUnit = PlantillaRecord::filled()
