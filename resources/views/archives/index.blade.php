@@ -266,6 +266,7 @@
                             <form method="POST" id="force-del-{{ $type }}-{{ $row->id }}"
                                   action="{{ route('archives.force-delete', [$type, $row->id]) }}">
                                 @csrf @method('DELETE')
+                                <input type="hidden" name="nap_form_reference" class="nap-form-reference-input">
                             </form>
                         </div>
                     </td>
@@ -297,7 +298,39 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+// Module 1B.4 — these record types are NAP-governed personnel/201-file
+// records; the server will reject the delete without a NAP Form No. 3
+// reference regardless of what this modal does, but asking for it here
+// avoids a round-trip failure for the normal case.
+const NAP_GATED_ARCHIVE_TYPES = ['plantilla', 'casual', 'job_orders', 'permanent'];
+
 function confirmForceDelete(type, id) {
+    const form = document.getElementById('force-del-' + type + '-' + id);
+
+    if (NAP_GATED_ARCHIVE_TYPES.includes(type)) {
+        Swal.fire({
+            title: 'Permanently Delete?',
+            html: 'This is a NAP-governed personnel record. Permanent deletion <strong>cannot be undone</strong> and requires the signed NAP Form No. 3 (Authority to Dispose) reference number on file.',
+            icon: 'warning',
+            iconColor: '#dc2626',
+            input: 'text',
+            inputLabel: 'NAP Form No. 3 reference number',
+            inputPlaceholder: 'e.g. NAP-2026-00123',
+            inputValidator: (value) => !value ? 'A NAP Form No. 3 reference number is required to dispose of this record.' : undefined,
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete forever',
+            cancelButtonText: 'Cancel',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.querySelector('.nap-form-reference-input').value = result.value;
+                form.submit();
+            }
+        });
+        return;
+    }
+
     Swal.fire({
         title: 'Permanently Delete?',
         html: 'This action <strong>cannot be undone</strong>.<br>The record will be gone forever.',
@@ -310,7 +343,7 @@ function confirmForceDelete(type, id) {
         cancelButtonText: 'Cancel',
     }).then((result) => {
         if (result.isConfirmed) {
-            document.getElementById('force-del-' + type + '-' + id).submit();
+            form.submit();
         }
     });
 }

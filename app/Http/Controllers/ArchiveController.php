@@ -14,9 +14,51 @@ use App\Models\SalarySchedule;
 use App\Models\ActivityLog;
 use App\Models\JobOrder;
 use App\Models\CasualEmployee;
+use App\Support\Renewal\DisposalAuthorizationService;
 
 class ArchiveController extends Controller
 {
+    /** Module 1B.4 — the record types this NAP Form 3 gate applies to (201-file/personnel records). Legacy/admin archive types (users, positions, org_units, appointments, salary_schedules) are not NAP-governed personnel records and are unaffected. */
+    private const NAP_GATED_TYPES = ['plantilla', 'casual', 'job_orders', 'permanent'];
+
+    public function __construct(private readonly DisposalAuthorizationService $disposalAuthorizations)
+    {
+    }
+
+    /**
+     * @throws \Illuminate\Validation\ValidationException if the disposal
+     *         reference is missing for a NAP-gated type and no prior
+     *         authorization is already on file for this exact record.
+     */
+    private function assertDisposalAuthorized(Request $request, string $type, $model): void
+    {
+        if (!in_array($type, self::NAP_GATED_TYPES, true)) {
+            return;
+        }
+
+        if ($this->disposalAuthorizations->hasAuthorization($model)) {
+            return;
+        }
+
+        $request->validate([
+            'nap_form_reference' => 'required|string|max:100',
+            'nap_form_file' => 'nullable|file|max:10240',
+        ], [
+            'nap_form_reference.required' => 'Permanently deleting this record requires the signed NAP Form No. 3 (Authority to Dispose) reference number first — this action cannot proceed without it.',
+        ]);
+
+        $filePath = null;
+        if ($request->hasFile('nap_form_file')) {
+            $filePath = $request->file('nap_form_file')->store('disposal-authorizations', 'local');
+        }
+
+        $this->disposalAuthorizations->authorize(
+            $model,
+            $request->input('nap_form_reference'),
+            $filePath,
+            $request->user(),
+        );
+    }
     /**
      * Bulk archive (soft-delete) multiple records by IDs.
      */
@@ -85,6 +127,30 @@ class ArchiveController extends Controller
 
         if (!$model) {
             return back()->with('error', 'Invalid record type for bulk deletion.');
+        }
+
+        // Module 1B.4 — one NAP Form 3 reference authorizes this whole
+        // batch; each record in it still gets its own authorization row so
+        // per-record disposal history stays complete and auditable.
+        $records = $model::withTrashed()->whereIn('id', $ids)->get();
+        $unauthorized = $records->reject(fn ($record) => $this->disposalAuthorizations->hasAuthorization($record));
+
+        if ($unauthorized->isNotEmpty()) {
+            $request->validate([
+                'nap_form_reference' => 'required|string|max:100',
+                'nap_form_file' => 'nullable|file|max:10240',
+            ], [
+                'nap_form_reference.required' => 'Permanently deleting these records requires the signed NAP Form No. 3 (Authority to Dispose) reference number first — this action cannot proceed without it.',
+            ]);
+
+            $filePath = null;
+            if ($request->hasFile('nap_form_file')) {
+                $filePath = $request->file('nap_form_file')->store('disposal-authorizations', 'local');
+            }
+
+            foreach ($unauthorized as $record) {
+                $this->disposalAuthorizations->authorize($record, $request->input('nap_form_reference'), $filePath, $request->user());
+            }
         }
 
         $deleted = $model::withTrashed()->whereIn('id', $ids)->forceDelete();
@@ -224,6 +290,8 @@ class ArchiveController extends Controller
         if (!$model) {
             return back()->with('error', 'Record not found in archives.');
         }
+
+        $this->assertDisposalAuthorized($request, $type, $model);
 
         if ($type === 'salary_schedules') {
             $model->salaryGrades()->onlyTrashed()->forceDelete();
