@@ -59,6 +59,10 @@
             </div>
         </div>
 
+        @if(!$plantilla->is_vacant)
+            <x-renewal-status-widget :record="$plantilla" />
+        @endif
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {{-- Left - Key Info --}}
             <div class="lg:col-span-1 space-y-4">
