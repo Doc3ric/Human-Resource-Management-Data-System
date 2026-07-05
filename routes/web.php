@@ -45,6 +45,29 @@ Route::prefix('setup')->name('setup.')->group(function () {
 // ============================================
 // Authenticated Routes
 // ============================================
+//
+// ── Module 4A RBAC route-cutover audit (2026-07-05) ──────────────────────
+// Every remaining `role:` middleware usage below was checked against the
+// LIVE Spatie grants (`Role::with('permissions')->get()`), not just the
+// $defaults array in RolePermissionController, before deciding whether to
+// convert it to `permission:`. Conversion only happened where every
+// non-super-admin role currently reaching the route via its role: alias
+// already holds the matching permission bit (super_admin always passes
+// either way via the Gate::before bypass in AppServiceProvider). Where a
+// role: block remains below, it is because converting it would silently
+// revoke access for a role that has no matching permission grant today
+// (e.g. inventory_admin/"Personnel Records" holds no Audit Logs, Archives,
+// User Management, Panel Members, or Employee-Code-generation permission
+// at all, and salary_admin/"Welfare & Benefits" holds no Step Increment
+// permission — that module isn't even registered in
+// RolePermissionController's $modules list yet, a genuine Module 4A.3
+// completeness gap, not just a route-wiring one). Granting those bits is
+// an actual RBAC policy decision for whoever administers the Role Matrix
+// UI to make deliberately, not something to infer from route middleware —
+// so those blocks stay on `role:` and are flagged here rather than guessed
+// at. GAD Analytics (below) was the one block that converted cleanly.
+// Retirement's non-conversion was already documented in place by a prior
+// pass; this audit re-confirmed it's still accurate.
 Route::middleware('auth')->group(function () {
 
     // Dashboard (all roles)
@@ -588,7 +611,13 @@ Route::middleware('auth')->group(function () {
 
 
     // ── GAD Analytics Engine (super_admin, inventory_admin, viewer) ──────
-    Route::prefix('gad')->name('gad.')->middleware('role:super_admin,inventory_admin,viewer')->group(function () {
+    // Module 4A RBAC cutover — live-DB check confirmed "Personnel Records"
+    // (inventory_admin), "Viewer", "Appointment", and "Welfare & Benefits"
+    // all already hold "view GAD Analytics"; both routes here are GET/read
+    // (index + CSV export), so this group converts cleanly with no
+    // exclusions (super_admin still passes everything via the Gate::before
+    // bypass in AppServiceProvider regardless of the permission check).
+    Route::prefix('gad')->name('gad.')->middleware('permission:view GAD Analytics')->group(function () {
         Route::get('/', [GadAnalyticsController::class, 'index'])->name('index');
         Route::get('/export/outstanding-csv', [GadAnalyticsController::class, 'exportOutstandingCsv'])->name('outstanding-csv');
     });
