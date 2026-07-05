@@ -56,6 +56,9 @@ class Applicant extends Model
 
         // Module 5 — deliberation workspace / exam routing
         'deliberation_phase', 'is_exam_exempt',
+
+        // Module 2.2/2.3 — recruitment-record lifecycle
+        'is_filled', 'date_filled', 'lifecycle_stage',
     ];
 
     protected $casts = [
@@ -69,6 +72,8 @@ class Applicant extends Model
         'application_letter_override' => 'boolean',
         'photo_confirmed'        => 'boolean',
         'photo_uploaded_at'      => 'datetime',
+        'is_filled'              => 'boolean',
+        'date_filled'            => 'date',
     ];
 
     public static function generateAin($dateOfBirth, $firstName, $middleName = null, $ignoreId = null)

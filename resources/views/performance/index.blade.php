@@ -686,9 +686,16 @@
                     rowFlagStyle = 'background-color: #fffbeb; border-left: 3px solid #f59e0b;';
                 }
 
+                // Module 1A.4/1A.5 — same is_renewed source of truth as every
+                // other module's renewal badge; this NEVER infers renewal
+                // from IPCR activity, only surfaces the existing status.
+                const notRenewedBadge = (emp.is_renewed === false)
+                    ? `<div style="font-size:9px;color:#b45309;font-weight:700;margin-top:2px;" title="This employee is not tagged as renewed for this period. IPCR submission recorded as a pending signal. Resolve renewal status before finalizing this rating cycle.">NOT RENEWED</div>`
+                    : '';
+
                 html += `
                     <tr data-emp-id="${emp.id}" id="row-${emp.id}" style="${rowFlagStyle}" data-adj="${(adjRatingVal||'').toLowerCase()}">
-                        <td>${emp.last_name || ''}</td>
+                        <td>${emp.last_name || ''}${notRenewedBadge}</td>
                         <td>${emp.first_name || ''}</td>
                         <td>${emp.middle_name || ''}</td>
                         <td>${emp.name_extension || ''}</td>

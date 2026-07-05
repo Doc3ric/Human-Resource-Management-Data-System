@@ -4,10 +4,40 @@ namespace App\Http\Controllers;
 
 use App\Models\PlantillaRecord;
 use App\Models\IpcrRating;
+use App\Support\Renewal\RenewalSignalService;
 use Illuminate\Http\Request;
 
 class PerformanceController extends Controller
 {
+    public function __construct(private readonly RenewalSignalService $renewalSignals)
+    {
+    }
+
+    /**
+     * Module 1A.4 — submitting an IPCR target is a CORROBORATING signal
+     * only; it never sets is_renewed itself. Writing nothing here for
+     * already-renewed employees keeps the signal table from filling with
+     * noise that no one needs to resolve.
+     */
+    private function emitIpcrTargetSignal(int $plantillaRecordId, bool $targetSubmitted): void
+    {
+        if (!$targetSubmitted) {
+            return;
+        }
+
+        $record = PlantillaRecord::find($plantillaRecordId);
+        if (!$record || $record->is_renewed) {
+            return;
+        }
+
+        $this->renewalSignals->corroborate(
+            $record,
+            \App\Http\Controllers\BatchRenewalController::currentRatingPeriod(),
+            'PERFORMANCE',
+            'IPCR_TARGET_SUBMITTED',
+            auth()->user(),
+        );
+    }
     /**
      * Display the performance page.
      */
@@ -121,7 +151,8 @@ class PerformanceController extends Controller
                 'name_extension',
                 'position_title',
                 'employment_status',
-                'office_department'
+                'office_department',
+                'is_renewed'
             ]);
 
         // Map data for datatables/vue/js
@@ -134,7 +165,11 @@ class PerformanceController extends Controller
                 'name_extension' => $emp->name_extension,
                 'position_title' => $emp->position_title,
                 'employment_status' => $emp->employment_status,
-                'ratings' => $emp->ipcrRatings 
+                // Module 1A.4/1A.5 — surfaced so the tracker can show the
+                // same renewal-status signal the shared widget shows
+                // elsewhere, without assuming renewal from IPCR submission.
+                'is_renewed' => (bool) $emp->is_renewed,
+                'ratings' => $emp->ipcrRatings
             ];
         });
 
@@ -171,6 +206,8 @@ class PerformanceController extends Controller
                 'rating_submission_date' => $request->rating_submission_date,
             ]
         );
+
+        $this->emitIpcrTargetSignal((int) $request->plantilla_record_id, (bool) $request->target_submitted);
 
         return response()->json(['success' => true, 'data' => $ipcr]);
     }
@@ -211,6 +248,8 @@ class PerformanceController extends Controller
                     'rating_submission_date' => $item['rating_submission_date'] ?? null,
                 ]
             );
+
+            $this->emitIpcrTargetSignal((int) $item['employee_id'], (bool) $item['target_submitted']);
         }
 
         return response()->json(['success' => true]);
