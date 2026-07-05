@@ -248,6 +248,72 @@
             </div>
         </a>
         {{-- Generate Employee Codes (super_admin only) --}}
+        {{-- Audit Trail (SA + IA) --}}
+        @if(Route::has('audit-logs.index'))
+            <a href="{{ route('audit-logs.index') }}" class="admin-card">
+                <div class="admin-card-icon" style="background:#ede9fe;color:#6d28d9;">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <div>
+                    <div class="admin-card-title">Audit Trail</div>
+                    <div class="admin-card-desc">View full audit history of all system changes</div>
+                </div>
+            </a>
+        @endif
+
+        {{-- Activity Logs (SA + IA) --}}
+        @if(Route::has('activity-logs.index'))
+            <a href="{{ route('activity-logs.index') }}" class="admin-card">
+                <div class="admin-card-icon" style="background:#d1fae5;color:#065f46;">
+                    <i class="bi bi-journal-check"></i>
+                </div>
+                <div>
+                    <div class="admin-card-title">Activity Logs</div>
+                    <div class="admin-card-desc">Track user actions and session activity</div>
+                </div>
+            </a>
+        @endif
+
+        {{-- Role-Permission Matrix (SA + IA) --}}
+        @if(Route::has('users.role-matrix'))
+            <a href="{{ route('users.role-matrix') }}" class="admin-card">
+                <div class="admin-card-icon" style="background:#e0e7ff;color:#4338ca;">
+                    <i class="bi bi-table"></i>
+                </div>
+                <div>
+                    <div class="admin-card-title">Role-Permission Matrix</div>
+                    <div class="admin-card-desc">Configure what each role can view, add, edit, or delete</div>
+                </div>
+            </a>
+        @endif
+
+        {{-- Database Rollback (SA only) --}}
+        @if(auth()->user()->isSuperAdmin() && Route::has('rollback.index'))
+            <a href="{{ route('rollback.index') }}" class="admin-card">
+                <div class="admin-card-icon" style="background:#fef3c7;color:#b45309;">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </div>
+                <div>
+                    <div class="admin-card-title">Database Rollback</div>
+                    <div class="admin-card-desc">Undo recent data changes and restore previous states</div>
+                </div>
+            </a>
+        @endif
+
+        {{-- Backup & Recovery (SA only) --}}
+        @if(auth()->user()->isSuperAdmin() && Route::has('backup.index'))
+            <a href="{{ route('backup.index') }}" class="admin-card">
+                <div class="admin-card-icon" style="background:#e0f2fe;color:#0369a1;">
+                    <i class="bi bi-cloud-arrow-up-fill"></i>
+                </div>
+                <div>
+                    <div class="admin-card-title">Backup & Recovery</div>
+                    <div class="admin-card-desc">Create, download, and restore system backups</div>
+                </div>
+            </a>
+        @endif
+
+        {{-- Generate Employee Codes (super_admin only) --}}
         @if(auth()->user()->isSuperAdmin() && Route::has('employee-codes.generate-all'))
             <div class="admin-card" style="cursor:default;">
                 <div class="admin-card-icon" style="background:#ecfdf5;color:#065f46;">

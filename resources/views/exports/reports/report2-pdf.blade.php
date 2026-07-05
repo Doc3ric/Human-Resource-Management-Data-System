@@ -22,7 +22,7 @@ td.tc { text-align:center; }
 
 <div class="rpt-header">
     <h1>Inventory of Personnel by Appointment Status</h1>
-    <p>Gender &amp; Age Profile — Period: {{ \Carbon\Carbon::createFromDate($year, $month, 1)->format('F Y') }}</p>
+    <p>SEX &amp; Age Profile — Period: {{ \Carbon\Carbon::createFromDate($year, $month, 1)->format('F Y') }}</p>
 </div>
 <div class="rpt-meta">
     <span>Provincial Government of Bukidnon</span>
@@ -35,7 +35,7 @@ td.tc { text-align:center; }
             <th style="width:30px;">#</th>
             <th>Employee Name</th>
             <th>Position Title</th>
-            <th class="tc">Gender</th>
+            <th class="tc">SEX</th>
             <th class="tc">Age</th>
         </tr>
     </thead>

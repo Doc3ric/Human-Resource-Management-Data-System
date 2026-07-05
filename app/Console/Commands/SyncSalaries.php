@@ -37,11 +37,11 @@ class SyncSalaries extends Command
             INNER JOIN salary_grades sg 
                 ON pr.salary_grade = sg.grade AND pr.step = sg.step
             SET 
-                pr.actual_annual_salary = (sg.monthly_salary * 12),
+                pr.base_salary_amount = (sg.monthly_salary * 12),
                 pr.authorized_annual_salary = (sg.monthly_salary * 12),
                 pr.updated_at = NOW()
             WHERE 
-                pr.actual_annual_salary != (sg.monthly_salary * 12)
+                pr.base_salary_amount != (sg.monthly_salary * 12)
                 OR pr.authorized_annual_salary != (sg.monthly_salary * 12)
         ";
 
@@ -53,7 +53,7 @@ class SyncSalaries extends Command
                 INNER JOIN salary_grades sg 
                     ON pr.salary_grade = sg.grade AND pr.step = sg.step
                 WHERE 
-                    pr.actual_annual_salary != (sg.monthly_salary * 12)
+                    pr.base_salary_amount != (sg.monthly_salary * 12)
                     OR pr.authorized_annual_salary != (sg.monthly_salary * 12)
             ";
             

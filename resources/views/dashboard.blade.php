@@ -1,424 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="{{ asset('css/theme-default.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/emerald-night.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/theme-financial.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/theme-corona.css') }}">
+<x-dashboard-app>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f1f5f9;
-        }
-
-        .sidebar {
-            background-color: #ffffff;
-            min-height: 100vh;
-            padding: 0;
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 280px;
-            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
-            border-right: 1px solid #e5e7eb;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .sidebar-logo {
-            width: 54px;
-            height: 54px;
-            object-fit: contain;
-            border-radius: 12px;
-            flex-shrink: 0;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
-            background: #ffffff;
-            padding: 3px;
-            transition: transform 0.2s ease;
-        }
-
-        .sidebar-logo:hover {
-            transform: scale(1.06);
-        }
-
-        .sidebar-title-container {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .sidebar-title-main {
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            color: #1e293b;
-            font-size: 17px;
-            font-weight: 700;
-            letter-spacing: -0.2px;
-            line-height: 1.25;
-        }
-
-        .sidebar-title-sub {
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            color: #2563eb;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-top: 3px;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 16px 0;
-            overflow-y: auto;
-        }
-
-        .nav-item {
-            margin: 8px 12px;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            color: #4b5563;
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-size: 15px;
-            font-weight: 500;
-        }
-
-        .nav-link:hover {
-            color: #111827;
-            background-color: #f3f4f6;
-        }
-
-        .nav-link.active {
-            background-color: #e0f2fe;
-            color: #0284c7;
-            font-weight: 600;
-        }
-
-        .nav-icon {
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .sidebar-footer {
-            padding: 16px 12px;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        /* ── Premium Logout Modal ── */
-        .logout-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.55);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-            animation: fadeInBg 0.2s ease;
-        }
-
-        .logout-overlay.active {
-            display: flex;
-        }
-
-        @keyframes fadeInBg {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        .logout-modal-card {
-            background: #fff;
-            border-radius: 20px;
-            padding: 0;
-            max-width: 420px;
-            width: calc(100% - 32px);
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18), 0 8px 20px rgba(0, 0, 0, 0.08);
-            position: relative;
-            overflow: hidden;
-            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px) scale(0.95);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .logout-modal-top {
-            background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
-            padding: 36px 32px 24px;
-            text-align: center;
-            border-bottom: 1px solid #fecdd3;
-        }
-
-        .logout-modal-icon-wrap {
-            width: 72px;
-            height: 72px;
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 18px;
-            box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
-            animation: pulse-red 2s infinite;
-        }
-
-        @keyframes pulse-red {
-
-            0%,
-            100% {
-                box-shadow: 0 8px 24px rgba(220, 38, 38, 0.30);
-            }
-
-            50% {
-                box-shadow: 0 8px 32px rgba(220, 38, 38, 0.55);
-            }
-        }
-
-        .logout-modal-icon-wrap i {
-            font-size: 30px;
-            color: #fff;
-        }
-
-        .logout-modal-title {
-            font-size: 22px;
-            font-weight: 800;
-            color: #0f172a;
-            margin: 0 0 6px;
-            letter-spacing: -0.3px;
-        }
-
-        .logout-modal-subtitle {
-            font-size: 13px;
-            color: #64748b;
-            margin: 0;
-            line-height: 1.6;
-        }
-
-        .logout-modal-body {
-            padding: 22px 28px 28px;
-        }
-
-        .logout-modal-info {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            background: #fef9c3;
-            border: 1px solid #fde68a;
-            border-radius: 10px;
-            padding: 12px 14px;
-            margin-bottom: 22px;
-            font-size: 12.5px;
-            color: #854d0e;
-            line-height: 1.5;
-        }
-
-        .logout-modal-info i {
-            font-size: 15px;
-            color: #ca8a04;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-
-        .logout-modal-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .logout-btn-cancel {
-            flex: 1;
-            padding: 12px 16px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 13.5px;
-            font-weight: 600;
-            color: #475569;
-            background: #f8fafc;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .logout-btn-cancel:hover {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
-            color: #0f172a;
-        }
-
-        .logout-btn-confirm {
-            flex: 1;
-            padding: 12px 16px;
-            border: none;
-            border-radius: 12px;
-            font-size: 13.5px;
-            font-weight: 700;
-            color: #fff;
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
-        }
-
-        .logout-btn-confirm:hover {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
-            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.45);
-            transform: translateY(-1px);
-        }
-
-        .logout-btn-confirm:active {
-            transform: translateY(0);
-        }
-
-        .logout-modal-close {
-            position: absolute;
-            top: 12px;
-            right: 14px;
-            width: 28px;
-            height: 28px;
-            background: rgba(0, 0, 0, 0.06);
-            border: none;
-            border-radius: 50%;
-            color: #64748b;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .logout-modal-close:hover {
-            background: rgba(0, 0, 0, 0.12);
-            color: #0f172a;
-        }
-
-        .main-content {
-            margin-left: 280px;
-            padding: 32px;
-            min-height: 100vh;
-        }
-
-        .page-header {
-            color: #212529;
-            margin-bottom: 24px;
-        }
-
-        .page-header h1 {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .page-header p {
-            color: #6b7280;
-            font-size: 16px;
-        }
-
-        /* Scrollbar styling for sidebar */
-        .sidebar-nav::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .sidebar-nav::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .sidebar-nav::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 3px;
-        }
-
-        .sidebar-nav::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 250px;
-            }
-
-            .main-content {
-                margin-left: 0;
-                padding: 20px;
-            }
-
-            .sidebar-title,
-            .sidebar-title-container {
-                display: none;
-            }
-
-            .sidebar-header {
-                justify-content: center;
-            }
-
-            .nav-link span {
-                display: none;
-            }
-
-            .nav-icon {
-                font-size: 24px;
-            }
-        }
-
-        /* Modern Dashboard Cards */
+        /* Dashboard-specific cards (the shared layout doesn't define these).
+           Colors use the theme CSS-variable system (theme-variables.css)
+           instead of hardcoded hex, so they stay legible under every theme
+           — a hardcoded white card + dark text renders invisible against
+           Corona/Emerald Night's dark page background otherwise. */
         .dash-card {
-            background: #ffffff;
+            background: var(--color-surface, #ffffff) !important;
             border-radius: 12px;
             padding: 24px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--color-border, #e2e8f0) !important;
             height: 100%;
             transition: all 0.3s ease;
             position: relative;
@@ -455,7 +47,7 @@
 
         .dash-card-title {
             margin: 0;
-            color: #64748b;
+            color: var(--color-text-secondary, #64748b) !important;
             font-size: 13px;
             font-weight: 600;
             text-transform: uppercase;
@@ -464,7 +56,7 @@
 
         .dash-card-value {
             margin: 8px 0 0 0;
-            color: #0f172a;
+            color: var(--color-text-primary, #0f172a) !important;
             font-size: 32px;
             font-weight: 800;
             line-height: 1.1;
@@ -472,7 +64,7 @@
 
         .dash-card-subtext {
             margin: 4px 0 0 0;
-            color: #94a3b8;
+            color: var(--color-text-muted, #94a3b8) !important;
             font-size: 12px;
         }
 
@@ -515,264 +107,19 @@
         .premium-alert i {
             color: #f43f5e !important;
         }
-
-        }
     </style>
-</head>
 
-<body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <!-- Header -->
-        <div class="sidebar-header">
-            <img src="{{ asset('img/phrmologo.png') }}" alt="PHRMO Logo" class="sidebar-logo"
-                onerror="this.style.display='none'">
-            <div class="sidebar-title-container">
-                <span class="sidebar-title-main" style="line-height: 1.3; font-size: 14.5px; padding-top: 2px;">Human
-                    Resource<br>Data Management<br>System</span>
-            </div>
-        </div>
-
-        <!-- Navigation -->
-        <nav class="sidebar-nav">
-            <div class="nav-item">
-                <a href="{{ route('dashboard') }}"
-                    class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                    <i class="nav-icon bi bi-house-door"></i>
-                    <span>Dashboard</span>
-                </a>
-            </div>
-
-            @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin()))
-                <div class="nav-item">
-                    <a href="{{ route('all-data.index') }}"
-                        class="nav-link {{ request()->routeIs('all-data.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-table"></i>
-                        <span>All Data</span>
-                    </a>
-                </div>
-            @endif
-
-            @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                <div class="nav-item">
-                    <a href="{{ route('plantilla.index') }}"
-                        class="nav-link {{ request()->routeIs('plantilla.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-person-badge"></i>
-                        <span>Inventory of Personnel</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="{{ route('job-orders.index') }}"
-                        class="nav-link {{ request()->routeIs('job-orders.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-file-earmark-person"></i>
-                        <span>Job Orders</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="{{ route('casual.index') }}"
-                        class="nav-link {{ request()->routeIs('casual.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-person-lines-fill"></i>
-                        <span>Casual</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="{{ route('permanent.index') }}"
-                        class="nav-link {{ request()->routeIs('permanent.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-shield-check"></i>
-                        <span>Permanent</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="{{ route('retirement.index') }}"
-                        class="nav-link {{ request()->routeIs('retirement.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-clock-history"></i>
-                        <span>Retirement</span>
-                        @php $retCount = \App\Models\PlantillaRecord::retirementDue()->count(); @endphp
-                        @if($retCount > 0)
-                            <span
-                                style="margin-left:auto; background:#dc3545; color:white; font-size:10px; font-weight:bold; padding:2px 8px; border-radius:99px;">{{ $retCount }}</span>
-                        @endif
-                    </a>
-                </div>
-            @endif
-
-            @if(auth()->user()->isSuperAdmin() || auth()->user()->isSalaryAdmin())
-                <div class="nav-item">
-                    <a href="{{ route('step-increment.hub') }}"
-                        class="nav-link {{ request()->routeIs('step-increment.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-building-fill-gear"></i>
-                        <span>Plantilla of Personnel</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="{{ route('salary-grades.index') }}"
-                        class="nav-link {{ request()->routeIs('salary-grades.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-currency-dollar"></i>
-                        <span>Salary Grades</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="{{ route('salary-schedules.index') }}"
-                        class="nav-link {{ request()->routeIs('salary-schedules.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-layers"></i>
-                        <span>SSL Schedules</span>
-                    </a>
-                </div>
-            @endif
-
-            @if(auth()->user()->isSuperAdmin())
-                <div class="nav-item">
-                    <a href="{{ route('imports.index') }}"
-                        class="nav-link {{ request()->routeIs('imports.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-file-earmark-spreadsheet"></i>
-                        <span>Import Data</span>
-                    </a>
-                </div>
-            @endif
-
-
-            <div class="nav-item">
-                <a href="{{ route('profile.edit') }}"
-                    class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-                    <i class="nav-icon bi bi-person-circle"></i>
-                    <span>Profile</span>
-                </a>
-            </div>
-
-            @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                <div class="nav-item">
-                    <a href="{{ route('users.index') }}"
-                        class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-people-fill"></i>
-                        <span>User Management</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="{{ route('audit-logs.index') }}"
-                        class="nav-link {{ request()->routeIs('audit-logs.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-shield-lock-fill"></i>
-                        <span>Audit Trail</span>
-                    </a>
-                </div>
-            @endif
-        </nav>
-
-        <!-- Footer -->
-        <div class="sidebar-footer">
-            <button type="button" class="nav-link"
-                style="width: 100%; border: none; background: none; cursor: pointer; text-align: left;"
-                onclick="openLogoutModal()">
-                <i class="nav-icon bi bi-box-arrow-right"></i>
-                <span>Log Out</span>
-            </button>
+    <div class="container-fluid" style="padding: 0 0 16px;">
+        <div style="display: flex; justify-content: flex-end;">
+            <a href="{{ route('all-data.create') }}"
+                style="background-color: #0d6efd; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; text-decoration: none; font-weight: 500; font-size: 14px; height: fit-content;">
+                <i class="bi bi-plus-lg"></i>
+                Add New Employee
+            </a>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Header Navbar -->
-        <nav
-            style="background-color: #ffffff; color: #111827; margin: -32px -32px 0 -32px; padding: 0 1.5rem; display: flex; justify-content: space-between; align-items: center; height: 70px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-bottom: 1px solid #e5e7eb; width: calc(100% + 64px);">
-            <!-- Left Side - Search (Removed) -->
-            <div style="flex: 1; max-width: 600px; position: relative;">
-            </div>
-
-
-            <!-- Right Side - Actions -->
-            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 1.5rem; height: 100%;">
-                <!-- Theme Settings Dropdown -->
-                <div class="dropdown">
-                    <button class="theme-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
-                        style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 0.5rem 1rem; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; font-size: 14px; height: fit-content; transition: all 0.2s;">
-                        <i class="bi bi-palette"></i> <span>Theme</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow">
-                        <li>
-                            <h6 class="dropdown-header">Appearance</h6>
-                        </li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="#"
-                                onclick="setTheme('default'); return false;"><i class="bi bi-sun me-2"></i> Default
-                                Light</a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="#"
-                                onclick="setTheme('emerald-night'); return false;"><i class="bi bi-moon-stars me-2"></i>
-                                Emerald Night</a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="#"
-                                onclick="setTheme('theme-financial'); return false;"><i
-                                    class="bi bi-graph-up-arrow me-2"></i> Financial (Teal)</a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="#"
-                                onclick="setTheme('theme-corona'); return false;"><i class="bi bi-moon me-2"></i> Corona
-                                (Dark)</a></li>
-                    </ul>
-                </div>
-
-                <!-- Add New Employee Button -->
-                <a href="{{ route('all-data.create') }}"
-                    style="background-color: #0d6efd; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; text-decoration: none; font-weight: 500; font-size: 14px; height: fit-content; position: relative; z-index: 10;">
-                    <i class="bi bi-plus-lg"></i>
-                    Add New Employee
-                </a>
-
-                <div class="dropdown">
-                    <button class="dropdown-toggle"
-                        style="background: none; border: none; color: inherit; font-size: 1.5rem; cursor: pointer; position: relative; display: flex; align-items: center;"
-                        type="button" data-bs-toggle="dropdown" aria-expanded="false"
-                        onclick="markNotificationsAsRead(this)">
-                        <i class="bi bi-bell"></i>
-                        @if(isset($unreadNotifCount) && $unreadNotifCount > 0)
-                            <span class="notif-badge"
-                                style="position: absolute; top: -8px; right: -8px; background-color: #ff4444; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold;">{{ $unreadNotifCount }}</span>
-                        @endif
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow" style="width: 300px; padding: 0; z-index: 1050;">
-                        <li class="p-3 border-bottom bg-light fw-bold text-dark" style="font-size: 14px;">Recent
-                            Activity</li>
-                        @forelse($recentActivity ?? [] as $log)
-                            <li>
-                                <a class="dropdown-item py-2 border-bottom" href="{{ route('activity-logs.index') }}"
-                                    style="white-space: normal; line-height: 1.4;">
-                                    <div class="fw-bold" style="font-size: 13px;">
-                                        {{ $log->user ? $log->user->name : 'System' }}
-                                    </div>
-                                    <div class="text-muted" style="font-size: 12px; margin-top: 2px;">
-                                        {{ \Illuminate\Support\Str::limit($log->description, 80) }}
-                                    </div>
-                                    <div class="text-muted mt-1" style="font-size: 10px;">
-                                        {{ $log->created_at->diffForHumans() }}
-                                    </div>
-                                </a>
-                            </li>
-                        @empty
-                            <li class="p-3 text-center text-muted" style="font-size: 13px;">No recent activity</li>
-                        @endforelse
-                        <li class="text-center bg-light">
-                            <a class="dropdown-item py-2 fw-bold text-primary" href="{{ route('activity-logs.index') }}"
-                                style="font-size: 13px;">View All Activity Menu</a>
-                        </li>
-                    </ul>
-                </div>
-
-                <div
-                    style="display: flex; align-items: center; gap: 1rem; padding-left: 1rem; border-left: 1px solid #e5e7eb; height: 100%;">
-                    <div style="text-align: right; font-size: 15px;">
-                        <p style="margin: 0; font-weight: 600;">{{ auth()->user()->name }}</p>
-                        <p style="margin: 0; color: #6b7280; font-size: 13px;">{{ auth()->user()->role_label }}</p>
-                    </div>
-                    <div
-                        style="background-color: #0d6efd; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; flex-shrink: 0; overflow: hidden;">
-                        @if(auth()->check() && auth()->user()->profile_picture)
-                            <img src="{{ Storage::url(auth()->user()->profile_picture) }}" alt="Avatar"
-                                style="width: 100%; height: 100%; object-fit: cover;">
-                        @else
-                            {{ auth()->check() ? substr(auth()->user()->name, 0, 1) : 'U' }}
-                        @endif
-                    </div>
-                </div>
-
-            </div>
-        </nav>
-
-        <!-- Content Area -->
-        <div class="container-fluid" style="padding: 20px;">
+        <div class="container-fluid" style="padding: 0;">
             <!-- Proactive Reminders Alert -->
             @if(($retirementDueCount ?? 0) > 0 || ($stepDueCount ?? 0) > 0)
                 <div class="alert premium-alert d-flex align-items-center mb-4" role="alert">
@@ -796,6 +143,55 @@
                     </div>
                 </div>
             @endif
+
+            {{-- Compliance Overview Stats --}}
+            @php
+                $dashAllFilled = ($regularTotalCount ?? 0) + ($casualOnlyTotal ?? 0) + ($joTotalActive ?? 0);
+                $dashFemale = ($regularFemale ?? 0) + ($casualFemale ?? 0) + ($joFemale ?? 0);
+                $dashMale   = ($regularMale ?? 0) + ($casualMale ?? 0) + ($joMale ?? 0);
+                $dashFPct   = $dashAllFilled > 0 ? round($dashFemale / $dashAllFilled * 100, 1) : 0;
+                $dashGadOk  = $dashFPct >= 40 && $dashFPct <= 60;
+            @endphp
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:20px;">
+                <x-stat-card icon="bi-people-fill" color="indigo" label="Total Workforce"
+                    :value="$totalEmployeesUnique ?? 0"
+                    sub="Unique active employees"
+                    compliance="CSC / DBM Plantilla"
+                    analysis="All active employees across all appointment types (no duplication). Must match DBM-approved plantilla strength. Unauthorized overstaffing is a COA audit finding." />
+
+                <x-stat-card icon="bi-person-fill" color="blue" label="Male Personnel"
+                    :value="$dashMale"
+                    :pct="$dashFPct > 0 ? round($dashMale / $dashAllFilled * 100, 1) : 0"
+                    compliance="RA 9710 — GAD"
+                    analysis="Male employees across all appointment types. GAD (RA 9710 §12) requires agencies to maintain 40–60% female representation. Monitor balance regularly." />
+
+                <x-stat-card icon="bi-person-fill" color="pink" label="Female Personnel"
+                    :value="$dashFemale"
+                    :pct="$dashFPct" :alert="!$dashGadOk"
+                    compliance="RA 9710 — GAD"
+                    analysis="{{ $dashGadOk ? 'GAD Compliant: '.$dashFPct.'% female rate within 40–60% target per RA 9710 (Magna Carta of Women) §12.' : 'GAD Alert: '.$dashFPct.'% female rate is outside the required 40–60% range (RA 9710 §12). Submit GAD Plan & Budget adjustment.' }}" />
+
+                <x-stat-card icon="bi-alarm" color="orange" label="Step Increment Due"
+                    :value="$stepDueCount ?? 0"
+                    :alert="($stepDueCount ?? 0) > 0"
+                    compliance="CSC Step Increment Rules"
+                    :link="route('step-increment.index')"
+                    analysis="{{ ($stepDueCount ?? 0) > 0 ? ($stepDueCount).' employee(s) due for NOSI/NOLP. Process immediately to avoid delayed salary adjustments. Per CSC rules, delay may trigger employee complaints.' : 'No step increments currently due.' }}" />
+
+                <x-stat-card icon="bi-hourglass-split" color="red" label="Retirement Due"
+                    :value="$retirementDueCount ?? 0"
+                    :alert="($retirementDueCount ?? 0) > 0"
+                    compliance="RA 8291 — GSIS Act"
+                    :link="route('retirement.index')"
+                    analysis="{{ ($retirementDueCount ?? 0) > 0 ? ($retirementDueCount).' employee(s) at or approaching compulsory retirement age (65). Process GSIS retirement immediately. Late processing may forfeit benefits per RA 8291.' : 'No compulsory retirements due.' }}" />
+
+                <x-stat-card icon="bi-building-fill-slash" color="slate" label="Vacant Positions"
+                    :value="$vacantPositions ?? 0"
+                    :alert="($vacantPositions ?? 0) > 0"
+                    compliance="RA 7041 / DBM"
+                    :link="route('plantilla.index', ['category' => 'Vacant Funded'])"
+                    analysis="{{ ($vacantPositions ?? 0) > 0 ? ($vacantPositions).' vacant position(s) require publication per RA 7041 before filling. Prolonged vacancies must be reported to DBM. Failure to publish is a CSC violation.' : 'All positions are filled.' }}" />
+            </div>
 
             <!-- ROW 1: 4 Cards -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;">
@@ -858,7 +254,7 @@
                             <div>
                                 <p class="dash-card-title">Casual</p>
                                 <h3 class="dash-card-value">{{ number_format($casualOnlyTotal ?? 0) }}</h3>
-                                <p class="dash-card-subtext">Total</p>
+                                <p class="dash-card-subtext">Active Employees</p>
                             </div>
                             <div class="dash-card-icon icon-orange">
                                 <i class="bi bi-person-lines-fill"></i>
@@ -990,7 +386,7 @@
                 <div
                     style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                     <h3 style="margin: 0 0 20px 0; color: #111827; font-size: 18px; font-weight: 600;">Employees per
-                        Organizational Unit</h3>
+                        OFFICE</h3>
                     <div style="position: relative; height: 300px;">
                         <canvas id="barChart"></canvas>
                     </div>
@@ -1051,7 +447,7 @@
                 </a>
             </div>
 
-            <!-- BIRTHDAYS OF THE MONTH WIDGET -->
+            <!-- DATE OF BIRTHS OF THE MONTH WIDGET -->
             @php
                 $todayCelebrants = isset($monthlyBirthdays) ? $monthlyBirthdays->filter(fn($e) => $e->date_of_birth->day == now()->day) : collect();
                 $otherCelebrants = isset($monthlyBirthdays) ? $monthlyBirthdays->filter(fn($e) => $e->date_of_birth->day != now()->day) : collect();
@@ -1820,65 +1216,30 @@
             </div>
 
         </div>
-    </div>
-
-    <!-- Premium Logout Confirmation Modal -->
-    <div id="logoutModal" class="logout-overlay">
-        <div class="logout-modal-card">
-            <button type="button" class="logout-modal-close" onclick="closeLogoutModal()" title="Close">
-                <i class="bi bi-x-lg"></i>
-            </button>
-            <div class="logout-modal-top">
-                <div class="logout-modal-icon-wrap">
-                    <i class="bi bi-box-arrow-right"></i>
-                </div>
-                <h2 class="logout-modal-title">Sign Out?</h2>
-                <p class="logout-modal-subtitle">You're about to leave the HDMS- Human Resource Data Management System
-                    portal.</p>
-            </div>
-            <div class="logout-modal-body">
-                <div class="logout-modal-info">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                    <span>Any unsaved changes will be lost. Make sure you've saved your work before signing out.</span>
-                </div>
-                <div class="logout-modal-actions">
-                    <button type="button" class="logout-btn-cancel" onclick="closeLogoutModal()">
-                        <i class="bi bi-arrow-left"></i> Stay
-                    </button>
-                    <form method="POST" action="{{ route('logout') }}" style="flex:1;margin:0;" id="logoutForm">
-                        @csrf
-                        <button type="submit" class="logout-btn-confirm" style="width:100%;">
-                            <i class="bi bi-box-arrow-right"></i> Yes, Sign Out
-                        </button>
-                    </form>
-                </div>
+    {{--
+        Module 12.3/12.8 — cross-system reference tiles. The Executive
+        Dashboard is the only place that aggregates across canonical
+        owners; each figure below is pulled from its owner via
+        MetricRegistry, never recomputed here. Additive section — does not
+        touch any of the existing stats above.
+    --}}
+    @if(auth()->check())
+        <div class="container-fluid" style="padding: 20px 0 0;">
+            <h6 class="fw-bold text-secondary mb-2" style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;">
+                Cross-System Reference (Module 12)
+            </h6>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                @foreach(['renewal_active_not_renewed', 'leave_violation_counts', 'incident_counts_by_track', 'training_hours_delivered', 'lgu_service_requests_overdue', 'workforce_headcount_by_sex', 'workforce_pwd_count', 'workforce_solo_parent_count'] as $metricKey)
+                    <x-scoreboard-tile :metric-key="$metricKey" :compact="true" />
+                @endforeach
             </div>
         </div>
-    </div>
+    @endif
 
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Chart.js Library -->
+    <!-- Chart.js Library (not loaded by the shared layout) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-    <!-- Modal Control Scripts -->
     <script>
-        function openLogoutModal() {
-            document.getElementById('logoutModal').classList.add('active');
-        }
-
-        function closeLogoutModal() {
-            document.getElementById('logoutModal').classList.remove('active');
-        }
-
-        // Close modal when clicking outside the card
-        document.getElementById('logoutModal').addEventListener('click', function (event) {
-            if (event.target === this) {
-                closeLogoutModal();
-            }
-        });
-
         let myPieChart, myBarChart;
         // Initialize Pie Chart - Filled vs Vacant
         const pieCtx = document.getElementById('pieChart')?.getContext('2d');
@@ -2003,7 +1364,7 @@
                 new Chart(distCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Plantilla (Permanent)', 'Casual', 'Job Order'],
+                        labels: ['Plantilla (REGULAR)', 'Casual', 'Job Order'],
                         datasets: [{
                             data: [distData.permanent, distData.casual, distData.jobOrder],
                             backgroundColor: ['#10b981', '#3b82f6', '#f59e0b'],
@@ -2299,37 +1660,6 @@
                 }
             });
         }
-
-        function setTheme(theme) {
-            document.body.classList.remove('emerald-night', 'theme-financial', 'theme-corona');
-            if (theme !== 'default') {
-                document.body.classList.add(theme);
-            }
-            localStorage.setItem('app-theme', theme);
-            updateThemeToggleText(theme);
-
-            const isDark = theme === 'emerald-night' || theme === 'theme-corona';
-            window.dispatchEvent(new CustomEvent('theme-toggled', { detail: { isDark: isDark, themeName: theme } }));
-        }
-
-        function updateThemeToggleText(theme) {
-            const toggles = document.querySelectorAll('.theme-toggle span');
-            toggles.forEach(t => {
-                if (theme === 'emerald-night') t.innerText = ' Emerald Night';
-                else if (theme === 'theme-financial') t.innerText = ' Financial';
-                else if (theme === 'theme-corona') t.innerText = ' Corona Dark';
-                else t.innerText = ' Default Light';
-            });
-            const toggleIcons = document.querySelectorAll('.theme-toggle i');
-            toggleIcons.forEach(i => {
-                i.className = '';
-                if (theme === 'emerald-night') i.className = 'bi bi-moon-stars';
-                else if (theme === 'theme-financial') i.className = 'bi bi-graph-up-arrow';
-                else if (theme === 'theme-corona') i.className = 'bi bi-moon';
-                else i.className = 'bi bi-sun';
-            });
-        }
-
         // Listener for chart theme toggling
         window.addEventListener('theme-toggled', function (e) {
             const theme = e.detail.themeName;
@@ -2370,36 +1700,5 @@
                 myBarChart.update();
             }
         });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check legacy preference first
-            let savedTheme = localStorage.getItem('app-theme');
-            if (!savedTheme && localStorage.getItem('emerald-night') === '1') {
-                savedTheme = 'emerald-night';
-                localStorage.setItem('app-theme', 'emerald-night');
-                localStorage.removeItem('emerald-night');
-            }
-            if (savedTheme) {
-                setTheme(savedTheme);
-            } else {
-                setTheme('default');
-            }
-        });
-
-        function markNotificationsAsRead(button) {
-            const badge = button.querySelector('.notif-badge');
-            if (badge) {
-                badge.style.display = 'none';
-                fetch('{{ route("activity-logs.mark-read") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    }
-                }).catch(error => console.error('Error marking notifications as read:', error));
-            }
-        }
     </script>
-</body>
-
-</html>
+</x-dashboard-app>

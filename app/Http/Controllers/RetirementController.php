@@ -101,7 +101,7 @@ class RetirementController extends Controller
                     . "SG-{$plantilla->salary_grade} Step {$plantilla->step}. "
                     . "TIN: " . ($plantilla->tin ?? 'N/A') . '.';
 
-        $existing = $plantilla->comment_annotation;
+        $existing = $plantilla->remarks_annotation;
         $fullAnnotation = $existing
             ? $existing . "\n\n" . $annotation
             : $annotation;
@@ -117,7 +117,7 @@ class RetirementController extends Controller
             'tin'                => null,
             'gsis_bp_number'     => null,
             'umid'               => null,
-            'comment_annotation' => $fullAnnotation,
+            'remarks_annotation' => $fullAnnotation,
         ]);
 
         return back()->with('success',
@@ -143,9 +143,9 @@ class RetirementController extends Controller
         if ($search) {
             $term = '%' . $search . '%';
             $query->where(function ($q) use ($term) {
-                $q->where('organizational_unit', 'like', $term)
+                $q->where('office_department', 'like', $term)
                   ->orWhere('position_title', 'like', $term)
-                  ->orWhere('comment_annotation', 'like', $term);
+                  ->orWhere('remarks_annotation', 'like', $term);
             });
         }
 
@@ -170,7 +170,7 @@ class RetirementController extends Controller
     {
         $validated = $request->validate([
             'retired_at' => 'required|date',
-            'comment_annotation' => 'nullable|string'
+            'remarks_annotation' => 'nullable|string'
         ]);
 
         $plantilla->update($validated);
@@ -214,7 +214,7 @@ class RetirementController extends Controller
                         . "SG-{$plantilla->salary_grade} Step {$plantilla->step}. "
                         . "TIN: " . ($plantilla->tin ?? 'N/A') . '.';
 
-            $existing = $plantilla->comment_annotation;
+            $existing = $plantilla->remarks_annotation;
             $fullAnnotation = $existing ? $existing . "\n\n" . $annotation : $annotation;
 
             $plantilla->update([
@@ -228,7 +228,7 @@ class RetirementController extends Controller
                 'tin'                => null,
                 'gsis_bp_number'     => null,
                 'umid'               => null,
-                'comment_annotation' => $fullAnnotation,
+                'remarks_annotation' => $fullAnnotation,
             ]);
 
             $count++;
@@ -276,9 +276,9 @@ class RetirementController extends Controller
             $query  = PlantillaRecord::whereNotNull('retired_at')->orderBy('retired_at', 'desc');
             if ($search) {
                 $term = '%' . $search . '%';
-                $query->where(fn($q) => $q->where('organizational_unit', 'like', $term)
+                $query->where(fn($q) => $q->where('office_department', 'like', $term)
                     ->orWhere('position_title', 'like', $term)
-                    ->orWhere('comment_annotation', 'like', $term));
+                    ->orWhere('remarks_annotation', 'like', $term));
             }
             if ($year) {
                 $query->whereYear('retired_at', $year);

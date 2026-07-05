@@ -41,10 +41,10 @@
             <td>{{ $i + 1 }}</td>
             <td>
                 <span class="name">{{ $r->last_name }}, {{ $r->first_name }} {{ $r->middle_name ? strtoupper(substr($r->middle_name,0,1)).'.' : '' }}</span><br>
-                <span class="item">{{ $r->item }}</span>
+                <span class="item_no_new">{{ $r->item_no_new }}</span>
             </td>
             <td>{{ $r->indigenous_people === 'Y' || !$r->indigenous_people ? 'Unspecified' : $r->indigenous_people }}</td>
-            <td>{{ $r->organizational_unit }}</td>
+            <td>{{ $r->office_department }}</td>
             <td>{{ $r->position_title }}</td>
             <td>{{ strtoupper($r->employment_status ?? '—') }}</td>
             <td>{{ $r->salary_grade }}</td>

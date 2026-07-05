@@ -60,8 +60,8 @@
 <body>
 
 <div class="report-header">
-    <h1>HDMS- Human Resource Data Management System &mdash; Permanent Employees Report</h1>
-    <p>Permanent / Co-Terminous / Elected &mdash; {{ now()->format('F d, Y') }}</p>
+    <h1>HDMS- Human Resource Data Management System &mdash; REGULAR Employees Report</h1>
+    <p>REGULAR / Co-Terminous / Elected &mdash; {{ now()->format('F d, Y') }}</p>
 </div>
 
 <table class="meta-table">
@@ -76,17 +76,18 @@
     <thead>
         <tr>
             <th class="col-no">#</th>
-            @if(empty($columns) || in_array('organizational_unit', $columns))<th class="col-unit">ORG UNIT</th>@endif
-            @if(empty($columns) || in_array('item', $columns))<th class="col-item">ITEM</th>@endif
+            @if(empty($columns) || in_array('office_department', $columns))<th class="col-unit">ORG UNIT</th>@endif
+            @if(empty($columns) || in_array('item_no_new', $columns))<th class="col-item">ITEM</th>@endif
             @if(empty($columns) || in_array('position_title', $columns))<th class="col-pos">POSITION</th>@endif
             @if(empty($columns) || in_array('salary_grade', $columns))<th class="col-sg">SG</th>@endif
             @if(empty($columns) || in_array('step', $columns))<th class="col-stp">STP</th>@endif
-            @if(empty($columns) || in_array('actual_annual_salary', $columns))<th class="col-sal">ANN. SALARY</th>@endif
+            @if(empty($columns) || in_array('base_salary_amount', $columns))<th class="col-sal">ANN. SALARY</th>@endif
             @if(empty($columns) || in_array('last_name', $columns))<th class="col-nm">LAST NAME</th>@endif
             @if(empty($columns) || in_array('first_name', $columns))<th class="col-fn">FIRST NAME</th>@endif
             @if(empty($columns) || in_array('middle_name', $columns))<th class="col-mn">M.I.</th>@endif
+            @if(empty($columns) || in_array('name_extension', $columns))<th class="col-mn">SUFFIX</th>@endif
             @if(empty($columns) || in_array('sex', $columns))<th class="col-sx">SEX</th>@endif
-            @if(empty($columns) || in_array('date_of_birth', $columns))<th class="col-dob">BIRTHDATE</th>@endif
+            @if(empty($columns) || in_array('date_of_birth', $columns))<th class="col-dob">DATE OF BIRTH</th>@endif
             @if(empty($columns) || in_array('tin', $columns))<th class="col-tin">TIN</th>@endif
             @if(empty($columns) || in_array('date_original_appointment', $columns))<th class="col-dt">ORIG APPT</th>@endif
             @if(empty($columns) || in_array('date_last_promotion', $columns))<th class="col-dt">LAST PROMO</th>@endif
@@ -113,15 +114,16 @@
         @endphp
         <tr class="{{ $rc }}">
             <td class="col-no text-g">{{ $i + 1 }}</td>
-            @if(empty($columns) || in_array('organizational_unit', $columns))<td class="col-unit">{{ $r['organizational_unit'] }}</td>@endif
-            @if(empty($columns) || in_array('item', $columns))<td class="col-item">{{ $r['item'] ?: '—' }}</td>@endif
+            @if(empty($columns) || in_array('office_department', $columns))<td class="col-unit">{{ $r['office_department'] }}</td>@endif
+            @if(empty($columns) || in_array('item_no_new', $columns))<td class="col-item">{{ $r['item_no_new'] ?: '—' }}</td>@endif
             @if(empty($columns) || in_array('position_title', $columns))<td class="col-pos">{{ $r['position_title'] }}</td>@endif
             @if(empty($columns) || in_array('salary_grade', $columns))<td class="col-sg">{{ $r['salary_grade'] ? 'SG-'.$r['salary_grade'] : '—' }}</td>@endif
             @if(empty($columns) || in_array('step', $columns))<td class="col-stp">{{ $r['step'] ?: '—' }}</td>@endif
-            @if(empty($columns) || in_array('actual_annual_salary', $columns))<td class="col-sal">{{ $r['actual_annual_salary'] ? number_format($r['actual_annual_salary'],2) : '—' }}</td>@endif
+            @if(empty($columns) || in_array('base_salary_amount', $columns))<td class="col-sal">{{ $r['base_salary_amount'] ? number_format($r['base_salary_amount'],2) : '—' }}</td>@endif
             @if(empty($columns) || in_array('last_name', $columns))<td class="col-nm">{{ $vac ? 'VACANT' : strtoupper($r['last_name'] ?? '—') }}</td>@endif
             @if(empty($columns) || in_array('first_name', $columns))<td class="col-fn">{{ $r['first_name'] ?: '—' }}</td>@endif
             @if(empty($columns) || in_array('middle_name', $columns))<td class="col-mn">{{ $r['middle_name'] ?: '—' }}</td>@endif
+            @if(empty($columns) || in_array('name_extension', $columns))<td class="col-mn">{{ $r['name_extension'] ?: '—' }}</td>@endif
             @if(empty($columns) || in_array('sex', $columns))<td class="col-sx">{{ $r['sex'] ?: '—' }}</td>@endif
             @if(empty($columns) || in_array('date_of_birth', $columns))<td class="col-dob">{{ $dob }}</td>@endif
             @if(empty($columns) || in_array('tin', $columns))<td class="col-tin">{{ $r['tin'] ?: '—' }}</td>@endif

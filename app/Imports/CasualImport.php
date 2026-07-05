@@ -21,7 +21,7 @@ use Carbon\Carbon;
  *   Columns: OFFICE | ITEM OLD | ITEM NEW | POSITION | LAST NAME | FIRST NAME |
  *            MI | EXT | VACANT | SG CUR | STEP CUR | SALARY CUR |
  *            SG PROP | STEP PROP | SALARY PROP | INCREASE | PREV RATE |
- *            CUR RATE | GENDER | BIRTHDATE | FIRST DAY | ELIGIBILITY | REMARKS
+ *            CUR RATE | SEX | BIRTHDATE | FIRST DAY | ELIGIBILITY | REMARKS
  *
  * FORMAT B – Native Plantilla of Personnel Excel:
  *   Detects the "CASUAL" section header automatically.
@@ -44,19 +44,18 @@ class CasualImport implements ToCollection, WithStartRow
     /** Row where actual data starts (used only for simple format) */
     public function startRow(): int
     {
-        return 3; // Row 1 = title, Row 2 = headers, Row 3+ = data
+        return 1; // Don't skip automatically so we can detect format properly, we will skip inside the format import
     }
 
     public function collection(Collection $rows): void
     {
-        // ── Detect if this is a native Plantilla file ──────────────────────
-        // Plantilla files have "PLANTILLA" somewhere in the first few rows
         $this->format = $this->detectFormat($rows);
 
         if ($this->format === 'plantilla') {
             $this->importPlantillaFormat($rows);
         } else {
-            $this->importSimpleFormat($rows);
+            // Skip the first 8 rows for simple format (6 header rows + 1 title + 1 column headers)
+            $this->importSimpleFormat($rows->slice(8));
         }
     }
 
@@ -64,13 +63,13 @@ class CasualImport implements ToCollection, WithStartRow
 
     private function detectFormat(Collection $rows): string
     {
-        foreach ($rows->take(10) as $row) {
+        foreach ($rows->take(20) as $row) {
             $joined = strtoupper(implode(' ', $row->toArray()));
-            if (str_contains($joined, 'PLANTILLA') || str_contains($joined, 'PROVINCE') || str_contains($joined, 'BUKIDNON')) {
-                return 'plantilla';
+            if (str_contains($joined, 'ITEM OLD') && str_contains($joined, 'ITEM NEW')) {
+                return 'simple';
             }
         }
-        return 'simple';
+        return 'plantilla';
     }
 
     // ── SIMPLE TEMPLATE FORMAT ────────────────────────────────────────────
@@ -80,13 +79,13 @@ class CasualImport implements ToCollection, WithStartRow
      * 0=OFFICE, 1=ITEM_OLD, 2=ITEM_NEW, 3=POSITION, 4=LAST_NAME, 5=FIRST_NAME,
      * 6=MI, 7=EXT, 8=VACANT(Y), 9=SG_CUR, 10=STEP_CUR, 11=SALARY_CUR,
      * 12=SG_PROP, 13=STEP_PROP, 14=SALARY_PROP, 15=INCREASE,
-     * 16=PREV_RATE, 17=CUR_RATE, 18=GENDER, 19=BIRTHDATE,
+     * 16=PREV_RATE, 17=CUR_RATE, 18=SEX, 19=BIRTHDATE,
      * 20=FIRST_DAY, 21=ELIGIBILITY, 22=REMARKS
      */
     private function importSimpleFormat(Collection $rows): void
     {
         foreach ($rows as $rowIndex => $row) {
-            $actualRow = $rowIndex + 3;
+            $actualRow = $rowIndex + 1;
 
             $rowArr = $row->toArray();
             if (empty(array_filter($rowArr, fn($v) => $v !== null && $v !== ''))) {
@@ -106,28 +105,22 @@ class CasualImport implements ToCollection, WithStartRow
 
             try {
                 $casualData = [
-                    'office'               => $office,
-                    'item_no_old'          => $this->str($row, 1),
-                    'item_no_new'          => $this->str($row, 2),
-                    'position_title'       => $this->str($row, 3),
-                    'last_name'            => $isVacant ? null : $lastName,
-                    'first_name'           => $isVacant ? null : $this->str($row, 5),
-                    'middle_initial'       => $isVacant ? null : $this->str($row, 6),
-                    'name_extension'       => $isVacant ? null : $this->str($row, 7),
-                    'is_vacant'            => $isVacant,
-                    'sg_current'           => $this->int($row, 9),
-                    'step_current'         => $this->int($row, 10),
-                    'salary_current'       => $this->numeric($row, 11),
-                    'sg_proposed'          => $this->int($row, 12),
-                    'step_proposed'        => $this->int($row, 13),
-                    'salary_proposed'      => $this->numeric($row, 14),
-                    'increase_decrease'    => $this->numeric($row, 15),
-                    'previous_rate'        => $this->numeric($row, 16),
-                    'current_rate'         => $this->numeric($row, 17),
-                    'gender'               => $this->gender($row, 18),
-                    'birthdate'            => $this->date($row, 19),
-                    'first_day_of_service' => $this->date($row, 20),
-                    'eligibility'          => $this->str($row, 21),
+                    'office_department'       => $office,
+                    'item_no_new'                      => $this->str($row, 2) ?? $this->str($row, 1),
+                    'position_title'            => $this->str($row, 3),
+                    'last_name'                 => $isVacant ? null : $lastName,
+                    'first_name'                => $isVacant ? null : $this->str($row, 5),
+                    'middle_name'               => $isVacant ? null : $this->str($row, 6),
+                    'name_extension'            => $isVacant ? null : $this->str($row, 7),
+                    'is_vacant'                 => $isVacant,
+                    'salary_grade'              => $this->int($row, 9),
+                    'step'                      => $this->int($row, 10),
+                    'authorized_annual_salary'  => $this->numeric($row, 11),
+                    'base_salary_amount'      => $this->numeric($row, 14),
+                    'sex'                       => $this->sex($row, 18),
+                    'date_of_birth'             => $this->date($row, 19),
+                    'date_original_appointment' => $this->date($row, 20),
+                    'civil_service_eligibility' => $this->str($row, 21),
                 ];
 
                 if ($isVacant || empty($casualData['first_name'])) {
@@ -147,12 +140,7 @@ class CasualImport implements ToCollection, WithStartRow
                     }
                 }
 
-                $plantillaId = $this->syncToAllData($casual, $office);
-
                 $this->createdCasualIds[]    = $casual->id;
-                if ($plantillaId) {
-                    $this->createdPlantillaIds[] = $plantillaId;
-                }
                 $this->imported++;
 
             } catch (\Throwable $e) {
@@ -244,24 +232,18 @@ class CasualImport implements ToCollection, WithStartRow
 
             try {
                 $casualData = [
-                    'office'               => $currentOffice,
-                    'item_no_old'          => $itemOld,
-                    'item_no_new'          => $itemNew,
-                    'position_title'       => $positionTitle,
-                    'is_vacant'            => $isVacant,
-                    'last_name'            => $lastName,
-                    'first_name'           => $firstName,
-                    'middle_initial'       => $mi,
-                    'name_extension'       => $ext,
-                    'sg_current'           => $sgCur,
-                    'step_current'         => $stepCur,
-                    'salary_current'       => $salaryCur,
-                    'sg_proposed'          => $sgProp,
-                    'step_proposed'        => $stepProp,
-                    'salary_proposed'      => $salaryProp,
-                    'increase_decrease'    => $increaseDec,
-                    'previous_rate'        => $prevRate,
-                    'current_rate'         => $curRate,
+                    'office_department'       => $currentOffice,
+                    'item_no_new'                      => $itemNew ?? $itemOld,
+                    'position_title'            => $positionTitle,
+                    'is_vacant'                 => $isVacant,
+                    'last_name'                 => $lastName,
+                    'first_name'                => $firstName,
+                    'middle_name'               => $mi,
+                    'name_extension'            => $ext,
+                    'salary_grade'              => $sgCur,
+                    'step'                      => $stepCur,
+                    'authorized_annual_salary'  => $salaryCur,
+                    'base_salary_amount'      => $salaryProp,
                 ];
 
                 if ($isVacant || empty($firstName) || empty($lastName)) {
@@ -281,12 +263,6 @@ class CasualImport implements ToCollection, WithStartRow
                     }
                 }
 
-                $plantillaId = $this->syncToAllData($casual, $currentOffice);
-
-                $this->createdCasualIds[]    = $casual->id;
-                if ($plantillaId) {
-                    $this->createdPlantillaIds[] = $plantillaId;
-                }
                 $this->imported++;
 
             } catch (\Throwable $e) {
@@ -295,55 +271,7 @@ class CasualImport implements ToCollection, WithStartRow
         }
     }
 
-    // ── SYNC TO ALL DATA ─────────────────────────────────────────────────
 
-    private function syncToAllData(CasualEmployee $casual, ?string $office): ?int
-    {
-        try {
-            $prData = [
-                'organizational_unit'       => $office,
-                'last_name'                 => $casual->last_name,
-                'first_name'                => $casual->first_name,
-                'middle_name'               => $casual->middle_initial,
-                'position_title'            => $casual->position_title,
-                'salary_grade'              => $casual->sg_current,
-                'step'                      => $casual->step_current,
-                'authorized_annual_salary'  => $casual->salary_current,
-                'actual_annual_salary'      => $casual->salary_current,
-                'sex'                       => $casual->gender,
-                'date_of_birth'             => $casual->birthdate ? $casual->birthdate->format('Y-m-d') : null,
-                'date_original_appointment' => $casual->first_day_of_service ? $casual->first_day_of_service->format('Y-m-d') : null,
-                'civil_service_eligibility' => $casual->eligibility,
-                'employment_status'         => 'Casual',
-                'is_vacant'                 => $casual->is_vacant,
-                'item'                      => $casual->item_no_new ?? $casual->item_no_old,
-                'nature_of_separation'      => null,
-                'date_separated'            => null,
-            ];
-
-            if ($casual->is_vacant || empty($casual->first_name) || empty($casual->last_name)) {
-                $pr = PlantillaRecord::create($prData);
-                return $pr->id;
-            }
-
-            $existingPr = PlantillaRecord::withTrashed()
-                ->where('first_name', $casual->first_name)
-                ->where('last_name', $casual->last_name)
-                ->first();
-
-            if ($existingPr) {
-                if ($existingPr->trashed()) $existingPr->restore();
-                $existingPr->update(array_filter($prData, fn($v) => $v !== null));
-                return $existingPr->id;
-            } else {
-                $pr = PlantillaRecord::create($prData);
-                return $pr->id;
-            }
-        } catch (\Throwable) {
-            // Sync failure is non-fatal — the casual record still saves.
-            return null;
-        }
-    }
 
     // ── HELPERS ───────────────────────────────────────────────────────────
 

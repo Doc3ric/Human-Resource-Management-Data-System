@@ -23,14 +23,14 @@
             <div style="background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
 
                 <div style="margin-bottom: 20px;">
-                    <label for="organizational_unit" style="display:block; font-weight: 600; color: #334155; margin-bottom: 8px;">Office / Organizational Unit <span style="color:#ef4444;">*</span></label>
-                    <input type="text" name="organizational_unit" id="organizational_unit" list="office_list" class="form-control" required placeholder="Type or select an Office" style="width: 100%; border-radius: 8px; padding: 10px; border: 1px solid #cbd5e1;">
+                    <label for="office_department" style="display:block; font-weight: 600; color: #334155; margin-bottom: 8px;">Office / OFFICE <span style="color:#ef4444;">*</span></label>
+                    <input type="text" name="office_department" id="office_department" list="office_list" class="form-control" required placeholder="Type or select an Office" style="width: 100%; border-radius: 8px; padding: 10px; border: 1px solid #cbd5e1;">
                     <datalist id="office_list">
                         @foreach($offices as $office)
                             <option value="{{ $office }}"></option>
                         @endforeach
                     </datalist>
-                    @error('organizational_unit')
+                    @error('office_department')
                         <div style="color: #ef4444; font-size: 12px; margin-top: 4px;">{{ $message }}</div>
                     @enderror
                 </div>
@@ -45,9 +45,9 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
                     <div>
-                        <label for="item" style="display:block; font-weight: 600; color: #334155; margin-bottom: 8px;">Item Number <span style="color:#ef4444;">*</span></label>
-                        <input type="text" name="item" id="item" class="form-control" required placeholder="e.g. 102-1" style="width: 100%; border-radius: 8px; padding: 10px; border: 1px solid #cbd5e1;">
-                        @error('item')
+                        <label for="item_no_new" style="display:block; font-weight: 600; color: #334155; margin-bottom: 8px;">Item Number <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="item_no_new" id="item_no_new" class="form-control" required placeholder="e.g. 102-1" style="width: 100%; border-radius: 8px; padding: 10px; border: 1px solid #cbd5e1;">
+                        @error('item_no_new')
                             <div style="color: #ef4444; font-size: 12px; margin-top: 4px;">{{ $message }}</div>
                         @enderror
                     </div>

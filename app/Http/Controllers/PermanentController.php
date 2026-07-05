@@ -21,9 +21,13 @@ class PermanentController extends Controller
      */
     public function index(Request $request)
     {
+        session(['last_index_url' => request()->fullUrl()]);
+
+
         $query = PlantillaRecord::whereIn('employment_status', self::STATUSES)
             ->where('is_vacant', false)
-            ->orderBy('organizational_unit')
+            ->whereNull('nature_of_separation')
+            ->orderBy('office_department')
             ->orderBy('last_name');
 
         if ($request->filled('search')) {
@@ -32,18 +36,27 @@ class PermanentController extends Controller
                 $q->where('last_name',        'like', "%{$term}%")
                   ->orWhere('first_name',     'like', "%{$term}%")
                   ->orWhere('position_title', 'like', "%{$term}%")
-                  ->orWhere('item',           'like', "%{$term}%")
-                  ->orWhere('organizational_unit', 'like', "%{$term}%");
+                  ->orWhere('item_no_new',           'like', "%{$term}%")
+                  ->orWhere('office_department', 'like', "%{$term}%");
             });
         }
 
         if ($request->filled('office')) {
-            $query->where('organizational_unit', 'like', '%' . $request->input('office') . '%');
+            $query->where('office_department', 'like', '%' . $request->input('office') . '%');
         }
 
         if ($request->filled('status')) {
             $status = $request->input('status');
             $query->where('employment_status', $status);
+        }
+
+        if ($request->filled('position')) {
+            $query->where('position_title', $request->input('position'));
+        }
+
+        if ($request->filled('detailed_unit')) {
+            // Usually office_department is the only column for office here, 
+            // but we can query it or simply ignore if not applicable
         }
 
         if ($request->filled('sex')) {
@@ -55,11 +68,15 @@ class PermanentController extends Controller
         $femaleCount = (clone $query)->where('sex', 'F')->count();
         $vacantCount = (clone $query)->where('is_vacant', true)->count();
         
-        $records = $query->paginate(50)->withQueryString();
+        $perPage = $request->input('per_page', 50);
+        $records = $query->paginate($perPage)->withQueryString();
 
         $offices = PlantillaRecord::whereIn('employment_status', self::STATUSES)
-            ->distinct()->orderBy('organizational_unit')
-            ->pluck('organizational_unit')->filter()->values();
+            ->distinct()->orderBy('office_department')
+            ->pluck('office_department')->filter()->values();
+            
+        $positions = PlantillaRecord::whereIn('employment_status', self::STATUSES)
+            ->distinct()->pluck('position_title')->filter()->map(fn($v) => trim($v))->unique()->sortBy(fn($v) => strtolower($v))->values();
 
         return view('permanent.index', compact(
             'records',
@@ -67,7 +84,8 @@ class PermanentController extends Controller
             'maleCount',
             'femaleCount',
             'vacantCount',
-            'offices'
+            'offices',
+            'positions'
         ));
     }
 
@@ -76,7 +94,7 @@ class PermanentController extends Controller
     public function exportExcel(Request $request)
     {
         // Force status filter to only permanent statuses
-        $filters = $request->only(['search', 'office', 'sex', 'vacant']);
+        $filters = $request->only(['search', 'office', 'sex', 'vacant', 'status_filter']);
         $filters['statuses'] = self::STATUSES; // passed as extra; AllDataExport uses 'status' key
         // We'll use a custom query via AllDataExport with a pre-set permanent filter
         $columns  = $request->input('columns', []);
@@ -108,19 +126,24 @@ class PermanentController extends Controller
         // Only select the columns actually needed for the PDF — avoids loading
         // all 40+ model attributes into memory for each of 2,400+ records
         $dbColumns = [
-            'id', 'organizational_unit', 'item', 'position_title',
-            'salary_grade', 'step', 'actual_annual_salary',
+            'id', 'office_department', 'item_no_new', 'position_title',
+            'salary_grade', 'step', 'base_salary_amount',
             'last_name', 'first_name', 'middle_name', 'sex',
             'date_of_birth', 'tin', 'date_original_appointment',
             'date_last_promotion', 'civil_service_eligibility',
             'employment_status', 'is_vacant',
         ];
 
+        $statusFilter = $request->input('status_filter', 'active');
+
         $query = PlantillaRecord::select($dbColumns)
             ->whereIn('employment_status', self::STATUSES)
             ->where('is_vacant', false)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('last_name');
+
+        if ($statusFilter === 'active')       $query->whereNull('nature_of_separation');
+        elseif ($statusFilter === 'inactive') $query->whereNotNull('nature_of_separation');
 
         if ($request->filled('search')) {
             $term = $request->input('search');
@@ -128,12 +151,12 @@ class PermanentController extends Controller
                 $q->where('last_name',             'like', "%{$term}%")
                   ->orWhere('first_name',           'like', "%{$term}%")
                   ->orWhere('position_title',       'like', "%{$term}%")
-                  ->orWhere('item',                 'like', "%{$term}%")
-                  ->orWhere('organizational_unit',  'like', "%{$term}%");
+                  ->orWhere('item_no_new',                 'like', "%{$term}%")
+                  ->orWhere('office_department',  'like', "%{$term}%");
             });
         }
         if ($request->filled('office')) {
-            $query->where('organizational_unit', 'like', '%' . $request->input('office') . '%');
+            $query->where('office_department', 'like', '%' . $request->input('office') . '%');
         }
         if ($request->filled('sex')) {
             $query->where('sex', $request->input('sex'));
@@ -185,7 +208,7 @@ class PermanentController extends Controller
             'description' => "Permanently wiped {$count} Permanent/CT/Elected PlantillaRecord entries.",
         ]);
 
-        return redirect()->route('permanent.index')
+        return redirect(session('last_index_url', route('permanent.index')))
             ->with('success', "All {$count} Permanent/CT/Elected record(s) have been permanently deleted.");
     }
 }

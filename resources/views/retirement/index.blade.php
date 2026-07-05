@@ -131,6 +131,29 @@
     </div>
 </div>
 
+{{-- Retirement stats with compliance analysis --}}
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+    <x-stat-card icon="bi-alarm-fill" color="red" label="Overdue Retirement" :value="$stats['overdue']"
+        :alert="$stats['overdue'] > 0"
+        compliance="RA 8291 / CSC"
+        analysis="{{ $stats['overdue'] > 0 ? $stats['overdue'].' employee(s) have already reached age 65. Compulsory retirement MUST be processed immediately per RA 8291 (GSIS Act) and CSC MC 27, s.2001. Delay may result in unauthorized GSIS contributions.' : 'No overdue retirements. All age-65 cases have been processed per RA 8291 (GSIS Act).' }}" />
+
+    <x-stat-card icon="bi-clock-history" color="orange" label="Near Retirement" :value="$stats['near']"
+        sub="Will reach 65 within 12 months"
+        compliance="RA 8291 / GSIS"
+        analysis="Employees turning 65 within the year. Prepare retirement papers at least 6 months in advance per GSIS guidelines. Notify employee and HR of upcoming separation." />
+
+    <x-stat-card icon="bi-person-check-fill" color="yellow" label="Optional (Age 60–64)" :value="$stats['optional']"
+        sub="May opt to retire"
+        compliance="RA 8291 §13-B"
+        analysis="Employees aged 60–64 with at least 15 years of service may apply for optional retirement under RA 8291 §13-B. HR must counsel and compute projected benefits." />
+
+    <x-stat-card icon="bi-check2-circle" color="green" label="Processed Retirements" :value="$stats['total_processed']"
+        sub="Vacated retirement items"
+        compliance="DBM / GSIS"
+        analysis="Successfully vacated retirement positions. Vacant items must be reported to DBM within 30 days. GSIS separation benefits are computed based on years of service and final salary." />
+</div>
+
 @if(session('success'))
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -221,7 +244,7 @@
                 <tr>
                     <td>
                         <span class="emp-name">{{ $r->last_name }}, {{ $r->first_name }}</span>
-                        <span class="emp-item">{{ $r->item }}</span>
+                        <span class="emp-item">{{ $r->item_no_new }}</span>
                     </td>
                     <td>
                         <span class="age-badge age-overdue">{{ $r->age }} yrs</span>
@@ -230,7 +253,7 @@
                     </td>
                     <td>
                         <div class="pos-title">{{ $r->position_title }}</div>
-                        <div class="pos-office">{{ $r->organizational_unit }}</div>
+                        <div class="pos-office">{{ $r->office_department }}</div>
                     </td>
                     <td>SG-{{ $r->salary_grade }} (Step {{ $r->step }})</td>
                     <td>
@@ -284,7 +307,7 @@
                 <tr>
                     <td>
                         <span class="emp-name">{{ $r->last_name }}, {{ $r->first_name }}</span>
-                        <span class="emp-item">{{ $r->item }}</span>
+                        <span class="emp-item">{{ $r->item_no_new }}</span>
                     </td>
                     <td>
                         <span class="age-badge age-near">{{ $r->age }} yrs</span>
@@ -301,7 +324,7 @@
                     </td>
                     <td>
                         <div class="pos-title">{{ $r->position_title }}</div>
-                        <div class="pos-office">{{ $r->organizational_unit }}</div>
+                        <div class="pos-office">{{ $r->office_department }}</div>
                     </td>
                     <td>SG-{{ $r->salary_grade }}</td>
                 </tr>
@@ -349,7 +372,7 @@
                 <tr>
                     <td>
                         <span class="emp-name">{{ $r->last_name }}, {{ $r->first_name }}</span>
-                        <span class="emp-item">{{ $r->item }}</span>
+                        <span class="emp-item">{{ $r->item_no_new }}</span>
                     </td>
                     <td>
                         <span class="age-badge" style="background:#fef3c7; color:#d97706;">{{ $r->age }} yrs</span>
@@ -358,7 +381,7 @@
                     </td>
                     <td>
                         <div class="pos-title">{{ $r->position_title }}</div>
-                        <div class="pos-office">{{ $r->organizational_unit }}</div>
+                        <div class="pos-office">{{ $r->office_department }}</div>
                     </td>
                     <td>SG-{{ $r->salary_grade }} (Step {{ $r->step }})</td>
                     <td>

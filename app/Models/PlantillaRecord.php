@@ -16,12 +16,14 @@ class PlantillaRecord extends Model
     protected $table = 'plantilla_records';
 
     protected $fillable = [
-        'organizational_unit',
-        'item',
+        'office_department',
+        'detailed_unit',
+        'item_no_new',
         'position_title',
         'salary_grade',
         'authorized_annual_salary',
-        'actual_annual_salary',
+        'base_salary_amount',
+        'salary_type',
         'step',
         'area_code',
         'area_type',
@@ -34,11 +36,17 @@ class PlantillaRecord extends Model
         'date_of_birth',
         'tin',
         'date_original_appointment',
+        'date_original_appt_casual',
         'date_last_promotion',
         'date_last_nolp',
         'employment_status',
+        'is_renewed',
+        'renewal_period',
+        'lifecycle_status',
+        'lifecycle_effective_date',
+        'lifecycle_basis',
         'civil_service_eligibility',
-        'comment_annotation',
+        'remarks_annotation',
         'is_pwd',
         'type_of_disability',
         'indigenous_people',
@@ -64,6 +72,12 @@ class PlantillaRecord extends Model
         'date_separated',
         'loyalty_dismissed_at',
         'employee_code',
+        'name_extension', 'nature_of_work', 'nature_of_work_detail',
+        'first_day_of_service', 'civil_status', 'address',
+        'first_level_eligibility', 'second_level_eligibility', 'reemployment',
+        'item_no_old', 'legislative_district', 'sg_proposed', 'step_proposed',
+        'salary_proposed', 'increase_decrease', 'previous_rate',
+        'spms_rating', 'office_code',
     ];
 
     protected $casts = [
@@ -72,19 +86,27 @@ class PlantillaRecord extends Model
         'date_last_promotion' => 'date',
         'date_last_nolp' => 'date',
         'retired_at' => 'date',
+        'first_day_of_service' => 'date',
         'is_pwd' => 'boolean',
+        'is_renewed' => 'boolean',
+        'lifecycle_effective_date' => 'date',
         'abolished' => 'boolean',
         'dissolved' => 'boolean',
         'is_vacant' => 'boolean',
         'is_apprehended' => 'boolean',
         'is_admin_charge' => 'boolean',
         'is_health_worker' => 'boolean',
+        'first_level_eligibility' => 'boolean',
+        'second_level_eligibility' => 'boolean',
+        'reemployment' => 'boolean',
+        'admin_charges' => 'array',
         'apprehended_from' => 'date',
         'admin_charge_from' => 'date',
         'admin_charge_to' => 'date',
         'admin_charges' => 'array',
         'authorized_annual_salary' => 'decimal:2',
-        'actual_annual_salary' => 'decimal:2',
+        'base_salary_amount' => 'decimal:2',
+        'spms_rating' => 'decimal:2',
         'date_separated' => 'date',
         'lwop' => 'integer',
         'loyalty_dismissed_at' => 'datetime',
@@ -100,37 +122,84 @@ class PlantillaRecord extends Model
     }
 
     /**
-     * Generate a unique employee code: DDMMYYYY + first letter of last name (uppercase).
-     * If the base code already exists in this table, a numeric suffix is appended
-     * (e.g. 01021980S → 01021980S2 → 01021980S3) until a free slot is found.
-     * Returns null if either argument is missing.
+     * Generate a unique employee code: DDMMYYYY + first letter of First Name.
+     * Collision resolution (in order):
+     *   1. DDMMYYYY + F
+     *   2. DDMMYYYY + F + first letter of Middle Name
+     *   3. DDMMYYYY + F + M + first letter of Last Name
+     *   4. Numeric suffix on #3 (e.g. 15081978CLC2) if all three are taken.
      *
      * @param int|null $excludeId  Exclude this record's own ID when checking (for updates).
      */
-    public static function generateEmployeeCode(?string $lastName, mixed $dob, ?int $excludeId = null): ?string
-    {
-        if (empty($lastName) || empty($dob)) {
+    public static function generateEmployeeCode(
+        ?string $firstName,
+        mixed   $dob,
+        ?int    $excludeId = null,
+        ?string $middleName = null,
+        ?string $lastName   = null
+    ): ?string {
+        if (empty($firstName) || empty($dob)) {
             return null;
         }
         try {
-            $date    = \Carbon\Carbon::parse($dob);
-            $initial = strtoupper(substr(trim($lastName), 0, 1));
-            $base    = $date->format('dmY') . $initial;
+            $date   = \Carbon\Carbon::parse($dob);
+            $prefix = $date->format('dmY');
+            $f      = strtoupper(substr(trim($firstName), 0, 1));
+            $m      = $middleName ? strtoupper(substr(trim($middleName), 0, 1)) : '';
+            $l      = $lastName   ? strtoupper(substr(trim($lastName),   0, 1)) : '';
 
-            $candidate = $base;
-            $suffix    = 2;
-            $query = static::withTrashed(); // check soft-deleted rows too
-            while ($query->clone()->where('employee_code', $candidate)
-                         ->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))
-                         ->exists()) {
+            // Build candidates in priority order, skipping empty combinations
+            $candidates = array_values(array_unique(array_filter([
+                $prefix . $f,
+                $m !== '' ? $prefix . $f . $m         : null,
+                $m !== '' && $l !== '' ? $prefix . $f . $m . $l : null,
+            ])));
+
+            $query = static::withTrashed();
+            foreach ($candidates as $candidate) {
+                if (!$query->clone()->where('employee_code', $candidate)
+                           ->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))
+                           ->exists()) {
+                    return $candidate;
+                }
+            }
+
+            // All letter-based candidates taken — numeric suffix on the longest one
+            $base   = end($candidates);
+            $suffix = 2;
+            do {
                 $candidate = $base . $suffix;
                 $suffix++;
-            }
+            } while ($query->clone()->where('employee_code', $candidate)
+                           ->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))
+                           ->exists());
 
             return $candidate;
         } catch (\Exception) {
             return null;
         }
+    }
+
+    // ── Mutators (Dynamic Reference Management) ──────────────────────────────
+
+    public function setPositionTitleAttribute($value)
+    {
+        $this->attributes['position_title'] = empty($value) ? null : strtoupper(trim($value));
+    }
+
+    public function setOrganizationalUnitAttribute($value)
+    {
+        $this->attributes['office_department'] = empty($value) ? null : strtoupper(trim($value));
+    }
+
+    public function setChargesAttribute($value)
+    {
+        $this->attributes['office_department'] = empty($value) ? null : strtoupper(trim($value));
+    }
+
+    public function setNatureOfWorkDetailAttribute($value)
+    {
+        $this->attributes['nature_of_work_detail'] = empty($value) ? null : strtoupper(trim($value));
     }
 
     // ── Accessors ────────────────────────────────────────────────────────────
@@ -156,17 +225,28 @@ class PlantillaRecord extends Model
     {
         if (!$this->date_original_appointment)
             return 0;
-        return $this->date_original_appointment->diffInYears(now());
+        return (int) $this->date_original_appointment->diffInYears(now());
     }
+
+    public function getMonthsOfServiceAttribute(): int
+    {
+        if (!$this->date_original_appointment) return 0;
+        $years = $this->years_of_service;
+        return (int) $this->date_original_appointment->copy()->addYears($years)->diffInMonths(now());
+    }
+
+    // Removed backwards compatibility accessors based on normalization plan
+
+    // ── Helper ──────────────────────────────────────────────────────────────
 
     /**
      * Determine if employee belongs to a Hospital or Medical organizational unit.
      */
     public function getIsHospitalPersonnelAttribute(): bool
     {
-        if (empty($this->organizational_unit))
+        if (empty($this->office_department))
             return false;
-        $ou = strtoupper($this->organizational_unit);
+        $ou = strtoupper($this->office_department);
         return str_contains($ou, 'BPH') || str_contains($ou, 'HEALTH') || str_contains($ou, 'MEDICAL') || str_contains($ou, 'HOSPITAL');
     }
 
@@ -261,11 +341,11 @@ class PlantillaRecord extends Model
     }
 
     /**
-     * Formatted monthly salary (actual_annual_salary / 12).
+     * Formatted monthly salary (base_salary_amount / 12).
      */
     public function getMonthlySalaryAttribute(): float
     {
-        return round($this->actual_annual_salary / 12, 2);
+        return round($this->base_salary_amount / 12, 2);
     }
 
     /**
@@ -307,11 +387,25 @@ class PlantillaRecord extends Model
 
     // ── Scopes ───────────────────────────────────────────────────────────────
 
+    /** Casual/JO/contractual employment_status values the renewal gate applies to (Module 1.1). */
+    public const RENEWAL_GATED_STATUSES = ['CASUAL', 'Casual', 'Cas', 'C', 'JO', 'Job Order', 'J.O.', 'J'];
+
     public function scopeFilled($query)
     {
         return $query->where('is_vacant', false)
             ->where('abolished', false)
-            ->whereNull('nature_of_separation');
+            ->whereNull('nature_of_separation')
+            // Module 1B.1/1B.2 — only lifecycle_status=ACTIVE is "active for
+            // reporting"; separated/retired/terminated/etc. never appear in
+            // live queries even if not yet formally archived.
+            ->where('lifecycle_status', 'ACTIVE')
+            // Module 1.1 — casual/JO/contractual personnel excluded from live
+            // reporting queries when not renewed for the active period.
+            // Permanent/other statuses are untouched by this flag.
+            ->where(function ($q) {
+                $q->whereNotIn('employment_status', self::RENEWAL_GATED_STATUSES)
+                  ->orWhere('is_renewed', true);
+            });
     }
 
     /** Only vacant records */
@@ -335,7 +429,7 @@ class PlantillaRecord extends Model
     /** Filter by organizational unit (partial match) */
     public function scopeByOffice($query, string $office)
     {
-        return $query->where('organizational_unit', 'like', "%{$office}%");
+        return $query->where('office_department', 'like', "%{$office}%");
     }
 
     /** Employees overdue for compulsory retirement (age >= 65, not yet vacated) */
@@ -378,10 +472,10 @@ class PlantillaRecord extends Model
                 $threeYearsAgo = now()->subYears(3);
                 $q->where(function ($nosiQuery) use ($threeYearsAgo) {
                     $nosiQuery->where(function ($sub) {
-                        $sub->where('organizational_unit', 'not like', '%BPH%')
-                            ->where('organizational_unit', 'not like', '%HEALTH%')
-                            ->where('organizational_unit', 'not like', '%MEDICAL%')
-                            ->where('organizational_unit', 'not like', '%HOSPITAL%');
+                        $sub->where('office_department', 'not like', '%BPH%')
+                            ->where('office_department', 'not like', '%HEALTH%')
+                            ->where('office_department', 'not like', '%MEDICAL%')
+                            ->where('office_department', 'not like', '%HOSPITAL%');
                     })->where(function ($q2) use ($threeYearsAgo) {
                         $q2->where(function ($q3) use ($threeYearsAgo) {
                             $q3->whereNotNull('date_last_promotion')
@@ -397,10 +491,10 @@ class PlantillaRecord extends Model
                 $fiveYearsAgo = now()->subYears(5);
                 $q->orWhere(function ($nolpQuery) use ($fiveYearsAgo) {
                     $nolpQuery->where(function ($sub) {
-                        $sub->where('organizational_unit', 'like', '%BPH%')
-                            ->orWhere('organizational_unit', 'like', '%HEALTH%')
-                            ->orWhere('organizational_unit', 'like', '%MEDICAL%')
-                            ->orWhere('organizational_unit', 'like', '%HOSPITAL%');
+                        $sub->where('office_department', 'like', '%BPH%')
+                            ->orWhere('office_department', 'like', '%HEALTH%')
+                            ->orWhere('office_department', 'like', '%MEDICAL%')
+                            ->orWhere('office_department', 'like', '%HOSPITAL%');
                     })->where(function ($q2) use ($fiveYearsAgo) {
                         $q2->where(function ($q3) use ($fiveYearsAgo) {
                             $q3->whereNotNull('date_last_nolp')
@@ -432,5 +526,20 @@ class PlantillaRecord extends Model
     public function attachments()
     {
         return $this->hasMany(EmployeeAttachment::class);
+    }
+
+    public function contractRenewals()
+    {
+        return $this->hasMany(\App\Models\ContractRenewal::class);
+    }
+
+    public function latestRenewal()
+    {
+        return $this->hasOne(\App\Models\ContractRenewal::class)->latestOfMany();
+    }
+
+    public function ipcrRatings()
+    {
+        return $this->hasMany(\App\Models\IpcrRating::class, 'plantilla_record_id');
     }
 }

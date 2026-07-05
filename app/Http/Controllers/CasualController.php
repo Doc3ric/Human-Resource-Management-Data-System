@@ -22,7 +22,10 @@ class CasualController extends Controller
      */
     public function index(Request $request)
     {
-        $query = CasualEmployee::query()->where('is_vacant', false)->orderBy('office')->orderBy('last_name');
+        session(['last_index_url' => request()->fullUrl()]);
+
+
+        $query = CasualEmployee::query()->where('is_vacant', false)->whereNull('nature_of_separation')->orderBy('office_department')->orderBy('last_name');
 
         if ($request->filled('search')) {
             $query->search($request->input('search'));
@@ -30,28 +33,40 @@ class CasualController extends Controller
         if ($request->filled('office')) {
             $query->byOffice($request->input('office'));
         }
-        if ($request->filled('gender')) {
-            $query->byGender($request->input('gender'));
+        if ($request->filled('sex')) {
+            $query->where('sex', strtoupper($request->input('sex')));
+        }
+        if ($request->filled('position')) {
+            $query->where('position_title', $request->input('position'));
         }
         if ($request->filled('detail')) {
-            $query->where('annotation', 'like', '%' . $request->input('detail') . '%');
+            $query->where('remarks_annotation', 'like', '%' . $request->input('detail') . '%');
         }
 
         $total = (clone $query)->count();
-        $maleCount = (clone $query)->where('gender', 'M')->count();
-        $femaleCount = (clone $query)->where('gender', 'F')->count();
+        $maleCount = (clone $query)->where('sex', 'M')->count();
+        $femaleCount = (clone $query)->where('sex', 'F')->count();
         $vacantCount = (clone $query)->where('is_vacant', true)->count();
+        
+        $activeCount = (clone $query)->where('is_vacant', false)
+            ->whereNotNull('position_title')
+            ->where(function($q) {
+                $q->where(function($sub) { $sub->whereNotNull('last_name')->where('last_name', '!=', ''); })
+                  ->orWhere(function($sub) { $sub->whereNotNull('first_name')->where('first_name', '!=', ''); });
+            })->count();
 
-        $byOffice = (clone $query)->reorder()->select('office', \DB::raw('count(*) as count'))
-            ->groupBy('office')
-            ->pluck('count', 'office')
+        $byOffice = (clone $query)->reorder()->select('office_department', \DB::raw('count(*) as count'))
+            ->groupBy('office_department')
+            ->pluck('count', 'office_department')
             ->sortKeys();
-            
-        $records = $query->paginate(50)->withQueryString();
+        $perPageInput = $request->input('per_page', 50);
+        $perPage = $perPageInput === 'all' ? max(1, $total) : (int) $perPageInput;
+        $records = $query->paginate($perPage)->withQueryString();
 
         // Filter options
-        $offices    = CasualEmployee::distinct()->orderBy('office')->pluck('office')->filter()->values();
-        $detailList = CasualEmployee::where('is_vacant', false)->distinct()->orderBy('annotation')->pluck('annotation')->filter()->values();
+        $offices    = CasualEmployee::distinct()->orderBy('office_department')->pluck('office_department')->filter()->values();
+        $detailList = CasualEmployee::where('is_vacant', false)->distinct()->orderBy('remarks_annotation')->pluck('remarks_annotation')->filter()->values();
+        $positions  = CasualEmployee::distinct()->pluck('position_title')->filter()->map(fn($v) => trim($v))->unique()->sortBy(fn($v) => strtolower($v))->values();
 
         return view('casual.index', compact(
             'records',
@@ -59,9 +74,11 @@ class CasualController extends Controller
             'maleCount',
             'femaleCount',
             'vacantCount',
+            'activeCount',
             'byOffice',
             'offices',
-            'detailList'
+            'detailList',
+            'positions'
         ));
     }
 
@@ -70,7 +87,7 @@ class CasualController extends Controller
      */
     public function create()
     {
-        $offices = CasualEmployee::distinct()->orderBy('office')->pluck('office')->filter()->values();
+        $offices = CasualEmployee::distinct()->orderBy('office_department')->pluck('office_department')->filter()->values();
         $positions = CasualEmployee::distinct()->pluck('position_title')
             ->filter()->map(fn($v) => trim($v))->unique()->sortBy(fn($v) => strtolower($v))->values();
         $districts = CasualEmployee::distinct()->orderBy('legislative_district')->pluck('legislative_district')->filter()->values();
@@ -87,8 +104,11 @@ class CasualController extends Controller
         // Auto-generate employee code if not provided
         if (empty($validated['employee_code'])) {
             $validated['employee_code'] = CasualEmployee::generateEmployeeCode(
-                $validated['last_name'] ?? null,
-                $validated['birthdate'] ?? null
+                $validated['first_name']  ?? null,
+                $validated['date_of_birth'] ?? null,
+                null,
+                $validated['middle_name'] ?? null,
+                $validated['last_name']   ?? null
             );
         }
 
@@ -105,7 +125,7 @@ class CasualController extends Controller
             ]);
         }
 
-        return redirect()->route('casual.index')
+        return redirect(session('last_index_url', route('casual.index')))
             ->with('success', 'Casual record created successfully.');
     }
 
@@ -114,7 +134,7 @@ class CasualController extends Controller
      */
     public function edit(CasualEmployee $casual)
     {
-        $offices = CasualEmployee::distinct()->orderBy('office')->pluck('office')->filter()->values();
+        $offices = CasualEmployee::distinct()->orderBy('office_department')->pluck('office_department')->filter()->values();
         $positions = CasualEmployee::distinct()->pluck('position_title')
             ->filter()->map(fn($v) => trim($v))->unique()->sortBy(fn($v) => strtolower($v))->values();
         $districts = CasualEmployee::distinct()->orderBy('legislative_district')->pluck('legislative_district')->filter()->values();
@@ -131,8 +151,11 @@ class CasualController extends Controller
         // Auto-generate employee code if cleared
         if (empty($validated['employee_code'])) {
             $validated['employee_code'] = CasualEmployee::generateEmployeeCode(
-                $validated['last_name'] ?? null,
-                $validated['birthdate'] ?? null
+                $validated['first_name']  ?? null,
+                $validated['date_of_birth'] ?? null,
+                null,
+                $validated['middle_name'] ?? null,
+                $validated['last_name']   ?? null
             );
         }
 
@@ -149,7 +172,7 @@ class CasualController extends Controller
             ]);
         }
 
-        return redirect()->route('casual.index')
+        return redirect(session('last_index_url', route('casual.index')))
             ->with('success', 'Casual record updated successfully.');
     }
 
@@ -169,7 +192,7 @@ class CasualController extends Controller
             ]);
         }
 
-        return redirect()->route('casual.index')
+        return redirect(session('last_index_url', route('casual.index')))
             ->with('success', 'Casual record deleted successfully.');
     }
 
@@ -209,7 +232,7 @@ class CasualController extends Controller
         }
 
         $type = empty($import->errors) ? 'success' : 'error';
-        return redirect()->route('casual.index')->with($type, $message);
+        return redirect(session('last_index_url', route('casual.index')))->with($type, $message);
     }
 
     /**
@@ -232,13 +255,13 @@ class CasualController extends Controller
 
         // Column headers (row 2)
         $headers = [
-            'A2' => 'OFFICE / DEPARTMENT',
+            'A2' => 'OFFICE',
             'B2' => 'ITEM NO. (OLD)',
             'C2' => 'ITEM NO. (NEW)',
             'D2' => 'POSITION TITLE',
             'E2' => 'LAST NAME',
             'F2' => 'FIRST NAME',
-            'G2' => 'MIDDLE INITIAL',
+            'G2' => 'MIDDLE NAME',
             'H2' => 'NAME EXT (Jr./Sr.)',
             'I2' => 'VACANT? (Y=Yes)',
             'J2' => 'SG (CURRENT)',
@@ -250,7 +273,7 @@ class CasualController extends Controller
             'P2' => 'INCREASE/DECREASE',
             'Q2' => 'PREVIOUS RATE (Monthly)',
             'R2' => 'CURRENT RATE (Monthly)',
-            'S2' => 'GENDER (M/F)',
+            'S2' => 'SEX (M/F)',
             'T2' => 'BIRTHDATE (YYYY-MM-DD)',
             'U2' => 'FIRST DAY OF SERVICE',
             'V2' => 'ELIGIBILITY',
@@ -333,13 +356,18 @@ class CasualController extends Controller
      */
     public function exportPdf(Request $request)
     {
-        $query = CasualEmployee::query()->orderBy('office')->orderBy('last_name');
+        $query = CasualEmployee::query()->orderBy('office_department')->orderBy('last_name');
+
+        $statusFilter = $request->input('status_filter', 'active');
+        if ($statusFilter === 'active')       $query->whereNull('nature_of_separation');
+        elseif ($statusFilter === 'inactive') $query->whereNotNull('nature_of_separation');
+
         if ($request->filled('search'))
             $query->search($request->input('search'));
         if ($request->filled('office'))
             $query->byOffice($request->input('office'));
-        if ($request->filled('gender'))
-            $query->byGender($request->input('gender'));
+        if ($request->filled('sex'))
+            $query->bySex($request->input('sex'));
         if ($request->filled('vacant'))
             $query->where('is_vacant', $request->input('vacant') === 'vacant');
 
@@ -357,14 +385,18 @@ class CasualController extends Controller
      */
     public function exportExcel(Request $request)
     {
-        $query = CasualEmployee::query()->orderBy('office')->orderBy('last_name');
+        $query = CasualEmployee::query()->orderBy('office_department')->orderBy('last_name');
+
+        $statusFilter = $request->input('status_filter', 'active');
+        if ($statusFilter === 'active')       $query->whereNull('nature_of_separation');
+        elseif ($statusFilter === 'inactive') $query->whereNotNull('nature_of_separation');
 
         if ($request->filled('search'))
             $query->search($request->input('search'));
         if ($request->filled('office'))
             $query->byOffice($request->input('office'));
-        if ($request->filled('gender'))
-            $query->byGender($request->input('gender'));
+        if ($request->filled('sex'))
+            $query->bySex($request->input('sex'));
         if ($request->filled('vacant'))
             $query->where('is_vacant', $request->input('vacant') === 'vacant');
 
@@ -377,19 +409,35 @@ class CasualController extends Controller
 
         // Headers
         $allCols = [
-            'office' => 'Office',
-            'item_old' => 'Item Old',
-            'item_new' => 'Item New',
-            'position_title' => 'Position Title',
-            'name' => 'Name',
-            'legislative_district' => 'Legislative District',
-            'gender' => 'Gender',
-            'sg_step_current' => 'SG/Step (Cur)',
-            'annual_salary_current' => 'Annual Salary (Cur)',
-            'sg_step_proposed' => 'SG/Step (Prop)',
-            'annual_salary_proposed' => 'Annual Salary (Prop)',
-            'increase_decrease' => 'Increase/Decrease',
-            'monthly_rate' => 'Monthly Rate'
+            'office' => 'OFFICE',
+            'item_no_old' => 'ITEM NO. (OLD)',
+            'item_no_new' => 'ITEM NO. (NEW)',
+            'position_title' => 'POSITION TITLE',
+            'is_vacant' => 'VACANT?',
+            'last_name' => 'LAST NAME',
+            'first_name' => 'FIRST NAME',
+            'middle_name' => 'MIDDLE NAME',
+            'name_extension' => 'SUFFIX',
+            'legislative_district' => 'LEGISLATIVE DISTRICT',
+            'sg_current' => 'SALARY GRADE (CURRENT)',
+            'step_current' => 'STEP (CURRENT)',
+            'salary_current' => 'ANNUAL SALARY (CURRENT)',
+            'sg_proposed' => 'SALARY GRADE (PROPOSED)',
+            'step_proposed' => 'STEP (PROPOSED)',
+            'salary_proposed' => 'ANNUAL SALARY (PROPOSED)',
+            'increase_decrease' => 'INCREASE / DECREASE',
+            'previous_rate' => 'PREVIOUS RATE',
+            'current_rate' => 'CURRENT RATE (MONTHLY)',
+            'sex' => 'SEX',
+            'civil_status' => 'CIVIL STATUS',
+            'date_of_birth' => 'DATE OF BIRTH',
+            'first_day_of_service' => 'FIRST DAY OF SERVICE',
+            'eligibility' => 'ELIGIBILITY',
+            'annotation' => 'ANNOTATION',
+            'employee_code' => 'EMPLOYEE CODE',
+            'address' => 'ADDRESS',
+            'solo_parent' => 'SOLO PARENT',
+            'ip_community_membership' => 'IP COMMUNITY MEMBERSHIP'
         ];
 
         $cols = ['#'];
@@ -422,26 +470,41 @@ class CasualController extends Controller
                 $val = '';
                 switch ($key) {
                     case 'office': $val = $r->office; break;
-                    case 'item_old': $val = $r->item_no_old; break;
-                    case 'item_new': $val = $r->item_no_new; break;
+                    case 'item_old': $val = $r->item_no_new_no_old; break;
+                    case 'item_new': $val = $r->item_no_new_no_new; break;
                     case 'position_title': $val = $r->position_title; break;
-                    case 'name': $val = $r->is_vacant ? 'VACANT' : $r->full_name; break;
+                    case 'is_vacant': $val = $r->is_vacant ? 'Y' : 'N'; break;
+                    case 'last_name': $val = strtoupper($r->last_name ?? ''); break;
+                    case 'first_name': $val = $r->first_name; break;
+                    case 'middle_name': $val = $r->middle_name; break;
+                    case 'name_extension': $val = $r->name_extension; break;
                     case 'legislative_district': $val = $r->legislative_district; break;
-                    case 'gender': $val = $r->gender; break;
+                    case 'sex': $val = $r->sex; break;
+                    case 'civil_status': $val = $r->civil_status; break;
+                    case 'date_of_birth': $val = $r->date_of_birth?->format('Y-m-d'); break;
+                    case 'first_day_of_service': $val = $r->first_day_of_service?->format('Y-m-d'); break;
+                    case 'eligibility': $val = $r->eligibility; break;
+                    case 'address': $val = $r->address; break;
+                    case 'solo_parent': $val = $r->solo_parent ? 'Y' : 'N'; break;
+                    case 'ip_community_membership': $val = $r->ip_community_membership; break;
                     case 'sg_step_current': $val = ($r->sg_current ? "SG-{$r->sg_current}/Step {$r->step_current}" : ''); break;
                     case 'annual_salary_current': $val = $r->salary_current; break;
                     case 'sg_step_proposed': $val = ($r->sg_proposed ? "SG-{$r->sg_proposed}/Step {$r->step_proposed}" : ''); break;
                     case 'annual_salary_proposed': $val = $r->salary_proposed; break;
                     case 'increase_decrease': $val = $r->increase_decrease; break;
+                    case 'previous_rate': $val = $r->previous_rate; break;
                     case 'monthly_rate': $val = $r->current_rate; break;
+                    case 'annotation': $val = $r->remarks_annotation; break;
+                    case 'employee_code': $val = $r->employee_code; break;
                 }
                 $sheet->setCellValueByColumnAndRow($colIndex, $row, $val);
                 $colIndex++;
             }
         }
 
-        foreach (range('A', $lastCol) as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
+        $lastColIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($lastCol);
+        for ($col = 1; $col <= $lastColIndex; $col++) {
+            $sheet->getColumnDimension(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col))->setAutoSize(true);
         }
 
         $writer = new Xlsx($spreadsheet);
@@ -574,7 +637,7 @@ class CasualController extends Controller
             'description' => "Wiped {$casualCount} Casual record(s) and {$plantillaCount} synced All-Data entry(ies).",
         ]);
 
-        return redirect()->route('casual.index')
+        return redirect(session('last_index_url', route('casual.index')))
             ->with('success', "All {$casualCount} Casual record(s) and {$plantillaCount} All-Data entry(ies) have been deleted.");
     }
 
@@ -583,22 +646,22 @@ class CasualController extends Controller
     private function syncToAllData(CasualEmployee $casual): void
     {
         \App\Models\PlantillaRecord::create([
-            'organizational_unit' => $casual->office,
+            'office_department' => $casual->office,
             'last_name' => $casual->last_name,
             'first_name' => $casual->first_name,
-            'middle_name' => $casual->middle_initial,
+            'middle_name' => $casual->middle_name,
             'position_title' => $casual->position_title,
             'salary_grade' => $casual->sg_current,
             'step' => $casual->step_current,
             'authorized_annual_salary' => $casual->salary_current,
-            'actual_annual_salary' => $casual->salary_current,
-            'sex' => $casual->gender,
-            'date_of_birth' => $casual->birthdate?->format('Y-m-d'),
+            'base_salary_amount' => $casual->salary_current,
+            'sex' => $casual->sex,
+            'date_of_birth' => $casual->date_of_birth?->format('Y-m-d'),
             'date_original_appointment' => $casual->first_day_of_service?->format('Y-m-d'),
             'civil_service_eligibility' => $casual->eligibility,
             'employment_status' => 'Casual',
             'is_vacant' => $casual->is_vacant,
-            'item' => $casual->item_no_new ?? $casual->item_no_old,
+            'item_no_new' => $casual->item_no_new_no_new ?? $casual->item_no_new_no_old,
         ]);
     }
 
@@ -615,18 +678,18 @@ class CasualController extends Controller
 
         if ($pr) {
             $pr->update([
-                'organizational_unit'      => $casual->office,
+                'office_department'      => $casual->office,
                 'position_title'           => $casual->position_title,
                 'salary_grade'             => $casual->sg_current,
                 'step'                     => $casual->step_current,
                 'authorized_annual_salary' => $casual->salary_current,
-                'actual_annual_salary'     => $casual->salary_current,
-                'sex'                      => $casual->gender,
-                'date_of_birth'            => $casual->birthdate?->format('Y-m-d'),
+                'base_salary_amount'     => $casual->salary_current,
+                'sex'                      => $casual->sex,
+                'date_of_birth'            => $casual->date_of_birth?->format('Y-m-d'),
                 'date_original_appointment'=> $casual->first_day_of_service?->format('Y-m-d'),
                 'civil_service_eligibility'=> $casual->eligibility,
                 'is_vacant'                => $casual->is_vacant,
-                'item'                     => $casual->item_no_new ?? $casual->item_no_old,
+                'item_no_new'                     => $casual->item_no_new_no_new ?? $casual->item_no_new_no_old,
             ]);
         }
     }
@@ -642,8 +705,9 @@ class CasualController extends Controller
             'is_vacant' => 'boolean',
             'last_name' => 'nullable|string|max:100',
             'first_name' => 'nullable|string|max:100',
-            'middle_initial' => 'nullable|string|max:10',
+            'middle_name'    => 'nullable|string|max:255',
             'name_extension' => 'nullable|string|max:20',
+            'civil_status'   => 'nullable|string|max:50',
             'legislative_district' => 'nullable|string|max:100',
             'sg_current' => 'nullable|integer|min:1|max:33',
             'step_current' => 'nullable|integer|min:1|max:8',
@@ -654,15 +718,17 @@ class CasualController extends Controller
             'increase_decrease' => 'nullable|numeric',
             'previous_rate' => 'nullable|numeric|min:0',
             'current_rate' => 'nullable|numeric|min:0',
-            'gender' => 'nullable|in:M,F',
-            'birthdate' => 'nullable|date',
+            'sex' => 'nullable|in:M,F',
+            'date_of_birth' => 'nullable|date',
             'first_day_of_service' => 'nullable|date',
             'eligibility' => 'nullable|string|max:200',
             'address' => 'nullable|string|max:500',
             'solo_parent' => 'boolean',
             'ip_community_membership' => 'nullable|string|max:200',
             'annotation' => 'nullable|string|max:1000',
-            'employee_code' => 'nullable|string|max:20|unique:casual_employees,employee_code' . ($exceptId ? ",{$exceptId}" : ''),
+            'nature_of_separation' => 'nullable|string|max:100',
+            'date_separated'       => 'nullable|date',
+            'employee_code' => 'nullable|string|max:20|unique:plantilla_records,employee_code' . ($exceptId ? ",{$exceptId}" : ''),
         ]);
     }
 }

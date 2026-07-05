@@ -83,7 +83,7 @@ class ActivityLogController extends Controller
             'date_last_nolp'            => $snap['date_last_nolp'],
             'employment_status'         => $snap['employment_status'],
             'civil_service_eligibility' => $snap['civil_service_eligibility'],
-            'comment_annotation'        => $snap['comment_annotation'],
+            'remarks_annotation'        => $snap['remarks_annotation'],
             'gsis_bp_number'            => $snap['gsis_bp_number'],
             'umid'                      => $snap['umid'],
             'is_pwd'                    => $snap['is_pwd'] ?? false,
@@ -100,7 +100,7 @@ class ActivityLogController extends Controller
             ActivityLog::create([
                 'user_id'     => Auth::id(),
                 'action'      => 'Restored Employee',
-                'description' => 'Restored "' . $restoredName . '" to Item ' . $record->item . ' (Undo of Vacated Position)',
+                'description' => 'Restored "' . $restoredName . '" to Item ' . $record->item_no_new . ' (Undo of Vacated Position)',
             ]);
         }
 
@@ -108,7 +108,7 @@ class ActivityLogController extends Controller
         $log->update(['snapshot' => null]);
 
         return redirect()->route('activity-logs.index')
-            ->with('success', 'Employee "' . $restoredName . '" has been restored to Item ' . $record->item . '.');
+            ->with('success', 'Employee "' . $restoredName . '" has been restored to Item ' . $record->item_no_new . '.');
     }
 
     /**

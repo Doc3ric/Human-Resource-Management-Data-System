@@ -3,6 +3,9 @@
 namespace App\Exports;
 
 use App\Models\PlantillaRecord;
+use Maatwebsite\Excel\Concerns\WithDrawings;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
@@ -10,8 +13,10 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class VacantUnfundedPositionExport implements FromCollection, WithHeadings, WithTitle, ShouldAutoSize, WithStyles
+class VacantUnfundedPositionExport implements FromCollection, WithHeadings, WithTitle, ShouldAutoSize, WithStyles, WithDrawings, WithEvents, WithCustomStartCell
 {
+    use \App\Exports\Traits\HasPhrmoHeader;
+
     protected string $position;
 
     public function __construct(string $position)
@@ -32,21 +37,21 @@ class VacantUnfundedPositionExport implements FromCollection, WithHeadings, With
                         $q3->whereNull('authorized_annual_salary')
                            ->orWhere('authorized_annual_salary', 0);
                     })->where(function($q3) {
-                        $q3->whereNull('actual_annual_salary')
-                           ->orWhere('actual_annual_salary', 0);
+                        $q3->whereNull('base_salary_amount')
+                           ->orWhere('base_salary_amount', 0);
                     });
                 });
             })
             ->where('position_title', $this->position)
-            ->orderBy('organizational_unit')
-            ->orderBy('item')
+            ->orderBy('office_department')
+            ->orderBy('item_no_new')
             ->get();
 
         return $records->map(fn ($r, $i) => [
             'No.'                      => $i + 1,
-            'Item No.'                 => $r->item,
+            'Item No.'                 => $r->item_no_new,
             'Position Title'           => $r->position_title,
-            'Organizational Unit'      => $r->organizational_unit,
+            'Organizational Unit'      => $r->office_department,
             'Salary Grade'             => $r->salary_grade,
             'Step'                     => $r->step,
             'Authorized Annual Salary' => number_format($r->authorized_annual_salary ?? 0, 2),

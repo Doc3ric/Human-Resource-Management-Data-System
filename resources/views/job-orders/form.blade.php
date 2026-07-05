@@ -89,16 +89,21 @@
         <div class="jo-form-section-title"><i class="bi bi-person-badge"></i> Identification</div>
         <div class="jo-form-grid">
             <div class="jo-form-group">
-                <label>Charges / Office Code</label>
-                <input type="text" name="charges" id="f-charges" value="{{ old('charges', $jo->charges ?? '') }}"
-                       placeholder="e.g. BEMO" list="charges-list">
-                <datalist id="charges-list">
-                    @foreach($chargesList as $c)<option value="{{ $c }}">@endforeach
-                </datalist>
-                @error('charges')<span class="field-error">{{ $message }}</span>@enderror
+                <label>OFFICE</label>
+                <select name="office_department" id="f-office_department" class="tom-select-tags">
+                    <option value="">— Select or Type Office —</option>
+                    @php $oldCharge = old('office_department', $jo->office_department ?? ''); @endphp
+                    @foreach($chargesList as $c)
+                        <option value="{{ $c }}" {{ $oldCharge === $c ? 'selected' : '' }}>{{ $c }}</option>
+                    @endforeach
+                    @if($oldCharge && !$chargesList->contains($oldCharge))
+                        <option value="{{ $oldCharge }}" selected>{{ $oldCharge }}</option>
+                    @endif
+                </select>
+                @error('office_department')<span class="field-error">{{ $message }}</span>@enderror
             </div>
             <div class="jo-form-group">
-                <label>Last Name <span style="color:#ef4444;">*</span></label>
+                <label>LAST NAME<span style="color:#ef4444;">*</span></label>
                 <input type="text" name="last_name" id="f-last-name" value="{{ old('last_name', $jo->last_name ?? '') }}"
                        placeholder="DELA CRUZ" required class="{{ $errors->has('last_name') ? 'input-error' : '' }}">
                 @error('last_name')<span class="field-error">{{ $message }}</span>@enderror
@@ -110,41 +115,41 @@
                 @error('first_name')<span class="field-error">{{ $message }}</span>@enderror
             </div>
             <div class="jo-form-group">
-                <label>Middle Initial</label>
-                <input type="text" name="middle_initial" id="f-mi" value="{{ old('middle_initial', $jo->middle_initial ?? '') }}"
-                       placeholder="A" maxlength="10">
-                @error('middle_initial')<span class="field-error">{{ $message }}</span>@enderror
+                <label>MIDDLE NAME</label>
+                <input type="text" name="middle_name" id="f-mi" value="{{ old('middle_name', $jo->middle_name ?? '') }}"
+                       placeholder="Santos">
+                @error('middle_name')<span class="field-error">{{ $message }}</span>@enderror
             </div>
             <div class="jo-form-group">
-                <label>Name Extension</label>
+                <label>SUFFIX</label>
                 <input type="text" name="name_extension" id="f-ext" value="{{ old('name_extension', $jo->name_extension ?? '') }}"
                        placeholder="Jr. / Sr. / III">
                 @error('name_extension')<span class="field-error">{{ $message }}</span>@enderror
             </div>
             <div class="jo-form-group">
-                <label>Gender</label>
-                <select name="gender" id="f-gender">
+                <label>SEX</label>
+                <select name="sex" id="f-sex">
                     <option value="">— Select —</option>
-                    <option value="M" {{ old('gender', $jo->gender ?? '') === 'M' ? 'selected' : '' }}>Male (M)</option>
-                    <option value="F" {{ old('gender', $jo->gender ?? '') === 'F' ? 'selected' : '' }}>Female (F)</option>
+                    <option value="M" {{ old('sex', $jo->sex ?? '') === 'M' ? 'selected' : '' }}>Male (M)</option>
+                    <option value="F" {{ old('sex', $jo->sex ?? '') === 'F' ? 'selected' : '' }}>Female (F)</option>
                 </select>
-                @error('gender')<span class="field-error">{{ $message }}</span>@enderror
+                @error('sex')<span class="field-error">{{ $message }}</span>@enderror
             </div>
             <div class="jo-form-group">
                 <label>Status (Civil Status)</label>
                 <select name="civil_status" id="f-civil-status">
                     <option value="">— Select —</option>
-                    @foreach(['SINGLE','MARRIED','WIDOW','WIDOWER','SEPARATED','DIVORCED'] as $cs)
+                    @foreach(['SINGLE','MARRIED','WIDOW','WIDOWER','SEPARATED','ANNULLED'] as $cs)
                         <option value="{{ $cs }}" {{ old('civil_status', $jo->civil_status ?? '') === $cs ? 'selected' : '' }}>{{ $cs }}</option>
                     @endforeach
                 </select>
                 @error('civil_status')<span class="field-error">{{ $message }}</span>@enderror
             </div>
             <div class="jo-form-group">
-                <label>Birthdate</label>
-                <input type="date" name="birthdate" id="f-birthdate"
-                       value="{{ old('birthdate', isset($jo->birthdate) ? $jo->birthdate->format('Y-m-d') : '') }}">
-                @error('birthdate')<span class="field-error">{{ $message }}</span>@enderror
+                <label>DATE OF BIRTH</label>
+                <input type="date" name="date_of_birth" id="f-date_of_birth"
+                       value="{{ old('date_of_birth', isset($jo->date_of_birth) ? $jo->date_of_birth->format('Y-m-d') : '') }}">
+                @error('date_of_birth')<span class="field-error">{{ $message }}</span>@enderror
             </div>
             <div class="jo-form-group" style="grid-column:span 2;">
                 <label style="display:flex;align-items:center;gap:5px;">
@@ -158,7 +163,7 @@
                            style="font-family:monospace;text-transform:uppercase;letter-spacing:1px;">
                     <button type="button" id="btn-autofill-jo"
                             style="padding:0 12px;background:#eff6ff;border:1.5px solid #93c5fd;color:#1d4ed8;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;"
-                            title="Auto-generate from Last Name + Birthdate">
+                            title="Auto-generate from Last Name + DATE OF BIRTH">
                         <svg style="width:13px;height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         Auto-fill
                     </button>
@@ -173,37 +178,31 @@
         <div class="jo-form-grid">
             <div class="jo-form-group" style="grid-column:span 2;">
                 <label>Position Title <span style="color:#ef4444;">*</span></label>
-                <input type="text" name="position_title" id="f-position" value="{{ old('position_title', $jo->position_title ?? '') }}"
-                       placeholder="Administrative Aide II" required class="{{ $errors->has('position_title') ? 'input-error' : '' }}">
+                <select name="position_title" id="f-position" class="tom-select-tags" required>
+                    <option value="">— Select or Type Position —</option>
+                    @php $oldPos = old('position_title', $jo->position_title ?? ''); @endphp
+                    @foreach($positions as $p)
+                        <option value="{{ $p }}" {{ $oldPos === $p ? 'selected' : '' }}>{{ $p }}</option>
+                    @endforeach
+                    @if($oldPos && !$positions->contains($oldPos))
+                        <option value="{{ $oldPos }}" selected>{{ $oldPos }}</option>
+                    @endif
+                </select>
                 @error('position_title')<span class="field-error">{{ $message }}</span>@enderror
             </div>
-            <div class="jo-form-group" style="grid-column:span 2;">
-                <label>Nature of Work <span style="font-size:10px;color:#64748b;font-weight:400;text-transform:none;">(Category: Clerical services, Trades and crafts/laborer, Technical services…)</span></label>
-                <input type="text" name="nature_of_work" id="f-nature" value="{{ old('nature_of_work', $jo->nature_of_work ?? '') }}"
-                       placeholder="Clerical services" list="nature-list">
-                <datalist id="nature-list">
-                    @foreach($natures as $n)<option value="{{ $n }}">@endforeach
-                    <option value="Clerical services">
-                    <option value="Trades and crafts/laborer">
-                    <option value="Technical services">
-                    <option value="Health and allied services">
-                    <option value="Janitorial services">
-                </datalist>
-                @error('nature_of_work')<span class="field-error">{{ $message }}</span>@enderror
-            </div>
+
             <div class="jo-form-group" style="grid-column:span 2;">
                 <label>Nature of Work (Specific) <span style="font-size:10px;color:#64748b;font-weight:400;text-transform:none;">(e.g. CLERICAL SERVICES, JANITORIAL SERVICES, OTHERS…)</span></label>
-                <input type="text" name="nature_of_work_detail" id="f-nature-detail" value="{{ old('nature_of_work_detail', $jo->nature_of_work_detail ?? '') }}"
-                       placeholder="e.g. CLERICAL SERVICES" list="nature-detail-list">
-                <datalist id="nature-detail-list">
-                    <option value="CLERICAL SERVICES">
-                    <option value="JANITORIAL SERVICES">
-                    <option value="MESSENGERIAL SERVICES">
-                    <option value="TRADES AND CRAFTS/LABORER">
-                    <option value="TECHNICAL SERVICES">
-                    <option value="HEALTH AND ALLIED SERVICES">
-                    <option value="OTHERS">
-                </datalist>
+                <select name="nature_of_work_detail" id="f-nature-detail" class="tom-select-tags">
+                    <option value="">— Select or Type Nature of Work —</option>
+                    @php $oldNat = old('nature_of_work_detail', $jo->nature_of_work_detail ?? ''); @endphp
+                    @foreach($detailList as $nd)
+                        <option value="{{ $nd }}" {{ $oldNat === $nd ? 'selected' : '' }}>{{ $nd }}</option>
+                    @endforeach
+                    @if($oldNat && !$detailList->contains($oldNat))
+                        <option value="{{ $oldNat }}" selected>{{ $oldNat }}</option>
+                    @endif
+                </select>
                 @error('nature_of_work_detail')<span class="field-error">{{ $message }}</span>@enderror
             </div>
             <div class="jo-form-group">
@@ -217,18 +216,23 @@
                 @error('level')<span class="field-error">{{ $message }}</span>@enderror
             </div>
             <div class="jo-form-group">
-                <label>Office Assigned</label>
-                <input type="text" name="office" id="f-office" value="{{ old('office', $jo->office ?? '') }}"
-                       placeholder="e.g. BENRO" list="office-list">
-                <datalist id="office-list">
-                    @foreach($offices as $o)<option value="{{ $o }}">@endforeach
-                </datalist>
-                @error('office')<span class="field-error">{{ $message }}</span>@enderror
+                <label>DETAILED UNIT</label>
+                <select name="detailed_unit" id="f-office" class="tom-select-tags">
+                    <option value="">— Select or Type Unit —</option>
+                    @php $oldOff = old('detailed_unit', $jo->detailed_unit ?? ''); @endphp
+                    @foreach($offices as $o)
+                        <option value="{{ $o }}" {{ $oldOff === $o ? 'selected' : '' }}>{{ $o }}</option>
+                    @endforeach
+                    @if($oldOff && !$offices->contains($oldOff))
+                        <option value="{{ $oldOff }}" selected>{{ $oldOff }}</option>
+                    @endif
+                </select>
+                @error('detailed_unit')<span class="field-error">{{ $message }}</span>@enderror
             </div>
             <div class="jo-form-group">
                 <label>Rate Per Day (₱)</label>
-                <input type="number" name="rate_per_day" id="f-rate" step="0.01" min="0"
-                       value="{{ old('rate_per_day', $jo->rate_per_day ?? '') }}" placeholder="0.00">
+                <input type="text" inputmode="decimal" name="rate_per_day" id="f-rate"
+                       value="{{ old('rate_per_day', $jo->rate_per_day ?? '') }}" placeholder="0.00" class="peso-input">
                 @error('rate_per_day')<span class="field-error">{{ $message }}</span>@enderror
             </div>
             <div class="jo-form-group">
@@ -314,6 +318,27 @@
             </div>
         </div>
 
+        {{-- ── SEPARATION ── --}}
+        <div class="jo-form-section-title" style="color:#7c3aed;"><i class="bi bi-box-arrow-right"></i> Appointment History & Separation</div>
+        <div class="jo-form-grid cols-2">
+            <div class="jo-form-group">
+                <label>Nature of Separation</label>
+                <select name="nature_of_separation" id="f-nature-sep">
+                    <option value="">— None / Still Active —</option>
+                    @foreach(['End of Contract','Resigned','Transferred','Terminated','Dropped from Rolls','Dismissed','Death'] as $opt)
+                        <option value="{{ $opt }}" {{ old('nature_of_separation', $jo->nature_of_separation ?? '') === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                    @endforeach
+                </select>
+                @error('nature_of_separation')<span class="field-error">{{ $message }}</span>@enderror
+            </div>
+            <div class="jo-form-group">
+                <label>Date Separated / Effectivity</label>
+                <input type="date" name="date_separated" id="f-date-sep"
+                       value="{{ old('date_separated', isset($jo->date_separated) ? \Carbon\Carbon::parse($jo->date_separated)->format('Y-m-d') : '') }}">
+                @error('date_separated')<span class="field-error">{{ $message }}</span>@enderror
+            </div>
+        </div>
+
         {{-- ── ACTIONS ── --}}
         <div class="jo-form-actions">
             <a href="{{ route('job-orders.index') }}" class="btn-cancel">
@@ -351,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ── Employee Code Auto-fill ────────────────────────────────────────
     const lastNameEl = document.getElementById('f-last-name');
-    const dobEl      = document.getElementById('f-birthdate');
+    const dobEl      = document.getElementById('f-date_of_birth');
     const codeEl     = document.getElementById('f-employee-code');
     const btnEl      = document.getElementById('btn-autofill-jo');
 

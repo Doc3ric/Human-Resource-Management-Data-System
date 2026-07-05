@@ -49,7 +49,7 @@
     <tbody>
         @forelse($list as $i => $r)
         @php
-            $annotation = $r->comment_annotation ?? '';
+            $annotation = $r->remarks_annotation ?? '';
             $formerLast = '';  $formerFirst = '';
             if (preg_match('/Former employee:\s*([^.]+)\./i', $annotation, $m)) {
                 $namePart = trim($m[1]);
@@ -64,8 +64,8 @@
         @endphp
         <tr>
             <td>{{ $i + 1 }}</td>
-            <td class="item">{{ $r->item }}</td>
-            <td>{{ $r->organizational_unit }}</td>
+            <td class="item_no_new">{{ $r->item_no_new }}</td>
+            <td>{{ $r->office_department }}</td>
             <td class="name">{{ $formerLast ?: '—' }}</td>
             <td>{{ $formerFirst ?: '—' }}</td>
             <td>{{ $r->position_title }}</td>
@@ -86,7 +86,7 @@
             <th style="width:25px;">#</th>
             <th>Name / Item</th>
             <th style="width:55px;">Age</th>
-            <th style="width:85px;">Date of Birth</th>
+            <th style="width:85px;">Birthday</th>
             @if($tab === 'near')
             <th style="width:90px;">Retirement Date</th>
             @endif
@@ -101,7 +101,7 @@
             <td>{{ $i + 1 }}</td>
             <td>
                 <span class="name">{{ $r->last_name }}, {{ $r->first_name }}</span><br>
-                <span class="item">{{ $r->item }}</span>
+                <span class="item_no_new">{{ $r->item_no_new }}</span>
             </td>
             <td>
                 @if($tab === 'overdue')
@@ -117,7 +117,7 @@
             <td>{{ $r->retirement_date?->format('m/d/Y') }}</td>
             @endif
             <td>{{ $r->position_title }}</td>
-            <td>{{ $r->organizational_unit }}</td>
+            <td>{{ $r->office_department }}</td>
             <td>SG-{{ $r->salary_grade }}/{{ $r->step }}</td>
         </tr>
         @empty

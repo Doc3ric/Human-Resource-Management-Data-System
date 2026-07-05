@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Organizational Unit</title>
+    <title>View OFFICE</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -450,8 +450,8 @@
     <script>
         function confirmDeleteOuShow() {
             Swal.fire({
-                title: 'Delete Organizational Unit?',
-                text: "Are you sure you want to delete this organizational unit? This cannot be undone.",
+                title: 'Delete OFFICE?',
+                text: "Are you sure you want to delete this OFFICE? This cannot be undone.",
                 icon: 'warning',
                 iconColor: '#dc3545',
                 showCancelButton: true,

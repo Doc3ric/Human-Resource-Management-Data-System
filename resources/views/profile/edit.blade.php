@@ -146,6 +146,9 @@
         <button class="p-tab" onclick="switchTab('security')" id="tab-security">
             <i class="bi bi-shield-fill-check" style="margin-right: 4px;"></i> Security & 2FA
         </button>
+        <button class="p-tab" onclick="switchTab('appearance')" id="tab-appearance">
+            <i class="bi bi-palette-fill" style="margin-right: 4px;"></i> Appearance
+        </button>
     </div>
 
     {{-- TAB PANEL 1: PROFILE INFO --}}
@@ -160,17 +163,26 @@
                 <div style="flex: 1; min-width: 300px;">
                     <div style="background: #ffffff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.02); border: 1px solid #f3f4f6;">
                         <h3 style="font-size: 18px; font-weight: 800; color: #111827; margin: 0 0 24px 0;">Personal Details</h3>
-                        
+
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
                             {{-- Full Name --}}
-                            <div style="grid-column: span 1;">
+                            <div style="grid-column: span 2;">
                                 <label class="p-label" for="name">Full Name</label>
                                 <input type="text" id="name" name="name" class="p-input" value="{{ old('name', auth()->user()->name) }}" required>
                                 @foreach($errors->get('name') as $msg)
                                     <div style="color: #ef4444; font-size: 12px; margin-top: 4px;">{{ $msg }}</div>
                                 @endforeach
                             </div>
-                            
+
+                            {{-- Username --}}
+                            <div style="grid-column: span 1;">
+                                <label class="p-label" for="username">Username</label>
+                                <input type="text" id="username" name="username" class="p-input" value="{{ old('username', auth()->user()->username) }}" placeholder="e.g. jdoe">
+                                @foreach($errors->get('username') as $msg)
+                                    <div style="color: #ef4444; font-size: 12px; margin-top: 4px;">{{ $msg }}</div>
+                                @endforeach
+                            </div>
+
                             {{-- Email Address --}}
                             <div style="grid-column: span 1;">
                                 <label class="p-label" for="email">Email Address</label>
@@ -180,12 +192,11 @@
                                 @endforeach
                             </div>
 
-                            {{-- Department (Role) --}}
-                            <div style="grid-column: span 1;">
-                                <label class="p-label">Department</label>
-                                <select class="p-input" style="color: #111827; appearance: none; background: #f9fafb url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%236b7280\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"6 9 12 15 18 9\"></polyline></svg>') no-repeat right 14px center;">
-                                    <option selected>{{ $roleLabel }}</option>
-                                </select>
+                            {{-- Role (read-only) --}}
+                            <div style="grid-column: span 2;">
+                                <label class="p-label">Role / Access Level</label>
+                                <input class="p-input" value="{{ $roleLabel }}" disabled style="color:#6b7280; cursor:not-allowed;">
+                                <div style="font-size:11px;color:#9ca3af;margin-top:4px;">Role is assigned by administrators and cannot be changed here.</div>
                             </div>
 
                         </div>
@@ -193,40 +204,64 @@
                 </div>
 
                 {{-- Right Col: Photo & Info --}}
-                <div style="flex: 0 0 340px;">
-                    
+                <div style="flex: 0 0 300px;">
+
                     {{-- Update Photo Card --}}
                     <div style="background: #ffffff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.02); border: 1px solid #f3f4f6; text-align: center;">
-                        <h3 style="font-size: 18px; font-weight: 800; color: #111827; margin: 0 0 24px 0; text-align: left;">Update Photo</h3>
-                        
-                        <div class="p-upload-box" id="upload-box" style="margin-bottom: 16px;">
-                            <div style="width: 48px; height: 48px; background: #e0e7ff; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
-                                <i class="bi bi-file-earmark-arrow-up-fill" style="font-size: 24px; color: #6366f1;"></i>
+                        <h3 style="font-size: 18px; font-weight: 800; color: #111827; margin: 0 0 20px 0; text-align: left;">Profile Photo</h3>
+
+                        {{-- Current photo or initials --}}
+                        <div style="position:relative; width:120px; height:120px; margin: 0 auto 16px; border-radius:50%;
+                                    background:#e0e7ff; border:4px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,.12);
+                                    overflow:hidden; display:flex; align-items:center; justify-content:center;
+                                    font-size:40px; font-weight:800; color:#6366f1;">
+                            <img id="photo-box-preview"
+                                 src="{{ auth()->user()->profile_picture ? Storage::url(auth()->user()->profile_picture) : '' }}"
+                                 alt="Profile"
+                                 style="width:100%;height:100%;object-fit:cover;{{ auth()->user()->profile_picture ? '' : 'display:none;' }}">
+                            <span id="photo-box-initials" style="{{ auth()->user()->profile_picture ? 'display:none;' : '' }}">
+                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                            </span>
+                            {{-- Camera overlay --}}
+                            <div onclick="document.getElementById('profile_picture').click()"
+                                 style="position:absolute;inset:0;background:rgba(0,0,0,0);
+                                        display:flex;align-items:center;justify-content:center;
+                                        cursor:pointer;transition:.2s;border-radius:50%;"
+                                 onmouseover="this.style.background='rgba(0,0,0,.45)'; this.querySelector('i').style.opacity=1;"
+                                 onmouseout="this.style.background='rgba(0,0,0,0)'; this.querySelector('i').style.opacity=0;">
+                                <i class="bi bi-camera-fill" style="font-size:28px;color:#fff;opacity:0;transition:.2s;"></i>
                             </div>
                         </div>
-                        <div style="font-size: 11px; color: #6b7280; font-weight: 500; margin-bottom: 24px; text-align: center;">Allowed JPG, GIF or PNG. Max size of 2MB</div>
-                        
-                        <input type="file" name="profile_picture" id="profile_picture" accept="image/*" style="display: none;" onchange="previewAvatar(this)">
+
+                        <div id="photo-filename" style="font-size:12px;color:#6b7280;margin-bottom:12px;">
+                            {{ auth()->user()->profile_picture ? 'Current photo saved' : 'No photo uploaded yet' }}
+                        </div>
+
+                        <input type="file" name="profile_picture" id="profile_picture" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;" onchange="previewAvatar(this)">
 
                         @foreach($errors->get('profile_picture') as $msg)
-                            <div style="color: #ef4444; font-size: 12px; margin-bottom: 16px;">{{ $msg }}</div>
+                            <div style="color: #ef4444; font-size: 12px; margin-bottom: 12px;">{{ $msg }}</div>
                         @endforeach
 
                         <button type="button" class="btn-primary" style="width: 100%; margin-bottom: 8px;" onclick="document.getElementById('profile_picture').click()">
-                            Upload New
+                            <i class="bi bi-camera-fill me-1"></i> Choose Photo
                         </button>
-                        <button type="button" style="background: none; border: none; color: #6b7280; font-size: 13px; font-weight: 500; cursor: pointer;" onclick="removeAvatar()">
-                            Reset Avatar Edit
+                        @if(auth()->user()->profile_picture)
+                        <button type="button" style="background: none; border: none; color: #ef4444; font-size: 12px; font-weight: 600; cursor: pointer;" onclick="removeAvatar()">
+                            <i class="bi bi-trash3-fill me-1"></i> Remove Photo
                         </button>
+                        @else
+                        <div style="font-size:11px;color:#9ca3af;margin-top:4px;">JPG, PNG, GIF or WebP — max 2 MB</div>
+                        @endif
                     </div>
 
                     {{-- Info Alert --}}
-                    <div class="info-alert">
-                        <i class="bi bi-info-circle-fill" style="color: #2563eb; font-size: 20px; margin-top: 2px;"></i>
+                    <div class="info-alert" style="margin-top:16px;">
+                        <i class="bi bi-info-circle-fill" style="color: #2563eb; font-size: 18px; margin-top: 2px;"></i>
                         <div>
-                            <div style="font-size: 14px; font-weight: 800; color: #111827; margin-bottom: 6px;">Account Information</div>
-                            <div style="font-size: 13px; color: #4b5563; line-height: 1.6;">
-                                Your profile is visible to other administrators in the "Team" section. Ensure your details are up to date for better collaboration.
+                            <div style="font-size: 13px; font-weight: 800; color: #111827; margin-bottom: 4px;">Account Information</div>
+                            <div style="font-size: 12px; color: #4b5563; line-height: 1.6;">
+                                Your photo and name appear in the sidebar and in user management. Keep your details up to date.
                             </div>
                         </div>
                     </div>
@@ -355,6 +390,71 @@
             </div>
         </div>
     </div>
+
+    {{-- TAB PANEL 4: APPEARANCE (Theme Switcher) --}}
+    <div id="panel-appearance" class="p-panel">
+        <div style="max-width: 700px; margin: 0 auto;">
+            <div style="background: #ffffff; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.02); border: 1px solid #f3f4f6;">
+                <h3 style="font-size: 20px; font-weight: 800; color: #111827; margin: 0 0 6px 0;">Theme &amp; Appearance</h3>
+                <p style="font-size: 14px; color: #6b7280; margin: 0 0 28px 0;">Choose a colour theme for your interface. Your preference is saved locally in this browser.</p>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px;" id="theme-swatches">
+
+                    {{-- Swatch: Navy Default --}}
+                    <button type="button" onclick="setTheme('default')" class="theme-swatch-btn" data-theme="default"
+                        style="background:#113659; border:3px solid transparent; border-radius:14px; padding:20px 12px;
+                               display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer; transition:.2s;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#113659,#2563eb);
+                                    box-shadow:0 4px 10px rgba(17,54,89,.4);"></div>
+                        <span style="font-size:12px;font-weight:700;color:#fff;text-align:center;">Navy<br>Default</span>
+                    </button>
+
+                    {{-- Swatch: Emerald Night --}}
+                    <button type="button" onclick="setTheme('emerald-night')" class="theme-swatch-btn" data-theme="emerald-night"
+                        style="background:#133D2F; border:3px solid transparent; border-radius:14px; padding:20px 12px;
+                               display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer; transition:.2s;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#133D2F,#10b981);
+                                    box-shadow:0 4px 10px rgba(16,185,129,.4);"></div>
+                        <span style="font-size:12px;font-weight:700;color:#d1fae5;text-align:center;">Emerald<br>Night</span>
+                    </button>
+
+                    {{-- Swatch: Financial Teal --}}
+                    <button type="button" onclick="setTheme('theme-financial')" class="theme-swatch-btn" data-theme="theme-financial"
+                        style="background:#055B65; border:3px solid transparent; border-radius:14px; padding:20px 12px;
+                               display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer; transition:.2s;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#055B65,#0891b2);
+                                    box-shadow:0 4px 10px rgba(5,91,101,.4);"></div>
+                        <span style="font-size:12px;font-weight:700;color:#e0f2f1;text-align:center;">Financial<br>Teal</span>
+                    </button>
+
+                    {{-- Swatch: Corona Dark --}}
+                    <button type="button" onclick="setTheme('theme-corona')" class="theme-swatch-btn" data-theme="theme-corona"
+                        style="background:#1a1a2e; border:3px solid transparent; border-radius:14px; padding:20px 12px;
+                               display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer; transition:.2s;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1a1a2e,#e94560);
+                                    box-shadow:0 4px 10px rgba(233,69,96,.4);"></div>
+                        <span style="font-size:12px;font-weight:700;color:#fca5a5;text-align:center;">Corona<br>Dark</span>
+                    </button>
+
+                    {{-- Swatch: Indigo Light --}}
+                    <button type="button" onclick="setTheme('theme-light')" class="theme-swatch-btn" data-theme="theme-light"
+                        style="background:#4f46e5; border:3px solid transparent; border-radius:14px; padding:20px 12px;
+                               display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer; transition:.2s;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#7c3aed);
+                                    box-shadow:0 4px 10px rgba(79,70,229,.4);"></div>
+                        <span style="font-size:12px;font-weight:700;color:#e0e7ff;text-align:center;">Indigo<br>Light</span>
+                    </button>
+
+                </div>
+
+                <div style="margin-top:24px;padding:16px;background:#f9fafb;border-radius:10px;font-size:13px;color:#6b7280;display:flex;align-items:center;gap:10px;">
+                    <i class="bi bi-info-circle" style="font-size:16px;color:#9ca3af;"></i>
+                    Theme preference is stored in your browser only. Changing the theme here affects this device immediately.
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -366,6 +466,30 @@ function switchTab(tabId) {
     document.getElementById('panel-' + tabId).classList.add('active');
 }
 
+// Highlight active theme swatch
+function highlightActiveSwatch() {
+    var current = localStorage.getItem('app-theme') || 'default';
+    document.querySelectorAll('.theme-swatch-btn').forEach(function(btn) {
+        var isActive = btn.getAttribute('data-theme') === current;
+        btn.style.border = isActive ? '3px solid #facc15' : '3px solid transparent';
+        btn.style.transform = isActive ? 'scale(1.05)' : 'scale(1)';
+        btn.style.boxShadow = isActive ? '0 0 0 3px rgba(250,204,21,0.35)' : 'none';
+    });
+}
+
+// Intercept setTheme calls on this page to also update swatch highlight
+var _origSetTheme = window.setTheme;
+if (typeof _origSetTheme === 'function') {
+    window.setTheme = function(theme) {
+        _origSetTheme(theme);
+        highlightActiveSwatch();
+    };
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    highlightActiveSwatch();
+});
+
 // Open correct tab if there's a password error
 @if($errors->updatePassword->any())
     switchTab('password');
@@ -376,48 +500,56 @@ function confirmDelete() {
     new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
 
-// Dynamic avatar preview 
+// Dynamic avatar preview — updates both header and photo box
 function previewAvatar(input) {
     if (input.files && input.files[0]) {
+        var file = input.files[0];
         var reader = new FileReader();
         reader.onload = function(e) {
-            let img = document.getElementById('avatar-preview-header');
-            let initials = document.getElementById('avatar-initials-header');
-            if(img) {
-                img.src = e.target.result;
-                img.style.display = 'block';
-            }
-            if(initials) {
-                initials.style.display = 'none';
-            }
+            // Update header avatar
+            let headerImg = document.getElementById('avatar-preview-header');
+            let headerInitials = document.getElementById('avatar-initials-header');
+            if (headerImg) { headerImg.src = e.target.result; headerImg.style.display = 'block'; }
+            if (headerInitials) headerInitials.style.display = 'none';
+
+            // Update photo box
+            let boxImg = document.getElementById('photo-box-preview');
+            let boxInitials = document.getElementById('photo-box-initials');
+            if (boxImg) { boxImg.src = e.target.result; boxImg.style.display = 'block'; }
+            if (boxInitials) boxInitials.style.display = 'none';
+
+            // Update filename label
+            let label = document.getElementById('photo-filename');
+            if (label) label.textContent = file.name + ' (pending save)';
+            label.style.color = '#2563eb';
         }
-        reader.readAsDataURL(input.files[0]);
-        document.getElementById('upload-box').style.borderColor = "#2563eb";
-        document.getElementById('upload-box').style.backgroundColor = "#eff6ff";
+        reader.readAsDataURL(file);
     }
 }
 
 function removeAvatar() {
     document.getElementById('profile_picture').value = '';
-    let img = document.getElementById('avatar-preview-header');
-    let initials = document.getElementById('avatar-initials-header');
     let origUrl = '{{ auth()->user()->profile_picture ? Storage::url(auth()->user()->profile_picture) : '' }}';
-    
+
+    let headerImg = document.getElementById('avatar-preview-header');
+    let headerInitials = document.getElementById('avatar-initials-header');
+    let boxImg = document.getElementById('photo-box-preview');
+    let boxInitials = document.getElementById('photo-box-initials');
+    let label = document.getElementById('photo-filename');
+
     if (origUrl) {
-        if(img) {
-            img.src = origUrl;
-            img.style.display = 'block';
-        }
-        if(initials) initials.style.display = 'none';
+        if (headerImg) { headerImg.src = origUrl; headerImg.style.display = 'block'; }
+        if (headerInitials) headerInitials.style.display = 'none';
+        if (boxImg) { boxImg.src = origUrl; boxImg.style.display = 'block'; }
+        if (boxInitials) boxInitials.style.display = 'none';
+        if (label) { label.textContent = 'Current photo saved'; label.style.color = '#6b7280'; }
     } else {
-        if(img) {
-            img.src = '';
-            img.style.display = 'none';
-        }
-        if(initials) initials.style.display = 'block';
+        if (headerImg) { headerImg.src = ''; headerImg.style.display = 'none'; }
+        if (headerInitials) headerInitials.style.display = 'block';
+        if (boxImg) { boxImg.src = ''; boxImg.style.display = 'none'; }
+        if (boxInitials) boxInitials.style.display = 'block';
+        if (label) { label.textContent = 'No photo uploaded yet'; label.style.color = '#9ca3af'; }
     }
-    document.getElementById('upload-box').style.borderColor = "#d1d5db";
-    document.getElementById('upload-box').style.backgroundColor = "#f9fafb";
 }
 
 // Toggle password visibility
@@ -433,7 +565,6 @@ function togglePassword(inputId, btn) {
         btn.style.color = "#6b7280";
     }
 }
-</script>
 </script>
 
 {{-- SweetAlert2 for Popup Modals --}}

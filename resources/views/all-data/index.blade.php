@@ -1,5 +1,243 @@
 <x-dashboard-app>
     <style>
+/* Filter bar */
+        .cas-hero {
+            background: linear-gradient(135deg, #052c65 0%, #1e3a8a 55%, #1e40af 100%);
+            border-radius: 14px;
+            padding: 24px 28px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .cas-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255, 255, 255, .07) 1px, transparent 1px);
+            background-size: 22px 22px;
+        }
+
+        .cas-hero-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .cas-hero h1 {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .cas-hero p {
+            color: rgba(255, 255, 255, .65);
+            font-size: 12px;
+            margin: 4px 0 0;
+        }
+
+        .cas-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, .15);
+            border: 1px solid rgba(255, 255, 255, .25);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .cas-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .cas-stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .cas-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .cas-stat {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px 22px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .02);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .cas-stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .cas-stat-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .cas-stat-value {
+            font-size: 30px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1;
+            margin: 0;
+        }
+
+        .cas-stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .cas-stat-icon.indigo {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .cas-stat-icon.blue {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+
+        .cas-stat-icon.purple {
+            background: #f3e8ff;
+            color: #9333ea;
+        }
+
+        .cas-stat-icon.red {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .cas-stat-sub {
+            margin-top: 14px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+        .cas-filter {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+        }
+
+        .cas-input,
+        .cas-select {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #374151;
+            outline: none;
+            background: #fafafa;
+            transition: border .15s, box-shadow .15s;
+        }
+
+        .cas-input:focus,
+        .cas-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, .1);
+            background: #fff;
+        }
+
+        .cas-input {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .cas-select {
+            min-width: 140px;
+        }
+
+        .cas-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all .15s;
+            white-space: nowrap;
+        }
+
+        .cas-btn.primary {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .cas-btn.primary:hover {
+            background: #1d4ed8;
+        }
+
+        .cas-btn.reset {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .cas-btn.reset:hover {
+            background: #e2e8f0;
+        }
+
+        .cas-btn.add {
+            background: linear-gradient(135deg, #1e3a8a, #1e40af);
+            color: #fff;
+        }
+
+        .cas-btn.add:hover {
+            opacity: .88;
+            transform: translateY(-1px);
+        }
+
+        .cas-btn.import {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .cas-btn.import:hover {
+            background: #6d28d9;
+        }
+
         /* ── Hero ───────────────────────────────────────────────────────────── */
         .ad-hero {
             background: linear-gradient(135deg, #052c65 0%, #052c65 55%, #052c65 100%);
@@ -346,14 +584,14 @@
         }
 
         .data-table th {
-            padding: 10px 12px;
+            padding: 12px 14px;
             text-align: left;
             white-space: nowrap;
-            font-size: 9.5px;
+            font-size: 12px;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: .8px;
-            color: rgba(255, 255, 255, .7);
+            letter-spacing: .6px;
+            color: rgba(255, 255, 255, .85);
             border-bottom: 2px solid rgba(255, 255, 255, .08);
             border-right: 1px solid rgba(255, 255, 255, .08);
             cursor: pointer;
@@ -379,13 +617,13 @@
         }
 
         .data-table td {
-            padding: 12px 14px;
-            font-size: 12px;
+            padding: 13px 15px;
+            font-size: 14px;
             color: #374151;
             border-bottom: 1px solid #f1f5f9;
             border-right: 1px solid #f1f5f9;
             white-space: nowrap;
-            max-width: 200px;
+            max-width: 220px;
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -425,9 +663,9 @@
         .status-badge {
             display: inline-flex;
             align-items: center;
-            padding: 2px 8px;
+            padding: 3px 9px;
             border-radius: 99px;
-            font-size: 10px;
+            font-size: 11.5px;
             font-weight: 700;
             white-space: nowrap;
         }
@@ -472,11 +710,11 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            height: 24px;
-            padding: 0 8px;
+            height: 27px;
+            padding: 0 10px;
             gap: 4px;
             border-radius: 5px;
-            font-size: 10px;
+            font-size: 11.5px;
             font-weight: 700;
             font-family: inherit;
             line-height: 1;
@@ -535,7 +773,7 @@
         }
 
         .table-count {
-            font-size: 12px;
+            font-size: 13.5px;
             color: #6b7280;
         }
 
@@ -573,19 +811,19 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 12px;
+            font-size: 13.5px;
             color: #6b7280;
         }
     </style>
 
-    {{-- Hero --}}
-    <div class="ad-hero">
-        <div class="ad-hero-inner">
+        {{-- Hero --}}
+    <div class="cas-hero">
+        <div class="cas-hero-inner">
             <div>
-                <h1><i class="bi bi-table me-2"></i>All Data</h1>
-                <p>Complete plantilla records — all {{ number_format($total) }} entries</p>
+                <h1><i class="bi bi-table me-2"></i>All Data Inventory</h1>
+                <p>Consolidated personnel database — all {{ number_format($total) }} entries</p>
             </div>
-            <span class="ad-hero-badge"><i class="bi bi-database-fill"></i> {{ number_format($total) }} Records</span>
+            <span class="cas-hero-badge"><i class="bi bi-database-fill"></i> {{ number_format($total) }} Records</span>
         </div>
     </div>
 
@@ -598,179 +836,118 @@
     @endif
 
     {{-- Stats bar --}}
-    <div class="stats-bar">
-        <div class="stat-card">
-            <div class="stat-card-top">
-                <div class="stat-card-info">
-                    <div class="stat-card-label">Total Records</div>
-                    <div class="stat-card-value">{{ number_format($total) }}</div>
-                </div>
-                <div class="stat-card-icon blue">
-                    <i class="bi bi-list-task"></i>
-                </div>
-            </div>
-            <div class="stat-card-sub green">
-                <i class="bi bi-arrow-up-short"></i> System-wide records
-            </div>
-        </div>
+    @php
+        $gadTotal = $maleCount + $femaleCount;
+        $gadFemalePct = $gadTotal > 0 ? round($femaleCount / $gadTotal * 100, 1) : 0;
+        $gadOk = $gadFemalePct >= 40 && $gadFemalePct <= 60;
+        $totalPct = $total > 0 ? round($regularCount / $total * 100, 0) : 0;
+    @endphp
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:14px;">
+        <x-stat-card icon="bi-people-fill" color="indigo" label="Total Records" :value="$total"
+            sub="All employment types"
+            compliance="CSC / DBM"
+            analysis="Consolidated plantilla across all employment categories per DBM-CSC joint standards." />
 
-        <div class="stat-card">
-            <div class="stat-card-top">
-                <div class="stat-card-info">
-                    <div class="stat-card-label">Showing Now</div>
-                    <div class="stat-card-value">{{ number_format($records->total()) }}</div>
-                </div>
-                <div class="stat-card-icon orange">
-                    <i class="bi bi-eye-fill"></i>
-                </div>
-            </div>
-            <div class="stat-card-sub">
-                Active view/filter results
-            </div>
-        </div>
+        <x-stat-card icon="bi-gender-male" color="blue" label="Male" :value="$maleCount"
+            :pct="$gadTotal > 0 ? round($maleCount/$gadTotal*100,1) : 0"
+            sub="of sex-tagged records"
+            compliance="RA 9710 GAD"
+            analysis="Male headcount. RA 9710 (Magna Carta of Women) requires 40–60% female workforce balance." />
 
-        <div class="stat-card">
-            <div class="stat-card-top">
-                <div class="stat-card-info">
-                    <div class="stat-card-label">Current Page</div>
-                    <div class="stat-card-value">{{ $records->currentPage() }}</div>
-                </div>
-                <div class="stat-card-icon indigo">
-                    <i class="bi bi-book-fill"></i>
-                </div>
-            </div>
-            <div class="stat-card-sub">
-                of {{ number_format($records->lastPage()) }} pages
-            </div>
-        </div>
+        <x-stat-card icon="bi-gender-female" color="pink" label="Female" :value="$femaleCount"
+            :pct="$gadFemalePct"
+            sub="of sex-tagged records"
+            compliance="RA 9710 GAD"
+            :alert="!$gadOk"
+            analysis="{{ $gadOk ? 'GAD compliant: female ratio '.$gadFemalePct.'% is within the 40–60% target (RA 9710).' : 'ACTION NEEDED: female ratio '.$gadFemalePct.'% is outside the 40–60% GAD target (RA 9710 §12).' }}" />
 
-        <div class="stat-card">
-            <div class="stat-card-top">
-                <div class="stat-card-info">
-                    <div class="stat-card-label">Per Page</div>
-                    <div class="stat-card-value">{{ $records->perPage() }}</div>
-                </div>
-                <div class="stat-card-icon purple">
-                    <i class="bi bi-list-nested"></i>
-                </div>
-            </div>
-            <div class="stat-card-sub">
-                Configurable in filters
-            </div>
-        </div>
+        <x-stat-card icon="bi-person-badge-fill" color="orange" label="Regular" :value="$regularCount"
+            :pct="$total > 0 ? round($regularCount/$total*100,0) : 0"
+            sub="of total workforce"
+            compliance="Civil Service"
+            analysis="Permanent/co-terminous/co-terminous-with-appointing-authority items subject to CSC appointment rules." />
+
+        <x-stat-card icon="bi-person-lines-fill" color="purple" label="Casual" :value="$casualCount"
+            :pct="$total > 0 ? round($casualCount/$total*100,0) : 0"
+            sub="of total workforce"
+            compliance="RA 6656"
+            analysis="Casual appointments governed by RA 6656 and CSC MC 40, s.1998. Contracts require monthly renewal endorsement." />
+
+        <x-stat-card icon="bi-briefcase-fill" color="teal" label="Job Order" :value="$jobOrderCount"
+            :pct="$total > 0 ? round($jobOrderCount/$total*100,0) : 0"
+            sub="of total workforce"
+            compliance="COA / DBM"
+            analysis="JO workers are not government employees (COA Circular 2012-001). Engagement must not exceed 12 months per fiscal year." />
     </div>
+    <form method="GET" action="{{ route('all-data.index') }}" id="ad-search-form">
+    <div class="cas-filter" style="display: flex; flex-direction: column; gap: 12px; align-items: stretch; padding: 14px 18px; margin-bottom: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, .04);">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <input type="text" name="search" value="{{ request('search') }}" class="cas-input" placeholder="🔍 Search name, position, office…" autocomplete="off">
+            
+            <select name="office[]" class="cas-select" id="office-select" multiple="multiple" style="min-width:250px;" title="Office">
+                @php $selectedOffices = (array) request('office', []); @endphp
+                <option value="" disabled>— Office —</option>
+                @foreach($offices as $office)
+                    <option value="{{ $office }}" {{ in_array($office, $selectedOffices) ? 'selected' : '' }}>{{ Str::limit($office, 45) }}</option>
+                @endforeach
+            </select>
 
-    {{-- Filter bar --}}
-    <form method="GET" action="{{ route('all-data.index') }}" id="search-form">
-        <div class="filter-bar">
+            <select name="status" class="cas-select" style="min-width:140px;">
+                <option value="">— Status —</option>
+                <option value="P" {{ request('status') === 'P' ? 'selected' : '' }}>Regular</option>
+                <option value="C" {{ request('status') === 'C' ? 'selected' : '' }}>Casual</option>
+                <option value="JO" {{ request('status') === 'JO' ? 'selected' : '' }}>Job Order</option>
+            </select>
 
-            {{-- TOP ROW: Filters --}}
-            <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
-                {{-- Search input --}}
-                <div class="search-wrap" style="display: flex;">
-                    <input type="text" name="search" value="{{ request('search') }}" class="filter-input"
-                        placeholder="🔍  Search name, item, position, TIN…" autocomplete="off" style="width: 100%;">
-                </div>
-
-                <select name="office" class="filter-select">
-                    <option value="">All Offices</option>
-                    @foreach($offices as $office)
-                        <option value="{{ $office }}" {{ request('office') === $office ? 'selected' : '' }}>
-                            {{ Str::limit($office, 45) }}
-                        </option>
-                    @endforeach
-                </select>
-
-                <select name="position" class="filter-select" style="min-width:180px;">
-                    <option value="">All Positions</option>
-                    @foreach($positions as $pos)
-                        <option value="{{ $pos }}" {{ request('position') === $pos ? 'selected' : '' }}>
-                            {{ Str::limit($pos, 45) }}
-                        </option>
-                    @endforeach
-                </select>
-
-                <select name="status" class="filter-select">
-                    <option value="">All Statuses</option>
-                    <option value="P" {{ request('status') === 'P' ? 'selected' : '' }}>Permanent</option>
-                    <option value="CT" {{ request('status') === 'CT' ? 'selected' : '' }}>Co-Terminous</option>
-                    <option value="E" {{ request('status') === 'E' ? 'selected' : '' }}>Elected</option>
-                    <option value="Casual" {{ request('status') === 'Casual' ? 'selected' : '' }}>Casual</option>
-                    <option value="JO" {{ request('status') === 'JO' ? 'selected' : '' }}>Job Order</option>
-                </select>
-
-                <select name="sex" class="filter-select" style="min-width:100px;">
-                    <option value="">All Genders</option>
-                    <option value="M" {{ request('sex') === 'M' ? 'selected' : '' }}>Male</option>
-                    <option value="F" {{ request('sex') === 'F' ? 'selected' : '' }}>Female</option>
-                </select>
-
-                <select name="vacant" class="filter-select" style="min-width:130px;">
-                    <option value="">Position Status</option>
-                    <option value="vacant" {{ request('vacant') === 'vacant' ? 'selected' : '' }}>🔴 Vacant Only</option>
-                    <option value="filled" {{ request('vacant') === 'filled' ? 'selected' : '' }}>🟢 Filled Only</option>
-                </select>
-
-                <select name="per_page" class="filter-select" style="min-width:90px;">
-                    @foreach([25, 50, 100, 200] as $n)
-                        <option value="{{ $n }}" {{ request('per_page', 50) == $n ? 'selected' : '' }}>{{ $n }} / page
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            {{-- BOTTOM ROW: Actions --}}
-            <div
-                style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
-
-                {{-- Left Side: Core Actions --}}
-                <div style="display: flex; gap: 8px;">
-                    <button type="submit" class="filter-btn primary">
-                        <i class="bi bi-search"></i> Search
-                    </button>
-                    <a href="{{ route('all-data.index') }}" class="filter-btn reset">
-                        <i class="bi bi-arrow-counterclockwise"></i> Reset
-                    </a>
-
-                    @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                        <a href="{{ route('all-data.create') }}" class="filter-btn add">
-                            <i class="bi bi-plus-lg"></i> Add Record
-                        </a>
-                    @endif
-                </div>
-
-                {{-- Right Side: Extra Utilities --}}
-                <div style="display:flex; gap:6px; align-items:center;">
-                    @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                        <button type="button" class="filter-btn" id="toggle-select-multiple"
-                            style="background:#fff;color:#334155;border:1px solid #cbd5e1;gap:5px;"
-                            onmouseover="this.style.background='#f8fafc';this.style.borderColor='#94a3b8';"
-                            onmouseout="this.style.background='#fff';this.style.borderColor='#cbd5e1';">
-                            <i class="bi bi-ui-checks-grid"></i> Select Multiple
-                        </button>
-                    @endif
-                    <a href="{{ route('archives.index') }}" class="filter-btn"
-                        style="background:#7c3aed;color:#fff;gap:5px;"
-                        onmouseover="this.style.background='#f8fafc';this.style.borderColor='#94a3b8';"
-                        onmouseout="this.style.background='#fff';this.style.borderColor='#cbd5e1';">
-                        <i class="bi bi-archive-fill"></i> View Archives
-                    </a>
-                    <button type="button" class="filter-btn"
-                        style="background:#fff;color:#334155;border:1px solid #cbd5e1;gap:5px;"
-                        onmouseover="this.style.background='#f8fafc';this.style.borderColor='#94a3b8';"
-                        onmouseout="this.style.background='#fff';this.style.borderColor='#cbd5e1';"
-                        onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()">
-                        <i class="bi bi-file-earmark-arrow-down-fill"></i> Export Settings
-                    </button>
-                </div>
-
-            </div>
-
+            <select name="sex" class="cas-select" style="min-width:110px;">
+                <option value="">— Gender —</option>
+                <option value="M" {{ request('sex') === 'M' ? 'selected' : '' }}>Male</option>
+                <option value="F" {{ request('sex') === 'F' ? 'selected' : '' }}>Female</option>
+            </select>
+            
+            <button type="submit" class="cas-btn primary"><i class="bi bi-search"></i> Search</button>
+            <a href="{{ route('all-data.index') }}" class="cas-btn reset"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+            <select name="per_page" class="cas-select" style="min-width: 80px;" onchange="this.form.submit()">
+                <option value="20" {{ request('per_page', 50) == 20 ? 'selected' : '' }}>20</option>
+                <option value="50" {{ request('per_page', 50) == 50 ? 'selected' : '' }}>50</option>
+                <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
+            </select>
         </div>
-    </form>
+        
+        <!-- Bottom Row: Actions (Far Left) -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-start;">
+            @if(auth()->user()?->isSuperAdmin() || auth()->user()?->isInventoryAdmin())
+                <a href="{{ route('all-data.create') }}" class="cas-btn add"><i class="bi bi-plus-lg"></i> Add Record</a>
+            @endif
+            <button type="button" class="cas-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;cursor:pointer;" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()"><i class="bi bi-file-earmark-arrow-down-fill"></i> Export Settings</button>
+            @unless(auth()->user()?->isViewer())
+            <a href="{{ route('all-data.export.full') }}"
+               class="cas-btn"
+               style="background:#065f46;color:#fff;border:1px solid #047857;gap:5px;"
+               title="Download all records — all statuses, all columns, no filters. Edit the file, then re-import via Global Import to update or add records.">
+                <i class="bi bi-database-down"></i> Full Database Export
+            </a>
+            @endunless
+            @if(auth()->user()?->isSuperAdmin())
+            <a href="{{ route('imports.index') }}"
+               class="cas-btn"
+               style="background:#1e3a5f;color:#fff;border:1px solid #1e40af;gap:5px;"
+               title="Go to Global Import — upload the Full Database Export to update existing records or add new ones">
+                <i class="bi bi-upload"></i> Global Import
+            </a>
+            @endif
+            @if(auth()->user()?->isSuperAdmin() || auth()->user()?->isInventoryAdmin())
+                <button type="button" class="cas-btn" id="toggle-select-multiple" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;"><i class="bi bi-ui-checks-grid"></i> Select Multiple</button>
+            @endif
+            @if(auth()->user()?->isSuperAdmin())
+                <button type="button" id="delete-all-btn" class="cas-btn" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;background:#ffffff;color:#334155;border:1px solid #cbd5e1;transition:all .15s;" onclick="document.getElementById('delete-all-overlay').classList.add('active')"><i class="bi bi-trash3-fill"></i> Delete All Data</button>
+            @endif
+        </div>
+    </div></form>
 
     {{-- Bulk Action Bar --}}
-    @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
+    @if(auth()->user()?->isSuperAdmin() || auth()->user()?->isInventoryAdmin())
         <div id="bulk-action-bar"
             style="display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
             <div style="display: flex; align-items: center; gap: 12px;">
@@ -790,7 +967,7 @@
                     </button>
                 </form>
 
-                @if(auth()->user()->isSuperAdmin())
+                @if(auth()->user()?->isSuperAdmin())
                     <form id="bulk-force-delete-form" method="POST" action="{{ route('all-data.bulk-force-delete') }}" style="margin: 0;">
                         @csrf
                         <input type="hidden" name="type" value="plantilla">
@@ -811,45 +988,50 @@
             <table class="data-table">
                 <thead>
                     <tr>
-                        @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                            <th class="checkbox-col" style="display:none; text-align:center; padding-left: 16px;">
+                        @if(auth()->user()?->isSuperAdmin() || auth()->user()?->isInventoryAdmin())
+                            <th rowspan="2" class="checkbox-col" style="display:none; text-align:center;">
                                 <input type="checkbox" id="selectAll" style="cursor:pointer; width: 14px; height: 14px;">
                             </th>
                         @endif
-                        <th>#</th>
-                        <th>OFFICE</th>
+                        <th rowspan="2" style="width: 40px; text-align: center;">#</th>
+                        <th rowspan="2">OFFICE</th>
+                        <th colspan="4" style="text-align:center;">NAME</th>
+                        <th rowspan="2">POSITION</th>
+                        <th rowspan="2" style="text-align:center;">DATE OF BIRTH</th>
+                        <th rowspan="2" style="text-align:center;">SEX</th>
+                        <th rowspan="2" style="text-align:center;">STATUS</th>
+                        @if(auth()->user()?->isSuperAdmin() || auth()->user()?->isInventoryAdmin())
+                            <th rowspan="2" style="text-align:center;">ACTIONS</th>
+                        @endif
+                    </tr>
+                    <tr class="sub-header">
                         <th>LAST NAME</th>
                         <th>FIRST NAME</th>
                         <th>MIDDLE NAME</th>
-                        <th>EXT.</th>
-                        <th>POSITION</th>
-                        <th>STATUS</th>
-                        @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                            <th style="text-align:center; min-width: 280px;">ACTION</th>
-                        @endif
+                        <th>SUFFIX</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($records as $r)
                         <tr>
-                            @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
+                            @if(auth()->user()?->isSuperAdmin() || auth()->user()?->isInventoryAdmin())
                                 <td class="checkbox-col" style="display:none; text-align:center; padding-left: 16px;">
                                     <input type="checkbox" class="record-checkbox" value="{{ $r->id }}"
                                         style="cursor:pointer; width: 14px; height: 14px;">
                                 </td>
                             @endif
                             {{-- Row # (sticky col) --}}
-                            <td style="color:#9ca3af;font-size:10px;font-weight:600;">
+                            <td style="color:#9ca3af;font-size:12px;font-weight:600;">
                                 {{ $records->firstItem() + $loop->index }}
                             </td>
 
                             {{-- Organizational Unit --}}
-                            <td title="{{ $r->organizational_unit }}">{{ $r->organizational_unit }}</td>
+                            <td title="{{ $r->office_department }}">{{ $r->office_department }}</td>
 
                             {{-- Last Name --}}
                             <td style="font-weight:700;text-transform:uppercase;color:#0f172a;">
                                 @if($r->is_vacant)
-                                    <span style="color:#dc2626;font-style:italic;font-size:10px;">VACANT</span>
+                                    <span style="color:#dc2626;font-style:italic;font-size:12px;">VACANT</span>
                                 @else
                                     {{ $r->last_name ?: '—' }}
                                 @endif
@@ -862,11 +1044,27 @@
                             <td style="color:#6b7280;">{{ $r->middle_name ?: '—' }}</td>
 
                             {{-- Extension --}}
-                            <td style="color:#6b7280;">—</td>
+                            <td style="color:#6b7280;">{{ $r->name_extension ?: '—' }}</td>
 
                             {{-- Position Title --}}
                             <td title="{{ $r->position_title }}" style="font-weight:600;color:#0f172a;">
                                 {{ $r->position_title }}
+                            </td>
+
+                            {{-- Birthday --}}
+                            <td style="color:#6b7280;text-align:center;font-size:13px;">
+                                {{ $r->date_of_birth ? \Carbon\Carbon::parse($r->date_of_birth)->format('M d, Y') : '—' }}
+                            </td>
+
+                            {{-- Sex --}}
+                            <td style="text-align:center;font-weight:600;">
+                                @if(strtoupper($r->sex) == 'M')
+                                    <span style="color:#2563eb;">M</span>
+                                @elseif(strtoupper($r->sex) == 'F')
+                                    <span style="color:#db2777;">F</span>
+                                @else
+                                    —
+                                @endif
                             </td>
 
                             {{-- Employment Status --}}
@@ -887,7 +1085,7 @@
                             </td>
 
                             {{-- Actions --}}
-                            @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
+                            @if(auth()->user()?->isSuperAdmin() || auth()->user()?->isInventoryAdmin())
                                 <td style="text-align:center; min-width: 280px; max-width: none; white-space: nowrap;">
                                     <div
                                         style="display:flex; flex-wrap: nowrap; gap:6px; justify-content:center; align-items:center;">
@@ -999,7 +1197,9 @@
                 <form id="exportForm" method="GET">
                     {{-- Hidden inputs to preserve filters --}}
                     <input type="hidden" name="search" value="{{ request('search') }}">
-                    <input type="hidden" name="office" value="{{ request('office') }}">
+                    @foreach((array) request('office', []) as $selectedOffice)
+                        <input type="hidden" name="office[]" value="{{ $selectedOffice }}">
+                    @endforeach
                     <input type="hidden" name="position" value="{{ request('position') }}">
                     <input type="hidden" name="status" value="{{ request('status') }}">
                     <input type="hidden" name="sex" value="{{ request('sex') }}">
@@ -1031,37 +1231,38 @@
                         <div class="row">
                             @php
                                 $exportColumns = [
-                                    'organizational_unit' => 'Organizational Unit',
-                                    'item' => 'Item',
-                                    'position_title' => 'Position Title',
-                                    'salary_grade' => 'Salary Grade',
-                                    'authorized_annual_salary' => 'Authorized Annual Salary',
-                                    'actual_annual_salary' => 'Actual Annual Salary',
-                                    'step' => 'Step',
-                                    'area_code' => 'Area Code',
-                                    'area_type' => 'Area Type',
-                                    'level' => 'Level',
-                                    'last_name' => 'Last Name',
-                                    'first_name' => 'First Name',
-                                    'middle_name' => 'Middle Name',
-                                    'sex' => 'Sex',
-                                    'religion' => 'Religion',
-                                    'date_of_birth' => 'Date of Birth',
+                                    'office_department' => 'OFFICE',
+                                    'item_no_new' => 'ITEM',
+                                    'position_title' => 'POSITION TITLE',
+                                    'salary_grade' => 'SALARY GRADE',
+                                    'authorized_annual_salary' => 'AUTHORIZED ANNUAL SALARY',
+                                    'base_salary_amount' => 'ACTUAL ANNUAL SALARY',
+                                    'step' => 'STEP',
+                                    'area_code' => 'AREA CODE',
+                                    'area_type' => 'AREA TYPE',
+                                    'level' => 'LEVEL',
+                                    'last_name' => 'LAST NAME',
+                                    'first_name' => 'FIRST NAME',
+                                    'middle_name' => 'MIDDLE NAME',
+                                    'name_extension' => 'NAME EXTENSION',
+                                    'sex' => 'SEX',
+                                    'religion' => 'RELIGION',
+                                    'date_of_birth' => 'DATE OF BIRTH',
                                     'tin' => 'TIN',
-                                    'date_original_appointment' => 'Date of Original Appointment',
-                                    'date_last_promotion' => 'Date of Last Promotion/Appointment',
+                                    'date_original_appointment' => 'DATE OF ORIGINAL APPOINTMENT',
+                                    'date_last_promotion' => 'DATE OF LAST PROMOTION/APPOINTMENT',
                                     'pwd' => 'PWD',
-                                    'status' => 'Status',
-                                    'civil_service_eligibility' => 'Civil Service Eligibility',
-                                    'admin_charges' => 'Admin Charges',
-                                    'nature_of_separation' => 'Termination',
-                                    'indigenous_people' => 'Indigenous People',
-                                    'solo_parent' => 'Solo Parent',
-                                    'abolished' => 'Abolished',
-                                    'dissolved' => 'Dissolved',
-                                    'gsis_bp_number' => 'GSIS BP Number',
-                                    'position_classification' => 'Position Classification',
-                                    'employee_code' => 'Employee No.',
+                                    'status' => 'STATUS',
+                                    'civil_service_eligibility' => 'CIVIL SERVICE ELIGIBILITY',
+                                    'admin_charges' => 'ADMIN CHARGES',
+                                    'nature_of_separation' => 'TERMINATION',
+                                    'indigenous_people' => 'INDIGENOUS PEOPLE',
+                                    'solo_parent' => 'SOLO PARENT',
+                                    'abolished' => 'ABOLISHED',
+                                    'dissolved' => 'DISSOLVED',
+                                    'gsis_bp_number' => 'GSIS BP NUMBER',
+                                    'position_classification' => 'POSITION CLASSIFICATION',
+                                    'employee_code' => 'EMPLOYEE NO.',
                                 ];
                             @endphp
                             @foreach($exportColumns as $key => $label)

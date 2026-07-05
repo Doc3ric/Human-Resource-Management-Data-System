@@ -3,6 +3,9 @@
 namespace App\Exports;
 
 use App\Models\PlantillaRecord;
+use Maatwebsite\Excel\Concerns\WithDrawings;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -13,8 +16,10 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
-class PositionReportExport implements FromArray, ShouldAutoSize, WithTitle, WithEvents
+class PositionReportExport implements FromArray, ShouldAutoSize, WithTitle, WithEvents, WithDrawings, WithCustomStartCell
 {
+    use \App\Exports\Traits\HasPhrmoHeader;
+
     protected array $positions;
 
     public function __construct(array $positions)

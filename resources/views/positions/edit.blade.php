@@ -391,17 +391,17 @@
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group @error('organizational_unit_id') has-error @enderror">
-                        <label for="organizational_unit_id">Department <span style="color: #dc2626;">*</span></label>
-                        <select id="organizational_unit_id" name="organizational_unit_id" required>
+                    <div class="form-group @error('office_department_id') has-error @enderror">
+                        <label for="office_department_id">Department <span style="color: #dc2626;">*</span></label>
+                        <select id="office_department_id" name="office_department_id" required>
                             <option value="">Select Department</option>
                             @foreach ($organizationalUnits as $unit)
-                                <option value="{{ $unit->id }}" @selected(old('organizational_unit_id', $position->organizational_unit_id) == $unit->id)>
+                                <option value="{{ $unit->id }}" @selected(old('office_department_id', $position->office_department_id) == $unit->id)>
                                     {{ $unit->name }}
                                 </option>
                             @endforeach
                         </select>
-                        @error('organizational_unit_id')
+                        @error('office_department_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>

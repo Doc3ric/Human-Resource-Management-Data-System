@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Organizational Unit</title>
+    <title>Edit OFFICE</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -327,7 +327,7 @@
                     <i class="bi bi-arrow-left"></i>
                     Back to Units
                 </a>
-                <h1>Edit Organizational Unit</h1>
+                <h1>Edit OFFICE</h1>
             </div>
         </div>
 
@@ -367,7 +367,7 @@
                     @error('name')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-                    <div class="form-help-text">A unique name for the organizational unit</div>
+                    <div class="form-help-text">A unique name for the OFFICE</div>
                 </div>
 
                 <div class="form-group @error('code') has-error @enderror">

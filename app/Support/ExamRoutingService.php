@@ -1,0 +1,79 @@
+<?php
+
+namespace App\Support;
+
+use App\Models\Applicant;
+use App\Models\ExamSchedule;
+use App\Models\User;
+use Illuminate\Support\Collection;
+
+/**
+ * Module 5.4 — examination routing engine. Classifies applicants within a
+ * trailing window (default 9 months) into PGB JO / External / Exempted
+ * Special Positions (2025 ORAOHRA), then clusters non-exempt applicants into
+ * tables of a configurable max size (default 6) for Date/Time/Room assignment.
+ */
+class ExamRoutingService
+{
+    public const DEFAULT_WINDOW_MONTHS = 9;
+    public const DEFAULT_TABLE_SIZE = 6;
+
+    public function classify(Applicant $applicant): string
+    {
+        if ($applicant->is_exam_exempt) {
+            return 'exempt';
+        }
+
+        if ($applicant->is_pgb_employee && stripos((string) $applicant->pgb_status, 'Job Order') !== false) {
+            return 'pgb_jo';
+        }
+
+        return 'external';
+    }
+
+    /** Applicants within the trailing window, grouped by classification. */
+    public function windowedApplicants(int $windowMonths = self::DEFAULT_WINDOW_MONTHS): Collection
+    {
+        $since = now()->subMonths($windowMonths);
+
+        return Applicant::where(function ($q) use ($since) {
+                $q->where('applied_at', '>=', $since)
+                  ->orWhere(function ($q2) use ($since) {
+                      $q2->whereNull('applied_at')->where('created_at', '>=', $since);
+                  });
+            })
+            ->orderBy('created_at')
+            ->get()
+            ->groupBy(fn (Applicant $a) => $this->classify($a));
+    }
+
+    /** Cluster a set of (non-exempt) applicants into tables of $tableSize. */
+    public function cluster(Collection $applicants, int $tableSize = self::DEFAULT_TABLE_SIZE): Collection
+    {
+        return $applicants->values()->chunk(max(1, $tableSize));
+    }
+
+    /**
+     * Persist the clustering as exam_schedules rows (Date/Time/Room supplied
+     * by the examiner before generation). Re-generating for an applicant
+     * replaces their prior schedule row rather than creating a duplicate.
+     */
+    public function generate(Collection $tables, string $classification, ?string $examDate, ?string $examTime, ?string $room, User $user): void
+    {
+        foreach ($tables as $tableIndex => $table) {
+            foreach ($table as $applicant) {
+                ExamSchedule::updateOrCreate(
+                    ['applicant_id' => $applicant->id],
+                    [
+                        'classification' => $classification,
+                        'table_number' => $tableIndex + 1,
+                        'exam_date' => $examDate,
+                        'exam_time' => $examTime,
+                        'room' => $room,
+                        'generated_by' => $user->id,
+                    ]
+                );
+            }
+        }
+    }
+}

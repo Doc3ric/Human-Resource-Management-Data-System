@@ -3,12 +3,14 @@
 namespace App\Exports;
 
 use App\Models\PlantillaRecord;
+use Maatwebsite\Excel\Concerns\WithDrawings;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -16,8 +18,10 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Font;
 
-class AllDataExport implements FromView, WithTitle, ShouldAutoSize, WithStyles, WithEvents
+class AllDataExport implements FromView, WithTitle, ShouldAutoSize, WithStyles, WithEvents, WithDrawings, WithCustomStartCell
 {
+    use \App\Exports\Traits\HasPhrmoHeader;
+
     protected $filters;
     protected $columns;
 
@@ -35,23 +39,23 @@ class AllDataExport implements FromView, WithTitle, ShouldAutoSize, WithStyles, 
     public function view(): View
     {
         $query = PlantillaRecord::query()
-            ->orderBy('organizational_unit')
-            ->orderBy('item');
+            ->orderBy('office_department')
+            ->orderBy('item_no_new');
 
         if (!empty($this->filters['search'])) {
             $term = $this->filters['search'];
             $query->where(function ($q) use ($term) {
                 $q->where('last_name', 'like', "%{$term}%")
                     ->orWhere('first_name', 'like', "%{$term}%")
-                    ->orWhere('item', 'like', "%{$term}%")
+                    ->orWhere('item_no_new', 'like', "%{$term}%")
                     ->orWhere('position_title', 'like', "%{$term}%")
-                    ->orWhere('organizational_unit', 'like', "%{$term}%")
+                    ->orWhere('office_department', 'like', "%{$term}%")
                     ->orWhere('tin', 'like', "%{$term}%");
             });
         }
 
         if (!empty($this->filters['office'])) {
-            $query->where('organizational_unit', $this->filters['office']);
+            $query->where('office_department', $this->filters['office']);
         }
 
         if (!empty($this->filters['status'])) {
@@ -115,12 +119,12 @@ class AllDataExport implements FromView, WithTitle, ShouldAutoSize, WithStyles, 
                 $sheet->freezePane('A4');
 
                 // Calculate the last column letter dynamically
-                // 31 = full column set: ORG UNIT, ITEM, POSITION TITLE, SG,
+                // 32 = full column set: ORG UNIT, ITEM, POSITION TITLE, SG,
                 //   AUTH SAL, ACT SAL, STEP, AREA CODE, AREA TYPE, LEVEL, LAST NAME, FIRST NAME,
-                //   MIDDLE NAME, SEX, RELIGION, DOB, TIN, DATE OA, DATE LP, STATUS, CS ELIGIBILITY,
+                //   MIDDLE NAME, NAME EXTENSION, SEX, RELIGION, DOB, TIN, DATE OA, DATE LP, STATUS, CS ELIGIBILITY,
                 //   PWD, COMMENT/ANNOTATION, TERMINATION, INDIGENOUS PEOPLE, SOLO PARENT,
                 //   ABOLISHED, DISSOLVED, GSIS BP NUMBER, POSITION CLASSIFICATION, EMPLOYEE NO.
-                $totalCols = empty($this->columns) ? 31 : count($this->columns);
+                $totalCols = empty($this->columns) ? 32 : count($this->columns);
                 $lastColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($totalCols);
 
                 // Row 1: Report title

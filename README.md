@@ -1,59 +1,34 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# HRDMS Implementation Spec — Chunked for Claude Code
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## How to use
+1. Always start a session by having Claude Code read `00_SHARED_CONTEXT.md`.
+2. Then point it at ONE module file from `/modules`.
+3. Let it run the discovery→assess→plan→approval→execute flow for that module only.
+4. Commit after each module. Start a fresh session for the next.
 
-## About Laravel
+## Recommended build order
+(Foundational modules first; features after; the spec's Module 11 is the authoritative sequence.)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+| # | File | Module |
+|---|------|--------|
+| 1 | modules/M0.md | MODULE 0 — AUTHENTICATION, LANDING PAGE, GLOBAL LAYOUT |
+| 2 | modules/M1.md | MODULE 1 — ACTIVE STATUS GATE (CONTRACT RENEWALS) |
+| 3 | modules/M1A.md | MODULE 1A — SYNCHRONIZED RENEWAL STATUS & SIGNAL ARCHITECTURE |
+| 4 | modules/M1B.md | MODULE 1B — EMPLOYEE LIFECYCLE EXCLUSION & RECORDS RETENTION MATRIX |
+| 5 | modules/M2.md | MODULE 2 — RECRUITMENT VIEW & NAP RETENTION |
+| 6 | modules/M2B.md | MODULE 2B — LEAVE VIOLATION MONITORING, NOTICE GENERATION & PAYROLL COORDINATION |
+| 7 | modules/M3.md | MODULE 3 — DATA INTEGRITY & PLANTILLA SYNC |
+| 8 | modules/M3A.md | MODULE 3A — INCIDENT REPORT RECORDING WITH AI-ASSISTED CITATION & COUNSELING SUPPORT |
+| 9 | modules/M4.md | MODULE 4 — RBAC: APPOINTMENT ENCODER (AE) |
+| 10 | modules/M4A.md | MODULE 4A — RBAC PERMISSION MATRIX (MASTER CONTROL SURFACE) |
+| 11 | modules/M5.md | MODULE 5 — SPLIT-SCREEN DELIBERATION WORKSPACE & SCREENING |
+| 12 | modules/M6.md | MODULE 6 — TWG SCORING, AGENDA PREP, MASKING |
+| 13 | modules/M6A.md | MODULE 6A — HRMPSB DELIBERATION MONITORING BOARD |
+| 14 | modules/M7.md | MODULE 7 — PHOTO MANAGEMENT |
+| 15 | modules/M8.md | MODULE 8 — EXPORT, PRINT, COMPLIANCE LAYOUTS |
+| 16 | modules/M9.md | MODULE 9 — IDCC: INTELLIGENT DOCUMENT CAPTURE & CLASSIFICATION |
+| 17 | modules/M9A.md | MODULE 9A — MULTI-SOURCE DOCUMENT CAPTURE & VISION ENRICHMENT (IDCC FRONT DOOR) |
+| 18 | modules/M10.md | MODULE 10 — DESTINATION MODULES (over one schema) |
+| 19 | modules/M10B.md | MODULE 10B — LEARNING & DEVELOPMENT (TRAINING) MODULE |
+| 20 | modules/M11.md | MODULE 11 — IMPLEMENTATION SEQUENCE (strict; adapt to Phase A findings) |
+| 21 | modules/M12.md | MODULE 12 — DYNAMIC STATISTICAL SCOREBOARD (SYSTEM-WIDE, EQUITABLE, NON-REDUNDANT) |

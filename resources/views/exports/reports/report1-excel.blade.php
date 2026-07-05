@@ -2,8 +2,8 @@
 <table>
     <thead>
         <tr>
-            <th>Office / Department</th>
-            <th>Permanent</th>
+            <th>OFFICE</th>
+            <th>REGULAR</th>
             <th>Elected</th>
             <th>Co-Terminous</th>
             <th>Casual</th>

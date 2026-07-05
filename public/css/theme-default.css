@@ -2,15 +2,18 @@
 
 body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar,
 body:not(.emerald-night):not(.theme-financial):not(.theme-corona) aside.sidebar {
-    background-color: #113659 !important;
-    border-right: none !important;
-    color: #e2e8f0 !important;
+    background: linear-gradient(160deg, #0b1f38 0%, #16365c 100%) !important;
+    border-right: 1px solid rgba(255,255,255,0.05) !important;
+    color: #f8fafc !important;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.15) !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-logo,
 body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-header {
-    background-color: #113659 !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
 body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-header img {
@@ -18,9 +21,10 @@ body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-heade
 }
 
 body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-logo-icon {
-    background: rgba(255, 255, 255, 0.1) !important;
-    box-shadow: none !important;
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+    box-shadow: 0 4px 10px rgba(37,99,235,0.4) !important;
     color: #fff !important;
+    border: none !important;
 }
 
 body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-logo-text,
@@ -52,8 +56,9 @@ body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .nav-icon {
 
 body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-link:hover,
 body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .nav-link:hover {
-    background: rgba(255, 255, 255, 0.08) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
     color: #ffffff !important;
+    border-radius: 8px !important;
 }
 
 body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-link:hover i,
@@ -64,10 +69,12 @@ body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .nav-link:hove
 
 body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-link.active,
 body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .nav-link.active {
-    background: rgba(255, 255, 255, 0.15) !important;
+    background: linear-gradient(90deg, #3b82f6, #2563eb) !important;
     color: #ffffff !important;
     font-weight: 600 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35) !important;
+    border-left: 3px solid #93c5fd !important;
+    border-radius: 8px !important;
 }
 
 body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-link.active i,
@@ -76,9 +83,8 @@ body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .nav-link.acti
 }
 
 body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-footer {
-    background: #0d2842 !important;
-    /* Slightly darker than sidebar */
-    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+    background: rgba(0, 0, 0, 0.15) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
 body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-user {

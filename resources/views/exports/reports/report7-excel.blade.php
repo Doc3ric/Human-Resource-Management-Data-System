@@ -16,7 +16,7 @@
             <td>{{ $idx + 1 }}</td>
             <td>{{ strtoupper($r->last_name ?? '') }}, {{ $r->first_name ?? '' }}</td>
             <td>{{ $r->position_title }}</td>
-            <td>{{ $r->organizational_unit }}</td>
+            <td>{{ $r->office_department }}</td>
             <td>
                 @if($r7_status === 'Newly Hired')
                     {{ $r->date_original_appointment ? \Carbon\Carbon::parse($r->date_original_appointment)->format('m/d/Y') : '—' }}

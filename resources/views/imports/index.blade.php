@@ -58,7 +58,7 @@
                 <div class="mt-4 bg-gray-50 rounded-lg p-4">
                     <p class="text-xs font-medium text-gray-600 mb-2">Expected Excel Column Headers (Row 1):</p>
                     <div class="flex flex-wrap gap-1.5">
-                        @foreach(['ORGANIZATIONAL UNIT','ITEM','POSITION TITLE','SALARY GRADE','AUTHORIZED ANNUAL SALARY','ACTUAL ANNUAL SALARY','STEP','AREA CODE','AREA TYPE','LEVEL','LAST NAME','FIRST NAME','MIDDLE NAME','SEX','RELIGION','DATE OF BIRTH','TIN','DATE OF ORIGINAL APPOINTMENT','DATE OF LAST PROMOTION-APPOINTMENT','STATUS','CIVIL SERVICE ELIGIBILITY','COMMENT/ ANNOTATION','PWD','INDIGENOUS PEOPLE (Y)','SOLO PARENT (ID_NUMBER)','ABOLISHED','DISSOLVED','GSIS BP NUMBER','POSITION CLASSIFICATION','UMID'] as $col)
+                        @foreach(['OFFICE','ITEM','POSITION TITLE','SALARY GRADE','AUTHORIZED ANNUAL SALARY','ACTUAL ANNUAL SALARY','STEP','AREA CODE','AREA TYPE','LEVEL','LAST NAME','FIRST NAME','MIDDLE NAME','SEX','RELIGION','DATE OF BIRTH','TIN','DATE OF ORIGINAL APPOINTMENT','DATE OF LAST PROMOTION-APPOINTMENT','STATUS','CIVIL SERVICE ELIGIBILITY','COMMENT/ ANNOTATION','PWD','INDIGENOUS PEOPLE (Y)','SOLO PARENT (ID_NUMBER)','ABOLISHED','DISSOLVED','GSIS BP NUMBER','POSITION CLASSIFICATION','UMID'] as $col)
                         <span class="bg-white border border-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded font-mono">{{ $col }}</span>
                         @endforeach
                     </div>
@@ -111,6 +111,33 @@
                     </label>
                 </div>
 
+                {{-- Routing Mode Toggle --}}
+                <div class="mt-3 border border-gray-200 rounded-lg bg-white px-4 py-3">
+                    <p class="text-sm font-semibold text-gray-700 mb-2">Routing Mode</p>
+                    <div class="flex items-center gap-6">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="routing_mode" value="global" class="text-indigo-600 focus:ring-indigo-500" checked onchange="toggleRoutingMode()">
+                            <span class="text-xs text-gray-700 font-medium">Global Import (All Statuses)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="routing_mode" value="granular" class="text-indigo-600 focus:ring-indigo-500" onchange="toggleRoutingMode()">
+                            <span class="text-xs text-gray-700 font-medium">Granular Import (Specific Status)</span>
+                        </label>
+                    </div>
+                    <div id="granularStatusContainer" class="mt-3 hidden bg-gray-50 border border-gray-200 rounded p-3">
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Select Target Status</label>
+                        <select name="granular_status" id="granularStatus" class="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 py-2 pl-3 pr-10">
+                            <option value="">-- Select Status --</option>
+                            <option value="Permanent">Permanent</option>
+                            <option value="Casual">Casual</option>
+                            <option value="Job Order">Job Order</option>
+                            <option value="Elected">Elected</option>
+                            <option value="Co-Terminous">Co-Terminous</option>
+                        </select>
+                        <p class="text-[10px] text-gray-500 mt-1">Only rows matching this status (or rows without a status) will be imported. Missing statuses will be automatically set to this value.</p>
+                    </div>
+                </div>
+
                 <button type="submit"
                     class="mt-4 w-full text-white py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
                     style="background: #10327c;"
@@ -127,7 +154,7 @@
             <ol class="list-decimal list-inside space-y-3 text-sm text-gray-600">
                 <li>
                     <strong class="text-gray-800">Upload</strong> — Select any Excel (.xlsx/.xls) or CSV file.
-                    You can use the <a href="{{ route('imports.template') }}" class="text-green-600 font-semibold underline">Excel Template</a> for guaranteed compatibility, or upload any file from another system.
+                    You can use the <a href="{{ route('imports.template') }}" class="text-green-600 font-semibold underline">Excel Template</a> for a blank template, or download the <a href="{{ route('all-data.export.full') }}" class="text-indigo-600 font-semibold underline">Full Database Export</a> from the All Data page — it uses the same column headers and works as a ready-made update template (edit values, then re-import).
                 </li>
                 <li>
                     <strong class="text-gray-800">Map Columns</strong> — The system reads your file's column headers and shows a mapping screen. Match each of your columns to the correct system field (e.g., map your "Worker Name" column → First Name). Required fields are highlighted.
@@ -187,6 +214,19 @@
                 thumb.style.transform = '';
                 desc.textContent = 'Off — changes will be saved to the database';
                 desc.style.color = '';
+            }
+        }
+
+        function toggleRoutingMode() {
+            const mode = document.querySelector('input[name="routing_mode"]:checked').value;
+            const container = document.getElementById('granularStatusContainer');
+            const select = document.getElementById('granularStatus');
+            if (mode === 'granular') {
+                container.classList.remove('hidden');
+                select.setAttribute('required', 'required');
+            } else {
+                container.classList.add('hidden');
+                select.removeAttribute('required');
             }
         }
 

@@ -1,6 +1,258 @@
 <x-dashboard-app>
     <style>
+/* Filter bar */
+        .cas-hero {
+            background: linear-gradient(135deg, #052c65 0%, #1e3a8a 55%, #1e40af 100%);
+            border-radius: 14px;
+            padding: 24px 28px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .cas-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255, 255, 255, .07) 1px, transparent 1px);
+            background-size: 22px 22px;
+        }
+
+        .cas-hero-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .cas-hero h1 {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .cas-hero p {
+            color: rgba(255, 255, 255, .65);
+            font-size: 12px;
+            margin: 4px 0 0;
+        }
+
+        .cas-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, .15);
+            border: 1px solid rgba(255, 255, 255, .25);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .cas-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .cas-stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .cas-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .cas-stat {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px 22px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .02);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .cas-stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .cas-stat-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .cas-stat-value {
+            font-size: 30px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1;
+            margin: 0;
+        }
+
+        .cas-stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .cas-stat-icon.indigo {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .cas-stat-icon.blue {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+
+        .cas-stat-icon.purple {
+            background: #f3e8ff;
+            color: #9333ea;
+        }
+
+        .cas-stat-icon.red {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .cas-stat-sub {
+            margin-top: 14px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+        .cas-filter {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+        }
+
+        .cas-input,
+        .cas-select {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #374151;
+            outline: none;
+            background: #fafafa;
+            transition: border .15s, box-shadow .15s;
+        }
+
+        .cas-input:focus,
+        .cas-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, .1);
+            background: #fff;
+        }
+
+        .cas-input {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .cas-select {
+            min-width: 140px;
+        }
+
+        .cas-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all .15s;
+            white-space: nowrap;
+        }
+
+        .cas-btn.primary {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .cas-btn.primary:hover {
+            background: #1d4ed8;
+        }
+
+        .cas-btn.reset {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .cas-btn.reset:hover {
+            background: #e2e8f0;
+        }
+
+        .cas-btn.add {
+            background: linear-gradient(135deg, #1e3a8a, #1e40af);
+            color: #fff;
+        }
+
+        .cas-btn.add:hover {
+            opacity: .88;
+            transform: translateY(-1px);
+        }
+
+        .cas-btn.import {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .cas-btn.import:hover {
+            background: #6d28d9;
+        }
+
         /* ── Hero ─────────────────────────────────────────────────────── */
+        .gender-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 26px; height: 26px; font-size: 11px; font-weight: 800;
+            border-radius: 50%;
+        }
+        .gender-m {
+            background: #eff6ff; color: #2563eb;
+            border: 1px solid #bfdbfe;
+        }
+        .gender-f {
+            background: #fdf2f8; color: #db2777;
+            border: 1px solid #fbcfe8;
+        }
+
         .perm-hero {
             background: linear-gradient(135deg, #052c65 0%, #1e3a8a 55%, #1e40af 100%);
             border-radius: 14px;
@@ -222,14 +474,14 @@
         }
     </style>
 
-    {{-- Hero --}}
-    <div class="perm-hero">
-        <div class="perm-hero-inner">
+        {{-- Hero --}}
+    <div class="cas-hero">
+        <div class="cas-hero-inner">
             <div>
-                <h1><i class="bi bi-person-badge-fill me-2"></i>Permanent Employees</h1>
-                <p>Permanent, Co-Terminous & Elected personnel — all {{ number_format($total) }} entries</p>
+                <h1><i class="bi bi-person-badge me-2"></i>Regular Employees</h1>
+                <p>Regular/Permanent personnel inventory — all {{ number_format($total) }} entries</p>
             </div>
-            <span class="perm-hero-badge"><i class="bi bi-database-fill"></i> {{ number_format($total) }} Records</span>
+            <span class="cas-hero-badge"><i class="bi bi-database-fill"></i> {{ number_format($total) }} Records</span>
         </div>
     </div>
 
@@ -242,99 +494,79 @@
     @endif
 
     {{-- Stats bar --}}
-    <div class="perm-stats">
-        <div class="perm-stat">
-            <div class="perm-stat-top">
-                <div>
-                    <div class="perm-stat-label">Total Records</div>
-                    <div class="perm-stat-value">{{ number_format($total) }}</div>
-                </div>
-                <div class="perm-stat-icon green"><i class="bi bi-people-fill"></i></div>
-            </div>
-            <div class="perm-stat-sub">All permanent employees</div>
-        </div>
-        <div class="perm-stat">
-            <div class="perm-stat-top">
-                <div>
-                    <div class="perm-stat-label">Male</div>
-                    <div class="perm-stat-value">{{ number_format($maleCount) }}</div>
-                </div>
-                <div class="perm-stat-icon blue"><i class="bi bi-gender-male"></i></div>
-            </div>
-            <div class="perm-stat-sub">Male employees</div>
-        </div>
-        <div class="perm-stat">
-            <div class="perm-stat-top">
-                <div>
-                    <div class="perm-stat-label">Female</div>
-                    <div class="perm-stat-value">{{ number_format($femaleCount) }}</div>
-                </div>
-                <div class="perm-stat-icon pink"><i class="bi bi-gender-female"></i></div>
-            </div>
-            <div class="perm-stat-sub">Female employees</div>
-        </div>
+    @php
+        $permGadTotal = $maleCount + $femaleCount;
+        $permFemalePct = $permGadTotal > 0 ? round($femaleCount / $permGadTotal * 100, 1) : 0;
+        $permGadOk = $permFemalePct >= 40 && $permFemalePct <= 60;
+        $filledTotal = $total - ($vacantCount ?? 0);
+    @endphp
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;">
+        <x-stat-card icon="bi-person-badge-fill" color="indigo" label="Total Regular" :value="$total"
+            sub="Permanent/CT/Elected items"
+            compliance="Civil Service"
+            analysis="Regular appointments covered by PD 807 (Civil Service Decree) and RA 7041 (Publication Law). All items require DBM authority." />
 
+        <x-stat-card icon="bi-gender-male" color="blue" label="Male" :value="$maleCount"
+            :pct="$permGadTotal > 0 ? round($maleCount/$permGadTotal*100,1) : 0"
+            sub="of sex-tagged regulars"
+            compliance="RA 9710 GAD"
+            analysis="Male regular employees. Track sex balance as required by RA 9710 and CSC MC No. 3, s.2004 (Gender Development)." />
+
+        <x-stat-card icon="bi-gender-female" color="pink" label="Female" :value="$femaleCount"
+            :pct="$permFemalePct"
+            sub="of sex-tagged regulars"
+            compliance="RA 9710 GAD"
+            :alert="!$permGadOk"
+            analysis="{{ $permGadOk ? 'GAD compliant: '.$permFemalePct.'% female among regular staff is within the 40–60% window (RA 9710).' : 'ATTENTION: '.$permFemalePct.'% female ratio deviates from the 40–60% GAD target. Review hiring plans (RA 9710 §12).' }}" />
+
+        <x-stat-card icon="bi-person-x-fill" color="red" label="Vacant Positions" :value="$vacantCount ?? 0"
+            sub="Unfilled plantilla items"
+            compliance="RA 7041"
+            :alert="($vacantCount ?? 0) > 0"
+            analysis="Vacant positions must be published per RA 7041 (Publication Law) before filling. Prolonged vacancies affect service delivery." />
     </div>
-
-    {{-- Filter bar --}}
     <form method="GET" action="{{ route('permanent.index') }}" id="perm-search-form">
-        <div class="perm-filter">
-            <input type="text" name="search" value="{{ request('search') }}" class="perm-input"
-                placeholder="🔍  Search name, item, position, office…" autocomplete="off">
+    <div class="cas-filter" style="display: flex; flex-direction: column; gap: 12px; align-items: stretch; padding: 14px 18px; margin-bottom: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, .04);">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <input type="text" name="search" value="{{ request('search') }}" class="cas-input" placeholder="🔍 Search name, position, office…" autocomplete="off">
+                
+                <select name="office" class="cas-select" style="min-width:200px;">
+                    <option value="">— All Offices —</option>
+                    @foreach($offices as $office)
+                        <option value="{{ $office }}" {{ request('office') === $office ? 'selected' : '' }}>{{ Str::limit($office, 40) }}</option>
+                    @endforeach
+                </select>
 
-            <select name="office" class="perm-select" style="min-width:220px;">
-                <option value="">All Offices</option>
-                @foreach($offices as $office)
-                    <option value="{{ $office }}" {{ request('office') === $office ? 'selected' : '' }}>
-                        {{ Str::limit($office, 45) }}
-                    </option>
-                @endforeach
-            </select>
+                <select name="status" class="cas-select" style="min-width:140px;">
+                    <option value="">— All Status —</option>
+                    <option value="P"  {{ request('status') === 'P'  ? 'selected' : '' }}>Regular</option>
+                    <option value="CT" {{ request('status') === 'CT' ? 'selected' : '' }}>Co-Terminous</option>
+                    <option value="E"  {{ request('status') === 'E'  ? 'selected' : '' }}>Elected</option>
+                </select>
 
-            <select name="status" class="perm-select">
-                <option value="">All Statuses</option>
-                <option value="P"  {{ request('status') === 'P'  ? 'selected' : '' }}>Permanent</option>
-                <option value="CT" {{ request('status') === 'CT' ? 'selected' : '' }}>Co-Terminous</option>
-                <option value="E"  {{ request('status') === 'E'  ? 'selected' : '' }}>Elected</option>
-            </select>
-
-            <select name="sex" class="perm-select" style="min-width:110px;">
-                <option value="">All Genders</option>
-                <option value="M" {{ request('sex') === 'M' ? 'selected' : '' }}>Male</option>
-                <option value="F" {{ request('sex') === 'F' ? 'selected' : '' }}>Female</option>
-            </select>
-
-
-
-            <button type="submit" class="perm-btn primary"><i class="bi bi-search"></i> Search</button>
-            <a href="{{ route('permanent.index') }}" class="perm-btn reset"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
-
-            <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+                <select name="sex" class="cas-select" style="min-width:110px;">
+                    <option value="">— All Genders —</option>
+                    <option value="M" {{ request('sex') === 'M' ? 'selected' : '' }}>Male</option>
+                    <option value="F" {{ request('sex') === 'F' ? 'selected' : '' }}>Female</option>
+                </select>
+                
+                <button type="submit" class="cas-btn primary"><i class="bi bi-search"></i> Search</button>
+                <a href="{{ route('permanent.index') }}" class="cas-btn reset"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+            </div>
+            
+            <!-- Bottom Row: Actions (Far Left) -->
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-start;">
+                
+                <a href="{{ route('archives.index') }}" class="cas-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;"><i class="bi bi-archive-fill"></i> View Archives</a>
+                <button type="button" class="cas-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;gap:5px;" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()"><i class="bi bi-file-earmark-arrow-down-fill"></i> Export Settings</button>
                 @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                    <button type="button" class="perm-btn" id="toggle-select-multiple" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;">
-                        <i class="bi bi-ui-checks-grid"></i> Select Multiple
-                    </button>
+                    <button type="button" class="cas-btn" id="toggle-select-multiple" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;"><i class="bi bi-ui-checks-grid"></i> Select Multiple</button>
                 @endif
                 @if(auth()->user()->isSuperAdmin())
-                    <button type="button" id="perm-delete-all-btn"
-                        class="perm-btn"
-                        style="background:#ffffff;color:#dc2626;border:1px solid #fecaca;"
-                        onclick="document.getElementById('perm-delete-all-overlay').classList.add('active')">
-                        <i class="bi bi-trash3-fill"></i> Delete All Data
-                    </button>
+                    <button type="button" id="perm-delete-all-btn" class="cas-btn" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;background:#ffffff;color:#334155;border:1px solid #cbd5e1;transition:all .15s;" onclick="document.getElementById('perm-delete-all-overlay').classList.add('active')"><i class="bi bi-trash3-fill"></i> Delete All Data</button>
                 @endif
-                <a href="{{ route('archives.index') }}" class="perm-btn"
-                    style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;"
-                    onmouseover="this.style.background='#f8fafc';this.style.borderColor='#94a3b8';"
-                    onmouseout="this.style.background='#fff';this.style.borderColor='#cbd5e1';">
-                    <i class="bi bi-archive-fill"></i> View Archives
-                </a>
-                <button type="button" class="perm-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;gap:5px;" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()">
-                    <i class="bi bi-file-earmark-arrow-down-fill"></i> Export Settings
-                </button>
             </div>
-        </div>
-    </form>
+        </div></form>
 
     {{-- Bulk Action Bar --}}
     @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
@@ -378,10 +610,11 @@
                             </th>
                         @endif
                         <th>#</th>
-                        <th>Office</th>
+                        <th>OFFICE</th>
                         <th colspan="4" style="text-align:center;">NAME</th>
                         <th>Position Title</th>
-                        <th>Gender</th>
+                        <th style="text-align:center;">DATE OF BIRTH</th>
+                        <th style="text-align:center;">SEX</th>
                         @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
                             <th style="text-align:center;">Actions</th>
                         @endif
@@ -392,10 +625,11 @@
                         @endif
                         <th></th>
                         <th></th>
-                        <th>Last Name</th>
+                        <th>LAST NAME</th>
                         <th>First Name</th>
-                        <th>Middle Name</th>
-                        <th>Ext.</th>
+                        <th>MIDDLE NAME</th>
+                        <th>SUFFIX</th>
+                        <th></th>
                         <th></th>
                         <th></th>
                         @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
@@ -414,8 +648,8 @@
 
                             <td style="color:#9ca3af;font-size:10px;font-weight:600;">{{ $i + 1 }}</td>
 
-                            <td title="{{ $r->organizational_unit }}" style="font-size:11px;color:#64748b;">
-                                {{ $r->organizational_unit }}
+                            <td title="{{ $r->office_department }}" style="font-size:11px;color:#64748b;">
+                                {{ $r->office_department }}
                             </td>
 
                             <td style="font-weight:700;text-transform:uppercase;color:#0f172a;">
@@ -432,13 +666,17 @@
                                 {{ $r->position_title }}
                             </td>
 
-                            <td style="text-align:center;font-weight:700;">
-                                @if($r->sex === 'M')
-                                    <span style="color:#2563eb;">M</span>
-                                @elseif($r->sex === 'F')
-                                    <span style="color:#be185d;">F</span>
+                            <td style="color:#6b7280;text-align:center;font-size:11px;">
+                                {{ $r->date_of_birth ? \Carbon\Carbon::parse($r->date_of_birth)->format('M d, Y') : '—' }}
+                            </td>
+
+                            <td style="text-align:center;">
+                                @if(strtoupper($r->sex) === 'M')
+                                    <span class="gender-badge gender-m">M</span>
+                                @elseif(strtoupper($r->sex) === 'F')
+                                    <span class="gender-badge gender-f">F</span>
                                 @else
-                                    —
+                                    <span style="color:#94a3b8;font-size:11px;">-</span>
                                 @endif
                             </td>
 
@@ -682,6 +920,25 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" style="padding: 24px;">
+                        {{-- Record Status Filter --}}
+                        <div style="margin-bottom:16px;padding:12px 16px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+                            <p style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:8px;"><i class="bi bi-person-check-fill"></i> Record Status</p>
+                            <div class="d-flex gap-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="status_filter" value="active" id="sf_perm_active" checked>
+                                    <label class="form-check-label" for="sf_perm_active" style="font-size:13px;font-weight:600;color:#16a34a;">Active Only</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="status_filter" value="inactive" id="sf_perm_inactive">
+                                    <label class="form-check-label" for="sf_perm_inactive" style="font-size:13px;font-weight:600;color:#dc2626;">Inactive Only</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="status_filter" value="both" id="sf_perm_both">
+                                    <label class="form-check-label" for="sf_perm_both" style="font-size:13px;font-weight:600;color:#2563eb;">Both</label>
+                                </div>
+                            </div>
+                        </div>
+
                         <p style="font-size: 14px; color: #475569; margin-bottom: 16px;">Select the columns you want to include in your export:</p>
 
                         <div style="margin-bottom: 12px;">
@@ -692,22 +949,38 @@
                         <div class="row">
                             @php
                                 $exportColumns = [
-                                    'organizational_unit'       => 'Organizational Unit',
-                                    'item'                      => 'Item No.',
+                                    'office_department'       => 'OFFICE',
+                                    'item_no_new'                      => 'Item No.',
                                     'position_title'            => 'Position Title',
                                     'salary_grade'              => 'Salary Grade',
+                                    'authorized_annual_salary'  => 'Authorized Annual Salary',
+                                    'base_salary_amount'      => 'Actual Annual Salary',
                                     'step'                      => 'Step',
-                                    'actual_annual_salary'      => 'Annual Salary',
+                                    'area_code'                 => 'Area Code',
+                                    'area_type'                 => 'Area Type',
+                                    'level'                     => 'Level',
                                     'last_name'                 => 'Last Name',
                                     'first_name'                => 'First Name',
                                     'middle_name'               => 'Middle Name',
+                                    'name_extension'            => 'Name Extension',
                                     'sex'                       => 'Sex',
-                                    'date_of_birth'             => 'Date of Birth',
+                                    'religion'                  => 'Religion',
+                                    'date_of_birth'             => 'Birthday',
                                     'tin'                       => 'TIN',
                                     'date_original_appointment' => 'Date of Original Appointment',
                                     'date_last_promotion'       => 'Date of Last Promotion',
-                                    'civil_service_eligibility' => 'Civil Service Eligibility',
                                     'status'                    => 'Status',
+                                    'civil_service_eligibility' => 'Civil Service Eligibility',
+                                    'pwd'                       => 'PWD',
+                                    'admin_charges'             => 'Comment / Annotation',
+                                    'nature_of_separation'      => 'Nature of Separation',
+                                    'indigenous_people'         => 'Indigenous People',
+                                    'solo_parent'               => 'Solo Parent',
+                                    'abolished'                 => 'Abolished',
+                                    'dissolved'                 => 'Dissolved',
+                                    'gsis_bp_number'            => 'GSIS BP Number',
+                                    'position_classification'   => 'Position Classification',
+                                    'employee_code'             => 'Employee No.',
                                 ];
                             @endphp
                             @foreach($exportColumns as $key => $label)

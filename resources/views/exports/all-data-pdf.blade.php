@@ -220,9 +220,9 @@
         <thead>
             <tr>
                 <th class="col-no">#</th>
-                @if(empty($columns) || in_array('organizational_unit', $columns))
-                <th class="col-unit">Organizational Unit</th>@endif
-                @if(empty($columns) || in_array('item', $columns))
+                @if(empty($columns) || in_array('office_department', $columns))
+                <th class="col-unit">OFFICE</th>@endif
+                @if(empty($columns) || in_array('item_no_new', $columns))
                 <th class="col-item">Item</th>@endif
                 @if(empty($columns) || in_array('position_title', $columns))
                 <th class="col-title">Position Title</th>@endif
@@ -230,7 +230,7 @@
                 <th class="col-sg">SG</th>@endif
                 @if(empty($columns) || in_array('authorized_annual_salary', $columns))
                 <th class="col-sal">Auth. Annual Salary</th>@endif
-                @if(empty($columns) || in_array('actual_annual_salary', $columns))
+                @if(empty($columns) || in_array('base_salary_amount', $columns))
                 <th class="col-sal">Actual Annual Salary</th>@endif
                 @if(empty($columns) || in_array('step', $columns))
                 <th class="col-step">Step</th>@endif
@@ -246,12 +246,14 @@
                 <th class="col-fn">First Name</th>@endif
                 @if(empty($columns) || in_array('middle_name', $columns))
                 <th class="col-mn">Middle Name</th>@endif
+                @if(empty($columns) || in_array('name_extension', $columns))
+                <th class="col-mn">Suffix</th>@endif
                 @if(empty($columns) || in_array('sex', $columns))
                 <th class="col-sex">Sex</th>@endif
                 @if(empty($columns) || in_array('religion', $columns))
                 <th class="col-sex">Religion</th>@endif
                 @if(empty($columns) || in_array('date_of_birth', $columns))
-                <th class="col-dob">Date of Birth</th>@endif
+                <th class="col-dob">Birthday</th>@endif
                 @if(empty($columns) || in_array('tin', $columns))
                 <th class="col-tin">TIN</th>@endif
                 @if(empty($columns) || in_array('date_original_appointment', $columns))
@@ -282,10 +284,10 @@
                 @endphp
                 <tr>
                     <td class="col-no text-gray">{{ $i + 1 }}</td>
-                    @if(empty($columns) || in_array('organizational_unit', $columns))
-                    <td class="col-unit">{{ $r->organizational_unit }}</td>@endif
-                    @if(empty($columns) || in_array('item', $columns))
-                    <td class="col-item">{{ $r->item }}</td>@endif
+                    @if(empty($columns) || in_array('office_department', $columns))
+                    <td class="col-unit">{{ $r->office_department }}</td>@endif
+                    @if(empty($columns) || in_array('item_no_new', $columns))
+                    <td class="col-item">{{ $r->item_no_new }}</td>@endif
                     @if(empty($columns) || in_array('position_title', $columns))
                     <td class="col-title">{{ $r->position_title }}</td>@endif
                     @if(empty($columns) || in_array('salary_grade', $columns))
@@ -294,8 +296,8 @@
                         <td class="col-sal">
                             {{ $r->authorized_annual_salary ? number_format($r->authorized_annual_salary, 2) : '—' }}
                     </td>@endif
-                    @if(empty($columns) || in_array('actual_annual_salary', $columns))
-                        <td class="col-sal">{{ $r->actual_annual_salary ? number_format($r->actual_annual_salary, 2) : '—' }}
+                    @if(empty($columns) || in_array('base_salary_amount', $columns))
+                        <td class="col-sal">{{ $r->base_salary_amount ? number_format($r->base_salary_amount, 2) : '—' }}
                     </td>@endif
                     @if(empty($columns) || in_array('step', $columns))
                     <td class="col-step">{{ $r->step }}</td>@endif
@@ -311,6 +313,8 @@
                     <td class="col-fn">{{ $r->first_name ?: '—' }}</td>@endif
                     @if(empty($columns) || in_array('middle_name', $columns))
                     <td class="col-mn">{{ $r->middle_name ?: '—' }}</td>@endif
+                    @if(empty($columns) || in_array('name_extension', $columns))
+                    <td class="col-mn">{{ $r->name_extension ?: '—' }}</td>@endif
                     @if(empty($columns) || in_array('sex', $columns))
                     <td class="col-sex">{{ $r->sex ?: '—' }}</td>@endif
                     @if(empty($columns) || in_array('religion', $columns))

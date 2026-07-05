@@ -100,6 +100,7 @@
 .role-super .role-icon-wrapper { background: #eff6ff; color: #3b82f6; }
 .role-salary .role-icon-wrapper { background: #f0fdf4; color: #22c55e; }
 .role-inventory .role-icon-wrapper { background: #fff7ed; color: #f97316; }
+.role-viewer .role-icon-wrapper { background: #f5f3ff; color: #7c3aed; }
 
 /* Bottom Actions container */
 .bottom-actions {
@@ -195,45 +196,19 @@
             </div>
             
             <div class="role-grid">
-                
-                {{-- Super Admin --}}
-                <div class="role-super">
-                    <input type="radio" name="role" id="role_super" value="super_admin" class="role-option" {{ old('role','super_admin')==='super_admin'?'checked':'' }}>
-                    <label for="role_super" class="role-card">
+                @foreach($roles as $r)
+                <div class="role-generic">
+                    <input type="radio" name="role" id="role_{{ $r->id }}" value="{{ $r->name }}" class="role-option" {{ old('role', 'System & Administration') === $r->name ? 'checked' : '' }}>
+                    <label for="role_{{ $r->id }}" class="role-card">
                         <i class="bi bi-check-circle-fill role-check-indicator"></i>
-                        <div class="role-icon-wrapper">
-                            <i class="bi bi-shield-check"></i>
+                        <div class="role-icon-wrapper" style="background:#eff6ff; color:#3b82f6;">
+                            <i class="bi bi-person-badge"></i>
                         </div>
-                        <h3 class="role-title">Super Admin</h3>
-                        <p class="role-desc">Full access to all system modules and settings.</p>
+                        <h3 class="role-title">{{ $r->name }}</h3>
+                        <p class="role-desc">Custom access based on Role-Permission Matrix.</p>
                     </label>
                 </div>
-
-                {{-- Salary Admin --}}
-                <div class="role-salary">
-                    <input type="radio" name="role" id="role_salary" value="salary_admin" class="role-option" {{ old('role')==='salary_admin'?'checked':'' }}>
-                    <label for="role_salary" class="role-card">
-                        <i class="bi bi-check-circle-fill role-check-indicator"></i>
-                        <div class="role-icon-wrapper">
-                            <i class="bi bi-currency-dollar"></i>
-                        </div>
-                        <h3 class="role-title">Salary Admin</h3>
-                        <p class="role-desc">Manage payroll, salaries and financial reports.</p>
-                    </label>
-                </div>
-
-                {{-- Inventory Admin --}}
-                <div class="role-inventory">
-                    <input type="radio" name="role" id="role_inventory" value="inventory_admin" class="role-option" {{ old('role')==='inventory_admin'?'checked':'' }}>
-                    <label for="role_inventory" class="role-card">
-                        <i class="bi bi-check-circle-fill role-check-indicator"></i>
-                        <div class="role-icon-wrapper">
-                            <i class="bi bi-box-seam"></i>
-                        </div>
-                        <h3 class="role-title">Inventory Admin</h3>
-                        <p class="role-desc">Manage products, stock levels and warehouses.</p>
-                    </label>
-                </div>
+                @endforeach
 
             </div>
             @error('role')<div class="cu-error" style="margin-top: 12px; text-align: center;">{{ $message }}</div>@enderror

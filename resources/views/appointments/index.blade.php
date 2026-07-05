@@ -394,6 +394,21 @@
                     </a>
                 </div>
             @endif
+
+            {{-- Appointment Stats with compliance analysis --}}
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px;">
+                <x-stat-card icon="bi-file-earmark-person-fill" color="indigo" label="Total Appointments" :value="$stats['total']"
+                    compliance="CSC Omnibus Rules"
+                    analysis="All appointments on record. Every appointment must be issued in accordance with CSC Omnibus Rules on Appointments (ORA). Appointments without CSC attestation are void." />
+
+                <x-stat-card icon="bi-check-circle-fill" color="green" label="Active Appointments" :value="$stats['active']"
+                    compliance="CSC ORA / DBM"
+                    analysis="Currently active appointments. Each active appointee must have a valid appointment paper attested by the CSC. Salary is charged to the approved plantilla item." />
+
+                <x-stat-card icon="bi-x-circle-fill" color="red" label="Ended Appointments" :value="$stats['ended']"
+                    compliance="CSC / GSIS"
+                    analysis="Appointments that have ended (separated, resigned, retired, or contract lapsed). GSIS benefit processing must be initiated within 30 days of separation per RA 8291." />
+            </div>
         </div>
     </div>
 

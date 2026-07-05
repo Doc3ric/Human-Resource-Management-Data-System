@@ -109,7 +109,7 @@
     <tbody>
         @foreach($records as $index => $rec)
         @php
-            $extractedNum = preg_replace('/[^0-9]/', '', $rec->item ?? '');
+            $extractedNum = preg_replace('/[^0-9]/', '', $rec->item_no_new ?? '');
             $itemNum = $extractedNum !== '' ? $extractedNum : ($index + 1);
 
             $curSg   = $rec->salary_grade;

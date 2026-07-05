@@ -166,11 +166,11 @@
                 <tr>
                     <td>
                         <div class="si-emp-name">{{ $record->full_name }}</div>
-                        <div class="si-emp-unit"><i class="bi bi-building" style="color:#d97706;"></i> {{ $record->organizational_unit }}</div>
+                        <div class="si-emp-unit"><i class="bi bi-building" style="color:#d97706;"></i> {{ $record->office_department }}</div>
                     </td>
                     <td>
                         <div class="si-pos-title">{{ $record->position_title }}</div>
-                        <div class="si-pos-item">{{ $record->item }}</div>
+                        <div class="si-pos-item">{{ $record->item_no_new }}</div>
                     </td>
                     <td class="tc"><span class="si-sg-badge">{{ $record->salary_grade }}</span></td>
                     <td class="tc">

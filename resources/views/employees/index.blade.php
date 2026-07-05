@@ -231,10 +231,10 @@
                         <option value="Resigned" @selected(request('status') === 'Resigned')>Resigned</option>
                     </select>
 
-                    <select name="gender" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+                    <select name="sex" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
                         <option value="">All Genders</option>
-                        <option value="Male" @selected(request('gender') === 'Male')>Male</option>
-                        <option value="Female" @selected(request('gender') === 'Female')>Female</option>
+                        <option value="Male" @selected(request('sex') === 'Male')>Male</option>
+                        <option value="Female" @selected(request('sex') === 'Female')>Female</option>
                     </select>
 
                     <select name="civil_status" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">

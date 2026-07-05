@@ -33,8 +33,8 @@ td.tc { text-align:center; }
 <table>
     <thead>
         <tr>
-            <th style="width:40%;">Office / Department</th>
-            <th>Permanent</th>
+            <th style="width:40%;">OFFICE</th>
+            <th>REGULAR</th>
             <th>Elected</th>
             <th>Co-Terminous</th>
             <th>Casual</th>

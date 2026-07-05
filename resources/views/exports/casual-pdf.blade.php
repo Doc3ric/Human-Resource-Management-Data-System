@@ -73,7 +73,7 @@
         @endphp
         <tr>
             <th style="width:3%;">#</th>
-            @if(empty($columns) || in_array('office', $columns))<th style="width:15%;">Office / Department</th>@endif
+            @if(empty($columns) || in_array('office', $columns))<th style="width:15%;">OFFICE</th>@endif
             @if(empty($columns) || in_array('item_new', $columns) || in_array('item_old', $columns))<th style="width:4%;">Item No.</th>@endif
             @if(empty($columns) || in_array('position_title', $columns))<th style="width:14%;">Position Title</th>@endif
             @if(empty($columns) || in_array('name', $columns))<th style="width:14%;">Name of Incumbent</th>@endif
@@ -115,7 +115,7 @@
                 <tr>
                     <td style="text-align:center;color:#9ca3af;">{{ $rowNum }}</td>
                     @if(empty($columns) || in_array('office', $columns))<td>{{ $r->office }}</td>@endif
-                    @if(empty($columns) || in_array('item_new', $columns) || in_array('item_old', $columns))<td style="text-align:center;">{{ $r->item_no_new ?? $r->item_no_old }}</td>@endif
+                    @if(empty($columns) || in_array('item_new', $columns) || in_array('item_old', $columns))<td style="text-align:center;">{{ $r->item_no_new_no_new ?? $r->item_no_new_no_old }}</td>@endif
                     @if(empty($columns) || in_array('position_title', $columns))<td>{{ $r->position_title }}</td>@endif
                     @if(empty($columns) || in_array('name', $columns))<td>
                         @if($r->is_vacant)

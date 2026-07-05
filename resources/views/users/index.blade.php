@@ -100,23 +100,22 @@
             white-space: nowrap;
         }
 
-        .role-super_admin {
-            background: #fef3c7;
-            color: #92400e;
-            border: 1px solid #fde68a;
-        }
-
-        .role-salary_admin {
-            background: #dbeafe;
-            color: #1e40af;
-            border: 1px solid #bfdbfe;
-        }
-
-        .role-inventory_admin {
-            background: #d1fae5;
-            color: #065f46;
-            border: 1px solid #a7f3d0;
-        }
+        /* System & Administration */
+        .role-sa   { background:#fef3c7; color:#92400e; border:1px solid #fde68a; }
+        /* Personnel Records */
+        .role-pr   { background:#d1fae5; color:#065f46; border:1px solid #a7f3d0; }
+        /* Appointment */
+        .role-appt { background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe; }
+        /* Appointment Encoder */
+        .role-appt-enc { background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; }
+        /* Performance Management */
+        .role-perf { background:#ede9fe; color:#5b21b6; border:1px solid #c4b5fd; }
+        /* Welfare & Benefits */
+        .role-wb   { background:#ccfbf1; color:#0f766e; border:1px solid #99f6e4; }
+        /* Viewer */
+        .role-viewer { background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; }
+        /* No role */
+        .role-none { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
 
         .btn-icon {
             display: inline-flex;
@@ -202,13 +201,20 @@
                 <h1><i class="bi bi-people-fill me-2"></i>User Management</h1>
                 <p>Manage system user accounts and role assignments</p>
             </div>
-            <a href="{{ route('users.create') }}" style="display:inline-flex;align-items:center;gap:7px;
-                  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
-                  color:#fff;padding:10px 20px;border-radius:10px;
-                  font-size:13px;font-weight:600;text-decoration:none;
-                  transition:background .2s;">
-                <i class="bi bi-person-plus-fill"></i> New User
-            </a>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <a href="{{ route('users.role-matrix') }}" style="display:inline-flex;align-items:center;gap:7px;
+                      background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+                      color:#fff;padding:10px 18px;border-radius:10px;
+                      font-size:13px;font-weight:600;text-decoration:none;transition:background .2s;">
+                    <i class="bi bi-table"></i> Role Matrix
+                </a>
+                <a href="{{ route('users.create') }}" style="display:inline-flex;align-items:center;gap:7px;
+                      background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
+                      color:#fff;padding:10px 18px;border-radius:10px;
+                      font-size:13px;font-weight:600;text-decoration:none;transition:background .2s;">
+                    <i class="bi bi-person-plus-fill"></i> New User
+                </a>
+            </div>
         </div>
     </div>
 
@@ -262,15 +268,26 @@
                             </td>
                             <td style="color:#6b7280;">{{ $user->email }}</td>
                             <td>
-                                <span class="role-badge role-{{ $user->role }}">
-                                    @if($user->role === 'super_admin')
-                                        <i class="bi bi-shield-fill-check"></i> Super Admin
-                                    @elseif($user->role === 'salary_admin')
-                                        <i class="bi bi-cash-stack"></i> Salary Admin
-                                    @else
-                                        <i class="bi bi-archive-fill"></i> Inventory Admin
-                                    @endif
-                                </span>
+                                @php $spatieRole = $user->roles->first()?->name ?? ''; @endphp
+                                @if($spatieRole === 'System & Administration')
+                                    <span class="role-badge role-sa"><i class="bi bi-shield-fill-check"></i> System &amp; Admin</span>
+                                @elseif($spatieRole === 'Personnel Records')
+                                    <span class="role-badge role-pr"><i class="bi bi-people-fill"></i> Personnel Records</span>
+                                @elseif($spatieRole === 'Appointment')
+                                    <span class="role-badge role-appt"><i class="bi bi-person-plus-fill"></i> Appointment</span>
+                                @elseif($spatieRole === 'Appointment Encoder')
+                                    <span class="role-badge role-appt-enc"><i class="bi bi-keyboard"></i> Appt. Encoder</span>
+                                @elseif($spatieRole === 'Performance Management')
+                                    <span class="role-badge role-perf"><i class="bi bi-graph-up-arrow"></i> Performance Mgmt</span>
+                                @elseif($spatieRole === 'Welfare & Benefits')
+                                    <span class="role-badge role-wb"><i class="bi bi-cash-stack"></i> Welfare &amp; Benefits</span>
+                                @elseif($spatieRole === 'Viewer')
+                                    <span class="role-badge role-viewer"><i class="bi bi-eye-fill"></i> Viewer</span>
+                                @elseif($spatieRole)
+                                    <span class="role-badge" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;"><i class="bi bi-person-badge"></i> {{ $spatieRole }}</span>
+                                @else
+                                    <span class="role-badge role-none"><i class="bi bi-person-x-fill"></i> No Role</span>
+                                @endif
                             </td>
                             <td>
                                 @if($user->is_approved)

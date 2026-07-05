@@ -22,7 +22,7 @@ class SalaryScheduleController extends Controller
         // Budget Requirement: sum of all annual salaries for non-vacant, non-abolished plantilla
         $budgetTotal = PlantillaRecord::where('is_vacant', false)
                             ->where('abolished', false)
-                            ->sum('actual_annual_salary');
+                            ->sum('base_salary_amount');
 
         return view('salary-schedules.index', compact('schedules', 'activeSchedule', 'budgetTotal'));
     }
@@ -158,7 +158,7 @@ class SalaryScheduleController extends Controller
                 AND IF(COALESCE(pr.step, '') = '', 1, pr.step) = sg.step
                 AND sg.salary_schedule_id = ?
             SET
-                pr.actual_annual_salary      = (sg.monthly_salary * 12),
+                pr.base_salary_amount      = (sg.monthly_salary * 12),
                 pr.authorized_annual_salary  = (sg.monthly_salary * 12),
                 pr.updated_at                = NOW()
             WHERE pr.deleted_at IS NULL

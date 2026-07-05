@@ -407,7 +407,7 @@
 .off-stat-num { font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1; }
 .off-pill { border: 1px solid transparent; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 99px; white-space: nowrap; }
 
-.off-right { display: flex; align-items: center; justify-content: flex-end; flex: 1; min-width: 120px; }
+.off-right { display: flex; align-items: center; justify-content: flex-start; flex: 1; min-width: 120px; }
 .off-view-btn { color: #2563eb; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .chevron { font-size: 14px; line-height: 1; transition: transform .2s; }
 
@@ -541,6 +541,44 @@
     </div>
 </div>
 
+{{-- Compliance Stats --}}
+@php
+    $invTotal   = $statusCounts['Permanent'] + $statusCounts['Casual'] + $statusCounts['Job Order'] + $statusCounts['Co-Terminous'] + $statusCounts['Elected'];
+    $invMale    = array_sum(array_column($genderStats, 'M'));
+    $invFemale  = array_sum(array_column($genderStats, 'F'));
+    $invFPct    = $invTotal > 0 ? round($invFemale / $invTotal * 100, 1) : 0;
+    $invGadOk   = $invFPct >= 40 && $invFPct <= 60;
+    $invVacant  = $statusCounts['Vacant Funded'] + $statusCounts['Vacant Unfunded'];
+@endphp
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px;">
+    <x-stat-card icon="bi-people-fill" color="indigo" label="Total Filled Positions" :value="$invTotal"
+        compliance="CSC / DBM Plantilla"
+        analysis="All filled positions across all appointment types. Must match the DBM-approved plantilla. Any deviation from authorized staffing requires DBM approval." />
+
+    <x-stat-card icon="bi-person-fill" color="blue" label="Male Incumbents" :value="$invMale"
+        :pct="$invTotal > 0 ? round($invMale/$invTotal*100,1) : 0"
+        compliance="RA 9710 — GAD"
+        analysis="Male personnel share. RA 9710 (Magna Carta of Women) §12 requires agencies to maintain at least 40% female representation in the workforce." />
+
+    <x-stat-card icon="bi-person-fill" color="pink" label="Female Incumbents" :value="$invFemale"
+        :pct="$invFPct" :alert="!$invGadOk"
+        compliance="RA 9710 — GAD"
+        analysis="{{ $invGadOk ? 'GAD Compliant: '.$invFPct.'% female representation is within the 40–60% RA 9710 target.' : 'GAD Alert: '.$invFPct.'% female rate is outside the 40–60% RA 9710 §12 target. Update Gender Focal Point report.' }}" />
+
+    <x-stat-card icon="bi-exclamation-circle-fill" color="orange" label="Vacant Positions" :value="$invVacant"
+        :alert="$invVacant > 0"
+        compliance="RA 7041 / DBM"
+        analysis="{{ $invVacant > 0 ? $invVacant.' vacant position(s) require publication per RA 7041 before filling. Unfunded vacancies must be reported to DBM for abolition or realignment.' : 'No vacant positions. All plantilla items are filled.' }}" />
+
+    <x-stat-card icon="bi-person-wheelchair" color="purple" label="PWD Personnel" :value="$pwdCount"
+        compliance="RA 7277 / Magna Carta"
+        analysis="Persons with Disability in the workforce. RA 7277 (Magna Carta for PWDs) encourages agencies to hire at least 1% PWD representation." />
+
+    <x-stat-card icon="bi-globe-asia-australia" color="teal" label="IP Personnel" :value="$ipCount"
+        compliance="RA 8371 / IPRA"
+        analysis="Indigenous Peoples in the workforce. RA 8371 (IPRA) promotes IP representation in government, particularly in areas with IP communities." />
+</div>
+
 {{-- ▌▌ STATUS CARDS ▌▌ --}}
 <span class="section-label"><i class="bi bi-person-check me-1"></i> Appointment Status</span>
 @php
@@ -608,7 +646,7 @@
     </div>
 @endif
 
-{{-- ▌▌ AGE + GENDER ▌▌ --}}
+{{-- ▌▌ AGE + SEX ▌▌ --}}
 <div class="analytics-row">
 
     {{-- Age Distribution --}}
@@ -670,55 +708,41 @@
     {{-- Gender --}}
     <div class="card-panel">
         <div class="card-panel-header">
-            <div style="font-size:14px;font-weight:700;color:#1f2937;">Gender Breakdown</div>
+            <div style="font-size:14px;font-weight:700;color:#1f2937;">Gender Breakdown by Status</div>
             <div style="font-size:12px;color:#9ca3af;margin-top:2px;">Active filled positions only</div>
         </div>
-        <div class="card-panel-body">
+        <div class="card-panel-body" style="display:flex; flex-direction:column; gap:12px;">
             @php
-                $totalG = ($genderCounts['M'] + $genderCounts['F']) ?: 1;
-                $mPct = round($genderCounts['M'] / $totalG * 100, 1);
-                $fPct = round($genderCounts['F'] / $totalG * 100, 1);
-                $activeSex = request('sex');
+                $statusColors = [
+                    'Permanent' => '#15803d',
+                    'Casual' => '#c2410c',
+                    'Job Order' => '#0369a1',
+                    'Co-Terminous' => '#be185d',
+                    'Elected' => '#7e22ce'
+                ];
             @endphp
-            <div style="display:flex;gap:12px;">
-                <a href="{{ route('plantilla.index', array_merge(request()->query(), ['sex' => $activeSex === 'M' ? null : 'M'])) }}#results"
-                   class="gender-card" style="text-decoration:none; flex: 1; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 20px; transition: all 0.2s; {{ $activeSex === 'M' ? 'box-shadow:0 0 0 2px #fff,0 0 0 4px #1d4ed8; border-color:transparent;' : 'background: #fff;' }}">
-                    <div style="display: flex; align-items: center; gap: 16px;">
-                        <div style="background: #10327cff; color: #fff; width: 60px; height: 60px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0;">
-                            <i class="bi bi-gender-male"></i>
-                        </div>
-                        <div>
-                            <div style="font-size: 28px; font-weight: 800; color: #111827; line-height: 1.1;">{{ number_format($genderCounts['M']) }}</div>
-                            <div style="font-size: 15px; font-weight: 500; color: #111827; margin-top: 4px;">Male</div>
-                        </div>
+            @foreach($genderStats as $status => $counts)
+                @if(in_array($status, ['Vacant Funded', 'Vacant Unfunded'])) @continue @endif
+                @php
+                    $m = $counts['M'] ?? 0;
+                    $f = $counts['F'] ?? 0;
+                    $total = $m + $f;
+                    if ($total === 0) continue;
+                    $mPct = round(($m / $total) * 100);
+                    $fPct = 100 - $mPct;
+                    $color = $statusColors[$status] ?? '#64748b';
+                @endphp
+                <div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:#374151; margin-bottom:4px;">
+                        <span style="color:{{ $color }};">{{ $status }}</span>
+                        <span style="font-size:11px; color:#6b7280;"><span style="color:#1d4ed8;">M: {{ $m }}</span> | <span style="color:#ec4899;">F: {{ $f }}</span></span>
                     </div>
-                    <div>
-                        <div style="font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 8px;">{{ $mPct }}%</div>
-                        <div style="height: 10px; background: #e5e7eb; border-radius: 99px; overflow: hidden;">
-                            <div style="height: 100%; background: #10327cff; width: {{ $mPct }}%; border-radius: 99px;"></div>
-                        </div>
+                    <div style="display:flex; height:12px; border-radius:99px; overflow:hidden;">
+                        @if($m > 0)<div style="width:{{ $mPct }}%; background:#1d4ed8; transition:width .5s;" title="Male: {{ $mPct }}%"></div>@endif
+                        @if($f > 0)<div style="width:{{ $fPct }}%; background:#ec4899; transition:width .5s;" title="Female: {{ $fPct }}%"></div>@endif
                     </div>
-                </a>
-
-                <a href="{{ route('plantilla.index', array_merge(request()->query(), ['sex' => $activeSex === 'F' ? null : 'F'])) }}#results"
-                   class="gender-card" style="text-decoration:none; flex: 1; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 20px; transition: all 0.2s; {{ $activeSex === 'F' ? 'box-shadow:0 0 0 2px #fff,0 0 0 4px #ec4899; border-color:transparent;' : 'background: #fff;' }}">
-                    <div style="display: flex; align-items: center; gap: 16px;">
-                        <div style="background: #ec4899; color: #fff; width: 60px; height: 60px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0;">
-                            <i class="bi bi-gender-female"></i>
-                        </div>
-                        <div>
-                            <div style="font-size: 28px; font-weight: 800; color: #111827; line-height: 1.1;">{{ number_format($genderCounts['F']) }}</div>
-                            <div style="font-size: 15px; font-weight: 500; color: #111827; margin-top: 4px;">Female</div>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 8px;">{{ $fPct }}%</div>
-                        <div style="height: 10px; background: #e5e7eb; border-radius: 99px; overflow: hidden;">
-                            <div style="height: 100%; background: #ec4899; width: {{ $fPct }}%; border-radius: 99px;"></div>
-                        </div>
-                    </div>
-                </a>
-            </div>
+                </div>
+            @endforeach
         </div>
     </div>
 </div>
@@ -828,7 +852,7 @@
                         <th>Position Title</th>
                         <th>Office / Unit</th>
                         <th class="tc">Age</th>
-                        <th class="tc">Date of Birth</th>
+                        <th class="tc">DATE OF BIRTH</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -839,7 +863,7 @@
                                 {{ $r->middle_name ? strtoupper(substr($r->middle_name, 0, 1)) . '.' : '' }}
                             </td>
                             <td style="color:#4b5563;">{{ $r->position_title }}</td>
-                            <td style="color:#9ca3af;font-size:12px;">{{ $r->organizational_unit }}</td>
+                            <td style="color:#9ca3af;font-size:12px;">{{ $r->office_department }}</td>
                             <td class="tc">
                                 <span style="background:#fef2f2;color:#b91c1c;font-weight:800;font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid #fecaca;">
                                     {{ \Carbon\Carbon::parse($r->date_of_birth)->age }}
@@ -867,7 +891,7 @@
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Name, item, position..." style="width:100%;">
         </div>
         <div class="filter-field filter-field-sm">
-            <label>Office</label>
+            <label>OFFICE</label>
             <select name="office" style="width:100%;">
                 <option value="">All Offices</option>
                 @foreach($offices as $office)
@@ -978,25 +1002,29 @@
                         <table class="personnel-table">
                             <thead>
                                 <tr>
-                                    <th style="width:110px;">Item No.</th>
-                                    <th>Position Title</th>
-                                    <th>Last Name</th>
-                                    <th>First Name</th>
-                                    <th class="tc" style="width:60px;">SG</th>
-                                    <th class="tc" style="width:60px;">Step</th>
-                                    <th class="tc" style="width:140px;">Status</th>
-                                    <th class="tc" style="width:100px;">Actions</th>
+                                    <th>OFFICE</th>
+                                    <th>LAST NAME</th>
+                                    <th>FIRST NAME</th>
+                                    <th>MIDDLE NAME</th>
+                                    <th>SUFFIX</th>
+                                    <th>POSITION</th>
+                                    <th class="tc">DATE OF BIRTH</th>
+                                    <th class="tc">SEX</th>
+                                    <th class="tc" style="width:100px;">ACTION</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($recs as $rec)
-                                    <tr>
-                                        <td><span class="item-code">#{{ $rec->item }}</span></td>
-                                        <td>
-                                            <div class="pos-title-text">{{ $rec->position_title }}</div>
-                                            <div class="pos-dept-text">{{ $subName }}</div>
-                                        </td>
-                                        {{-- Last Name --}}
+                                    @php
+                                        $rowTint = '';
+                                        if (str_contains(strtolower($cat), 'permanent') || str_contains(strtolower($cat), 'elected')) $rowTint = 'background:#f0fdf4;';
+                                        elseif (str_contains(strtolower($cat), 'casual') || str_contains(strtolower($cat), 'contractual')) $rowTint = 'background:#fff7ed;';
+                                        elseif (str_contains(strtolower($cat), 'job order')) $rowTint = 'background:#f0f9ff;';
+                                        elseif (str_contains(strtolower($cat), 'co-terminous')) $rowTint = 'background:#fdf2f8;';
+                                        elseif ($rec->is_vacant) $rowTint = 'background:#f8fafc;';
+                                    @endphp
+                                    <tr style="{{ $rowTint }}">
+                                        <td><div style="font-size:12px;color:#64748b;">{{ $subName }}</div></td>
                                         <td>
                                             @if($rec->is_vacant)
                                                 <div class="emp-vacant-text">Vacant</div>
@@ -1004,30 +1032,26 @@
                                                 <div class="emp-name-text">{{ strtoupper($rec->last_name ?? '') }}</div>
                                             @endif
                                         </td>
-                                        {{-- First Name --}}
                                         <td>
                                             @if(!$rec->is_vacant)
                                                 <div class="emp-name-text">{{ $rec->first_name ?? '' }}</div>
                                             @endif
                                         </td>
-                                        <td class="tc"><span class="num-text">{{ $rec->salary_grade }}</span></td>
-                                        <td class="tc"><span class="num-text">{{ $rec->step }}</span></td>
+                                        <td><div class="emp-name-text">{{ $rec->middle_name ?? '' }}</div></td>
+                                        <td><div class="emp-name-text">{{ $rec->name_extension ?? '' }}</div></td>
+                                        <td>
+                                            <div class="pos-title-text">{{ $rec->position_title }}</div>
+                                            <div style="font-size:11px;color:#64748b;">Item #{{ $rec->item_no_new }}</div>
+                                        </td>
                                         <td class="tc">
-                                            @php
-                                                $pillClass = 'status-default';
-                                                $statusText = $cat; // uses category
-                                                if ($rec->is_vacant) {
-                                                    $pillClass = 'status-vacant';
-                                                    $statusText = 'Vacant';
-                                                } elseif (str_contains(strtolower($cat), 'permanent')) {
-                                                    $pillClass = 'status-permanent';
-                                                } elseif (str_contains(strtolower($cat), 'casual') || str_contains(strtolower($cat), 'contractual')) {
-                                                    $pillClass = 'status-contractual';
-                                                } elseif (str_contains(strtolower($cat), 'job order')) {
-                                                    $pillClass = 'status-probationary'; // using yellow for JO
-                                                }
-                                            @endphp
-                                            <span class="status-pill {{ $pillClass }}">{{ $statusText }}</span>
+                                            @if(!$rec->is_vacant && $rec->date_of_birth)
+                                                <span class="num-text">{{ \Carbon\Carbon::parse($rec->date_of_birth)->format('M d, Y') }}</span>
+                                            @endif
+                                        </td>
+                                        <td class="tc">
+                                            @if(!$rec->is_vacant && $rec->sex)
+                                                <span class="num-text">{{ $rec->sex }}</span>
+                                            @endif
                                         </td>
                                         <td class="tc">
                                             <div class="table-actions" style="display:flex;gap:4px;justify-content:center;">

@@ -9,11 +9,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes, LogsActivity;
+    use HasFactory, Notifiable, SoftDeletes, LogsActivity, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -26,11 +27,15 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'organizational_unit_id',
+        'office_department_id',
         'profile_picture',
         'last_login',
         'status',
         'is_approved',
+        'must_change_password',
+        'meets_complexity_gate',
+        'google2fa_secret',
+        'google2fa_enabled',
     ];
 
     /**
@@ -41,6 +46,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'google2fa_secret',
     ];
 
     /**
@@ -54,6 +60,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'last_login' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
+            'meets_complexity_gate' => 'boolean',
+            'google2fa_secret' => 'encrypted',
+            'google2fa_enabled' => 'boolean',
         ];
     }
 
@@ -70,17 +80,42 @@ class User extends Authenticatable
 
     public function isSuperAdmin(): bool
     {
-        return $this->role === 'super_admin';
+        return $this->hasRole('System & Administration');
     }
 
     public function isSalaryAdmin(): bool
     {
-        return $this->role === 'salary_admin';
+        return $this->hasRole('Welfare & Benefits');
     }
 
     public function isInventoryAdmin(): bool
     {
-        return $this->role === 'inventory_admin';
+        return $this->hasRole('Personnel Records');
+    }
+
+    public function isAppointmentAdmin(): bool
+    {
+        return $this->hasRole('Appointment');
+    }
+
+    public function isAppointmentEncoder(): bool
+    {
+        return $this->hasRole('Appointment Encoder');
+    }
+
+    public function isPerformanceAdmin(): bool
+    {
+        return $this->hasRole('Performance Management');
+    }
+
+    public function isLeaveAdmin(): bool
+    {
+        return $this->hasRole('Leave Administration');
+    }
+
+    public function isViewer(): bool
+    {
+        return $this->hasRole('Viewer');
     }
 
     /**
@@ -91,7 +126,7 @@ class User extends Authenticatable
     {
         if ($this->isSuperAdmin()) return true;
         return match($module) {
-            'plantilla'      => $this->isInventoryAdmin(),
+            'plantilla'      => $this->isInventoryAdmin() || $this->isViewer(),
             'step_increment' => $this->isSalaryAdmin(),
             'import'         => false,
             default          => false,
@@ -103,12 +138,8 @@ class User extends Authenticatable
      */
     public function getRoleLabelAttribute(): string
     {
-        return match($this->role) {
-            'super_admin'     => 'Super Admin',
-            'salary_admin'    => 'Salary Admin',
-            'inventory_admin' => 'Inventory Admin',
-            default           => ucfirst($this->role),
-        };
+        $role = $this->roles()->first();
+        return $role ? $role->name : 'No Role';
     }
 
     /**

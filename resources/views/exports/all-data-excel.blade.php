@@ -11,12 +11,12 @@
     <table>
         <thead>
             <tr>
-                @if(empty($columns) || in_array('organizational_unit', $columns))<th>ORGANIZATIONAL UNIT</th>@endif
-                @if(empty($columns) || in_array('item', $columns))<th>ITEM</th>@endif
+                @if(empty($columns) || in_array('office_department', $columns))<th>OFFICE</th>@endif
+                @if(empty($columns) || in_array('item_no_new', $columns))<th>ITEM</th>@endif
                 @if(empty($columns) || in_array('position_title', $columns))<th>POSITION TITLE</th>@endif
                 @if(empty($columns) || in_array('salary_grade', $columns))<th>SALARY GRADE</th>@endif
                 @if(empty($columns) || in_array('authorized_annual_salary', $columns))<th>AUTHORIZED ANNUAL SALARY</th>@endif
-                @if(empty($columns) || in_array('actual_annual_salary', $columns))<th>ACTUAL ANNUAL SALARY</th>@endif
+                @if(empty($columns) || in_array('base_salary_amount', $columns))<th>ACTUAL ANNUAL SALARY</th>@endif
                 @if(empty($columns) || in_array('step', $columns))<th>STEP</th>@endif
                 @if(empty($columns) || in_array('area_code', $columns))<th>AREA CODE</th>@endif
                 @if(empty($columns) || in_array('area_type', $columns))<th>AREA TYPE</th>@endif
@@ -24,6 +24,7 @@
                 @if(empty($columns) || in_array('last_name', $columns))<th>LAST NAME</th>@endif
                 @if(empty($columns) || in_array('first_name', $columns))<th>FIRST NAME</th>@endif
                 @if(empty($columns) || in_array('middle_name', $columns))<th>MIDDLE NAME</th>@endif
+                @if(empty($columns) || in_array('name_extension', $columns))<th>NAME EXTENSION</th>@endif
                 @if(empty($columns) || in_array('sex', $columns))<th>SEX</th>@endif
                 @if(empty($columns) || in_array('religion', $columns))<th>RELIGION</th>@endif
                 @if(empty($columns) || in_array('date_of_birth', $columns))<th>DATE OF BIRTH</th>@endif
@@ -47,14 +48,14 @@
         <tbody>
             @foreach($records as $i => $r)
                 <tr>
-                    @if(empty($columns) || in_array('organizational_unit', $columns))<td>{{ $r->organizational_unit }}</td>@endif
-                    @if(empty($columns) || in_array('item', $columns))<td>{{ $r->item }}</td>@endif
+                    @if(empty($columns) || in_array('office_department', $columns))<td>{{ $r->office_department }}</td>@endif
+                    @if(empty($columns) || in_array('item_no_new', $columns))<td>{{ $r->item_no_new }}</td>@endif
                     @if(empty($columns) || in_array('position_title', $columns))<td>{{ $r->position_title }}</td>@endif
                     {{-- Plain number — no "SG-" prefix — so importer can parse it directly --}}
                     @if(empty($columns) || in_array('salary_grade', $columns))<td>{{ $r->salary_grade }}</td>@endif
                     {{-- Raw numeric values without formatting commas so importer reads them cleanly --}}
                     @if(empty($columns) || in_array('authorized_annual_salary', $columns))<td>{{ $r->authorized_annual_salary }}</td>@endif
-                    @if(empty($columns) || in_array('actual_annual_salary', $columns))<td>{{ $r->actual_annual_salary }}</td>@endif
+                    @if(empty($columns) || in_array('base_salary_amount', $columns))<td>{{ $r->base_salary_amount }}</td>@endif
                     @if(empty($columns) || in_array('step', $columns))<td>{{ $r->step }}</td>@endif
                     @if(empty($columns) || in_array('area_code', $columns))<td>{{ $r->area_code }}</td>@endif
                     @if(empty($columns) || in_array('area_type', $columns))<td>{{ $r->area_type }}</td>@endif
@@ -62,6 +63,7 @@
                     @if(empty($columns) || in_array('last_name', $columns))<td>{{ $r->is_vacant ? 'VACANT' : strtoupper($r->last_name ?? '') }}</td>@endif
                     @if(empty($columns) || in_array('first_name', $columns))<td>{{ $r->first_name }}</td>@endif
                     @if(empty($columns) || in_array('middle_name', $columns))<td>{{ $r->middle_name }}</td>@endif
+                    @if(empty($columns) || in_array('name_extension', $columns))<td>{{ $r->name_extension }}</td>@endif
                     @if(empty($columns) || in_array('sex', $columns))<td>{{ $r->sex }}</td>@endif
                     @if(empty($columns) || in_array('religion', $columns))<td>{{ $r->religion }}</td>@endif
                     {{-- Y-m-d format so ImportController::parseDate() reads it correctly --}}
@@ -73,8 +75,8 @@
                     @if(empty($columns) || in_array('civil_service_eligibility', $columns))<td>{{ $r->civil_service_eligibility }}</td>@endif
                     {{-- "Y" / "N" so importer (=== 'Y') works correctly; old export used "YES" which broke it --}}
                     @if(empty($columns) || in_array('pwd', $columns))<td>{{ $r->is_pwd ? 'Y' : 'N' }}</td>@endif
-                    {{-- Map admin_charges column to comment_annotation which the legacy importer knows --}}
-                    @if(empty($columns) || in_array('admin_charges', $columns))<td>{{ $r->comment_annotation }}</td>@endif
+                    {{-- Map admin_charges column to remarks_annotation which the legacy importer knows --}}
+                    @if(empty($columns) || in_array('admin_charges', $columns))<td>{{ $r->remarks_annotation }}</td>@endif
                     @if(empty($columns) || in_array('nature_of_separation', $columns))<td>{{ $r->nature_of_separation }}</td>@endif
                     @if(empty($columns) || in_array('indigenous_people', $columns))<td>{{ $r->indigenous_people }}</td>@endif
                     @if(empty($columns) || in_array('solo_parent', $columns))<td>{{ $r->solo_parent }}</td>@endif

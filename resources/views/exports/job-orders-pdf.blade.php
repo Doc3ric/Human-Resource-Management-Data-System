@@ -59,15 +59,14 @@
             if(empty($columns) || in_array('gender_f', $columns)) $genderCols++;
             
             $totalCols = 1 
-                + (empty($columns) || in_array('charges', $columns) ? 1 : 0)
+                + (empty($columns) || in_array('office_department', $columns) ? 1 : 0)
                 + $nameCols
                 + (empty($columns) || in_array('position', $columns) ? 1 : 0)
-                + (empty($columns) || in_array('nature_of_work', $columns) ? 1 : 0)
                 + (empty($columns) || in_array('office', $columns) ? 1 : 0)
                 + (empty($columns) || in_array('rate_day', $columns) ? 1 : 0)
                 + (empty($columns) || in_array('first_day', $columns) ? 1 : 0)
                 + $lengthCols
-                + (empty($columns) || in_array('birthdate', $columns) ? 1 : 0)
+                + (empty($columns) || in_array('date_of_birth', $columns) ? 1 : 0)
                 + (empty($columns) || in_array('address', $columns) ? 1 : 0)
                 + (empty($columns) || in_array('eligibility', $columns) ? 1 : 0)
                 + $genderCols
@@ -79,18 +78,18 @@
         @endphp
         <tr>
             <th rowspan="2">NO.</th>
-            @if(empty($columns) || in_array('charges', $columns))<th rowspan="2">CHARGES</th>@endif
+            @if(empty($columns) || in_array('office_department', $columns))<th rowspan="2">CHARGES</th>@endif
             @if($nameCols > 0)<th colspan="{{ $nameCols }}">NAME</th>@endif
             @if(empty($columns) || in_array('position', $columns))<th rowspan="2">POSITION</th>@endif
-            @if(empty($columns) || in_array('nature_of_work', $columns))<th rowspan="2">NATURE OF WORK</th>@endif
+
             @if(empty($columns) || in_array('office', $columns))<th rowspan="2">OFFICE</th>@endif
             @if(empty($columns) || in_array('rate_day', $columns))<th rowspan="2">RATE/<br>DAY</th>@endif
             @if(empty($columns) || in_array('first_day', $columns))<th rowspan="2">FIRST DAY<br>OF SERVICE</th>@endif
             @if($lengthCols > 0)<th colspan="{{ $lengthCols }}">LENGTH OF<br>SERVICE</th>@endif
-            @if(empty($columns) || in_array('birthdate', $columns))<th rowspan="2">BIRTHDATE</th>@endif
+            @if(empty($columns) || in_array('date_of_birth', $columns))<th rowspan="2">DATE OF BIRTH</th>@endif
             @if(empty($columns) || in_array('address', $columns))<th rowspan="2">ADDRESS</th>@endif
             @if(empty($columns) || in_array('eligibility', $columns))<th rowspan="2">ELIGIBILITY</th>@endif
-            @if($genderCols > 0)<th colspan="{{ $genderCols }}">GENDER</th>@endif
+            @if($genderCols > 0)<th colspan="{{ $genderCols }}">SEX</th>@endif
             @if(empty($columns) || in_array('level_1', $columns))<th rowspan="2">1ST<br>LEVEL</th>@endif
             @if(empty($columns) || in_array('level_2', $columns))<th rowspan="2">2ND<br>LEVEL</th>@endif
             @if(empty($columns) || in_array('ip', $columns))<th rowspan="2">IP COMMUNITY<br>MEMBERSHIP</th>@endif
@@ -112,23 +111,23 @@
         @forelse($records as $i => $jo)
         <tr>
             <td>{{ $i + 1 }}</td>
-            @if(empty($columns) || in_array('charges', $columns))<td>{{ $jo->charges }}</td>@endif
+            @if(empty($columns) || in_array('office_department', $columns))<td>{{ $jo->office_department }}</td>@endif
             @if(empty($columns) || in_array('family_name', $columns))<td class="tl" style="font-weight:bold;">{{ strtoupper($jo->last_name) }}</td>@endif
             @if(empty($columns) || in_array('first_name', $columns))<td class="tl">{{ $jo->first_name }}</td>@endif
             @if(empty($columns) || in_array('mi', $columns))<td>{{ $jo->middle_initial }}</td>@endif
             @if(empty($columns) || in_array('ext', $columns))<td>{{ $jo->name_extension }}</td>@endif
             @if(empty($columns) || in_array('position', $columns))<td class="tl">{{ $jo->position_title }}</td>@endif
-            @if(empty($columns) || in_array('nature_of_work', $columns))<td>{{ $jo->nature_of_work }}</td>@endif
+
             @if(empty($columns) || in_array('office', $columns))<td>{{ $jo->office }}</td>@endif
             @if(empty($columns) || in_array('rate_day', $columns))<td>{{ $jo->rate_per_day ? number_format($jo->rate_per_day, 2) : '' }}</td>@endif
             @if(empty($columns) || in_array('first_day', $columns))<td>{{ $jo->first_day_of_service ? $jo->first_day_of_service->format('Y-m-d') : '' }}</td>@endif
             @if(empty($columns) || in_array('length_yrs', $columns))<td>{{ $jo->first_day_of_service ? $jo->years_of_service : '' }}</td>@endif
             @if(empty($columns) || in_array('length_mos', $columns))<td>{{ $jo->first_day_of_service ? $jo->months_of_service : '' }}</td>@endif
-            @if(empty($columns) || in_array('birthdate', $columns))<td>{{ $jo->birthdate ? $jo->birthdate->format('Y-m-d') : '' }}</td>@endif
+            @if(empty($columns) || in_array('date_of_birth', $columns))<td>{{ $jo->date_of_birth ? $jo->date_of_birth->format('Y-m-d') : '' }}</td>@endif
             @if(empty($columns) || in_array('address', $columns))<td class="tl">{{ $jo->address }}</td>@endif
             @if(empty($columns) || in_array('eligibility', $columns))<td>{{ $jo->eligibility }}</td>@endif
-            @if(empty($columns) || in_array('gender_m', $columns))<td>{{ $jo->gender === 'M' ? '✓' : '' }}</td>@endif
-            @if(empty($columns) || in_array('gender_f', $columns))<td>{{ $jo->gender === 'F' ? '✓' : '' }}</td>@endif
+            @if(empty($columns) || in_array('gender_m', $columns))<td>{{ $jo->sex === 'M' ? '✓' : '' }}</td>@endif
+            @if(empty($columns) || in_array('gender_f', $columns))<td>{{ $jo->sex === 'F' ? '✓' : '' }}</td>@endif
             @if(empty($columns) || in_array('level_1', $columns))<td class="chk">{{ $jo->first_level_eligibility ? '✓' : '' }}</td>@endif
             @if(empty($columns) || in_array('level_2', $columns))<td class="chk">{{ $jo->second_level_eligibility ? '✓' : '' }}</td>@endif
             @if(empty($columns) || in_array('ip', $columns))<td>{{ $jo->ip_community_membership }}</td>@endif

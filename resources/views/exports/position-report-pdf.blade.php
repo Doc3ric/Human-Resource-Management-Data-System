@@ -112,7 +112,7 @@
             </tr>
             {{-- Header row 2 (sub-headers for Status) --}}
             <tr>
-                <th class="th-sub" style="width:9%;">Permanent<br><small>(4.1)</small></th>
+                <th class="th-sub" style="width:9%;">REGULAR<br><small>(4.1)</small></th>
                 <th class="th-sub" style="width:9%;">Contractual<br><small>(4.2)</small></th>
                 <th class="th-sub" style="width:15%;">Date of<br>Appointment<br><small>(4.3)</small></th>
             </tr>

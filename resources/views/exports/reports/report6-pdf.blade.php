@@ -36,7 +36,7 @@ td.tc { text-align:center; }
             <th style="width:30px;">#</th>
             <th>Employee Name</th>
             <th>Position Title</th>
-            <th class="tc">Gender</th>
+            <th class="tc">SEX</th>
         </tr>
     </thead>
     <tbody>

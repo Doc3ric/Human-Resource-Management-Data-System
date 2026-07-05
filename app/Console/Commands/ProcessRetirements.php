@@ -52,12 +52,12 @@ class ProcessRetirements extends Command
             ['#', 'Item', 'Name', 'DOB', 'Age', 'Position', 'Office'],
             $records->map(fn ($r, $i) => [
                 $i + 1,
-                $r->item,
+                $r->item_no_new,
                 strtoupper($r->last_name ?? '') . ', ' . ($r->first_name ?? ''),
                 $r->date_of_birth?->format('m/d/Y'),
                 $r->age,
                 $r->position_title,
-                \Str::limit($r->organizational_unit, 30),
+                \Str::limit($r->office_department, 30),
             ])->toArray()
         );
 
@@ -79,7 +79,7 @@ class ProcessRetirements extends Command
                         . "SG-{$plantilla->salary_grade} Step {$plantilla->step}. "
                         . "TIN: " . ($plantilla->tin ?? 'N/A') . '.';
 
-            $existing       = $plantilla->comment_annotation;
+            $existing       = $plantilla->remarks_annotation;
             $fullAnnotation = $existing ? $existing . "\n\n" . $annotation : $annotation;
 
             $plantilla->update([
@@ -93,11 +93,11 @@ class ProcessRetirements extends Command
                 'tin'                => null,
                 'gsis_bp_number'     => null,
                 'umid'               => null,
-                'comment_annotation' => $fullAnnotation,
+                'remarks_annotation' => $fullAnnotation,
             ]);
 
             $count++;
-            $this->line("  ✓ Retired: {$formerName} ({$plantilla->item})");
+            $this->line("  ✓ Retired: {$formerName} ({$plantilla->item_no_new})");
         }
 
         $this->newLine();

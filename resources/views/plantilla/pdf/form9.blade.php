@@ -121,7 +121,7 @@
                 <tr>
                     <td>{{ $count++ }}</td>
                     <td style="text-align: left;">{{ $record->position_title }}</td>
-                    <td>{{ $record->item }}</td>
+                    <td>{{ $record->item_no_new }}</td>
                     <td>{{ $record->salary_grade }}</td>
                     <td style="text-align: right;">{{ number_format((float)($record->authorized_annual_salary / 12), 2) }}</td>
                     <td></td>
@@ -129,7 +129,7 @@
                     <td></td>
                     <td></td>
                     <td></td>
-                    <td>{{ $record->organizational_unit }}</td>
+                    <td>{{ $record->office_department }}</td>
                 </tr>
             @empty
                 <tr>

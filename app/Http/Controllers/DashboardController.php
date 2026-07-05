@@ -88,7 +88,7 @@ class DashboardController extends Controller
             // Casual positions inside plantilla_records
             $casualInPlantilla   = PlantillaRecord::filled()->whereIn('employment_status', ['Casual', 'Cas', 'C'])->count();
 
-            $totalSalaryBudget = PlantillaRecord::filled()->sum('actual_annual_salary');
+            $totalSalaryBudget = PlantillaRecord::filled()->sum('base_salary_amount');
 
             $pwdCount = PlantillaRecord::filled()->where('is_pwd', true)->count();
             $ipCount = PlantillaRecord::filled()->whereNotNull('indigenous_people')->where('indigenous_people', '!=', '')->count();
@@ -96,11 +96,11 @@ class DashboardController extends Controller
 
             // Employees per organizational unit (top 15 for chart)
             $employeesPerUnit = PlantillaRecord::filled()
-                ->selectRaw('organizational_unit, COUNT(*) as count')
-                ->groupBy('organizational_unit')
+                ->selectRaw('office_department, COUNT(*) as count')
+                ->groupBy('office_department')
                 ->orderByDesc('count')
                 ->limit(15)
-                ->pluck('count', 'organizational_unit')
+                ->pluck('count', 'office_department')
                 ->toArray();
 
             // Status breakdown for pie chart
@@ -128,9 +128,9 @@ class DashboardController extends Controller
                             ->where('date_original_appointment', '<=', $threeYearsAgo);
                     })->orWhere(function ($q3) use ($fiveYearsAgo) {
                         $q3->where(function ($qOu) {
-                            $qOu->where('organizational_unit', 'like', '%BPH%')
-                                ->orWhere('organizational_unit', 'like', '%HEALTH%')
-                                ->orWhere('organizational_unit', 'like', '%MEDICAL%');
+                            $qOu->where('office_department', 'like', '%BPH%')
+                                ->orWhere('office_department', 'like', '%HEALTH%')
+                                ->orWhere('office_department', 'like', '%MEDICAL%');
                         })->where(function ($q4) use ($fiveYearsAgo) {
                             $q4->whereNotNull('date_last_nolp')
                                 ->where('date_last_nolp', '<=', $fiveYearsAgo);
@@ -145,58 +145,57 @@ class DashboardController extends Controller
             // Retirement stats
             $retirementDueCount = PlantillaRecord::retirementDue()->count();
 
-            // Casual Employees
-            $casualTotal = CasualEmployee::count();
+            // Casual Employees (active = filled + not separated)
+            $casualTotal = CasualEmployee::where('is_vacant', false)->whereNull('nature_of_separation')->count();
             $casualVacant = CasualEmployee::where('is_vacant', true)->count();
 
-            // Job Orders
-            $jobOrderTotal = JobOrder::count();
+            // Job Orders (active = not separated)
+            $jobOrderTotal = JobOrder::whereNull('nature_of_separation')->count();
 
             // --- New specific arrangement calculations ---
             // 1. TOTAL EMPLOYEES: Active Only, No Duplication
             $plantillaEmployees = DB::table('plantilla_records')
+                ->whereNotIn('employment_status', ['JO', 'CASUAL'])
                 ->where('is_vacant', false)->where('abolished', false)->whereNull('deleted_at')->whereNull('nature_of_separation')
                 ->selectRaw("CONCAT(UPPER(TRIM(last_name)), ',', UPPER(TRIM(first_name))) as name_key")
                 ->pluck('name_key');
-            $casualEmployeesList = DB::table('casual_employees')
-                ->where('is_vacant', false)->whereNull('deleted_at')
+            $casualEmployeesList = CasualEmployee::where('is_vacant', false)
                 ->selectRaw("CONCAT(UPPER(TRIM(last_name)), ',', UPPER(TRIM(first_name))) as name_key")
                 ->pluck('name_key');
-            $joEmployeesList = DB::table('job_orders')
-                ->whereNull('deleted_at')
+            $joEmployeesList = JobOrder::whereNull('nature_of_separation')
                 ->selectRaw("CONCAT(UPPER(TRIM(last_name)), ',', UPPER(TRIM(first_name))) as name_key")
                 ->pluck('name_key');
             $totalEmployeesUnique = $plantillaEmployees->concat($casualEmployeesList)->concat($joEmployeesList)->filter()->unique()->count();
 
             // 2. REGULAR (Elected, Coterminus, Permanent, Part-Time, Temp)
-            $regularTotalCount = PlantillaRecord::filled()->whereNotIn('employment_status', ['Casual', 'Cas', 'C'])->count();
+            $regularTotalCount = PlantillaRecord::filled()->whereNotIn('employment_status', ['Casual', 'Cas', 'CASUAL', 'C', 'JO', 'Job Order'])->count();
 
             // 3. MALE vs FEMALE (REGULAR)
             $regularMale = PlantillaRecord::filled()
-                ->whereNotIn('employment_status', ['Casual', 'Cas', 'C'])
+                ->whereNotIn('employment_status', ['Casual', 'Cas', 'CASUAL', 'C', 'JO', 'Job Order'])
                 ->where(function($q) { $q->where('sex', 'like', 'M%'); })->count();
             $regularFemale = PlantillaRecord::filled()
-                ->whereNotIn('employment_status', ['Casual', 'Cas', 'C'])
+                ->whereNotIn('employment_status', ['Casual', 'Cas', 'CASUAL', 'C', 'JO', 'Job Order'])
                 ->where(function($q) { $q->where('sex', 'like', 'F%'); })->count();
 
-            // 4. CASUAL : Total
-            $casualOnlyTotal = CasualEmployee::where('is_vacant', false)->count() + PlantillaRecord::filled()->whereIn('employment_status', ['Casual', 'Cas', 'C'])->count();
+            // 4. CASUAL : Total (active only)
+            $casualOnlyTotal = CasualEmployee::where('is_vacant', false)->whereNull('nature_of_separation')->count() + PlantillaRecord::filled()->whereIn('employment_status', ['Casual', 'Cas', 'C'])->count();
 
-            // 5. MALE vs FEMALE (CASUAL)
-            $casualMale = CasualEmployee::where('is_vacant', false)->where(function($q) { $q->where('gender', 'like', 'M%'); })->count()
+            // 5. MALE vs FEMALE (CASUAL, active only)
+            $casualMale = CasualEmployee::where('is_vacant', false)->whereNull('nature_of_separation')->where(function($q) { $q->where('sex', 'like', 'M%'); })->count()
                         + PlantillaRecord::filled()->whereIn('employment_status', ['Casual', 'Cas', 'C'])->where(function($q) { $q->where('sex', 'like', 'M%'); })->count();
-            $casualFemale = CasualEmployee::where('is_vacant', false)->where(function($q) { $q->where('gender', 'like', 'F%'); })->count()
+            $casualFemale = CasualEmployee::where('is_vacant', false)->whereNull('nature_of_separation')->where(function($q) { $q->where('sex', 'like', 'F%'); })->count()
                         + PlantillaRecord::filled()->whereIn('employment_status', ['Casual', 'Cas', 'C'])->where(function($q) { $q->where('sex', 'like', 'F%'); })->count();
 
-            // 6. JOB ORDER
-            $joTotalActive = JobOrder::count();
+            // 6. JOB ORDER (active only)
+            $joTotalActive = JobOrder::whereNull('nature_of_separation')->count();
 
             // 7. VACANT POSITIONS (Using only plantilla vacants since they hold the actual items usually)
             $vacantPositionsTotal = PlantillaRecord::vacant()->count();
 
-            // 8. MALE vs. FEMALE (JO)
-            $joMale = JobOrder::where(function($q) { $q->where('gender', 'like', 'M%'); })->count();
-            $joFemale = JobOrder::where(function($q) { $q->where('gender', 'like', 'F%'); })->count();
+            // 8. MALE vs. FEMALE (JO, active only)
+            $joMale = JobOrder::whereNull('nature_of_separation')->where(function($q) { $q->where('sex', 'like', 'M%'); })->count();
+            $joFemale = JobOrder::whereNull('nature_of_separation')->where(function($q) { $q->where('sex', 'like', 'F%'); })->count();
             // ---------------------------------------------
 
             // Monthly Birthdays
@@ -208,18 +207,17 @@ class DashboardController extends Controller
 
             // Age Demographics
             $plantillaAges = DB::table('plantilla_records')
+                ->whereNotIn('employment_status', ['JO', 'CASUAL'])
                 ->where('is_vacant', false)->where('abolished', false)->whereNotNull('date_of_birth')->whereNull('deleted_at')->whereNull('nature_of_separation')
                 ->selectRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) as age')
                 ->pluck('age');
 
-            $casualAges = DB::table('casual_employees')
-                ->where('is_vacant', false)->whereNotNull('birthdate')->whereNull('deleted_at')
-                ->selectRaw('TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) as age')
+            $casualAges = CasualEmployee::where('is_vacant', false)->whereNotNull('date_of_birth')
+                ->selectRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) as age')
                 ->pluck('age');
 
-            $joAges = DB::table('job_orders')
-                ->whereNotNull('birthdate')->whereNull('deleted_at')
-                ->selectRaw('TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) as age')
+            $joAges = JobOrder::whereNull('nature_of_separation')->whereNotNull('date_of_birth')
+                ->selectRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) as age')
                 ->pluck('age');
 
             $allAges = $plantillaAges->concat($casualAges)->concat($joAges);

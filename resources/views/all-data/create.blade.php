@@ -123,10 +123,10 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
                         <div class="lg:col-span-2">
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Organizational Unit <span
+                            <label class="block text-xs font-medium text-gray-600 mb-1">OFFICE<span
                                     class="text-red-500">*</span></label>
                             <div class="flex flex-col gap-2">
-                                @php $oldOrg = old('organizational_unit'); @endphp
+                                @php $oldOrg = old('office_department'); @endphp
                                 <select id="org_unit_select"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white outline-none">
                                     <option value="">Select an office...</option>
@@ -136,8 +136,8 @@
                                     @endforeach
                                     <option value="Others" {{ $oldOrg && !$offices->contains($oldOrg) ? 'selected' : '' }}>Others (Please specify)</option>
                                 </select>
-                                <input type="text" name="organizational_unit" id="org_unit_input" value="{{ $oldOrg }}"
-                                    placeholder="Type organizational unit manually..."
+                                <input type="text" name="office_department" id="org_unit_input" value="{{ $oldOrg }}"
+                                    placeholder="Type OFFICE manually..."
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none {{ $oldOrg && !$offices->contains($oldOrg) ? '' : 'hidden' }}">
                             </div>
                         </div>
@@ -159,7 +159,7 @@
                                     </p>
                                 </div>
 
-                                <input type="text" name="item" id="item_code" value="{{ old('item') }}"
+                                <input type="text" name="item_no_new" id="item_code" value="{{ old('item_no_new') }}"
                                     placeholder="Type Item (Position Code)..."
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono">
                             </div>
@@ -232,17 +232,17 @@
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Authorized Annual Salary <span
                                     class="text-gray-400 text-[10px] ml-1">(Calculates from SG if blank)</span></label>
-                            <input type="number" step="0.01" name="authorized_annual_salary"
+                            <input type="text" inputmode="decimal" name="authorized_annual_salary"
                                 id="authorized_annual_salary" value="{{ old('authorized_annual_salary') }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none peso-input">
                         </div>
 
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Actual Annual Salary <span
                                     class="text-gray-400 text-[10px] ml-1">(Calculates from SG if blank)</span></label>
-                            <input type="number" step="0.01" name="actual_annual_salary" id="actual_annual_salary"
-                                value="{{ old('actual_annual_salary') }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                            <input type="text" inputmode="decimal" name="base_salary_amount" id="base_salary_amount"
+                                value="{{ old('base_salary_amount') }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none peso-input">
                         </div>
 
                         <div>
@@ -250,7 +250,7 @@
                             <select name="employment_status"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
                                 <option value="">Select…</option>
-                                <option value="P" {{ old('employment_status') === 'P' ? 'selected' : '' }}>Permanent</option>
+                                <option value="P" {{ old('employment_status') === 'P' ? 'selected' : '' }}>REGULAR</option>
                                 <option value="CT" {{ old('employment_status') === 'CT' ? 'selected' : '' }}>Co-Terminous
                                 </option>
                                 <option value="E" {{ old('employment_status') === 'E' ? 'selected' : '' }}>Elected</option>
@@ -299,7 +299,7 @@
                             position.</p>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Last Name</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">LAST NAME</label>
                                 <input type="text" name="last_name" value="{{ old('last_name') }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                             </div>
@@ -309,12 +309,18 @@
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Middle Name</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">MIDDLE NAME</label>
                                 <input type="text" name="middle_name" value="{{ old('middle_name') }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Sex</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">SUFFIX</label>
+                                <input type="text" name="name_extension" value="{{ old('name_extension') }}"
+                                    placeholder="Jr. / Sr. / III"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">SEX</label>
                                 <select name="sex"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
                                     <option value="">Not specified</option>
@@ -323,12 +329,22 @@
                                 </select>
                             </div>
                             <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">CIVIL STATUS</label>
+                                <select name="civil_status"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+                                    <option value="">— Select —</option>
+                                    @foreach(['SINGLE','MARRIED','WIDOW','WIDOWER','SEPARATED','ANNULLED'] as $cs)
+                                        <option value="{{ $cs }}" {{ old('civil_status') === $cs ? 'selected' : '' }}>{{ $cs }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Religion</label>
                                 <input type="text" name="religion" value="{{ old('religion') }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Date of Birth</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">DATE OF BIRTH</label>
                                 <input type="date" name="date_of_birth" value="{{ old('date_of_birth') }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                             </div>
@@ -342,7 +358,7 @@
                                     <span class="text-xs font-medium text-gray-600">Employee Code</span>
                                     <button type="button" id="btn-generate-code"
                                         class="text-[10px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 uppercase transition"
-                                        title="Auto-fill using Date of Birth & Last Name">Auto-Fill</button>
+                                        title="Auto-fill using Birthday & Last Name">Auto-Fill</button>
                                 </label>
                                 <input type="text" name="employee_code" id="employee_code"
                                     value="{{ old('employee_code') }}" placeholder="DDMMYYYY + Initial"
@@ -539,8 +555,8 @@
 
                         <div class="mt-4">
                             <label class="block text-xs font-medium text-gray-600 mb-1">Comment / Annotation</label>
-                            <textarea name="comment_annotation" rows="2"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">{{ old('comment_annotation') }}</textarea>
+                            <textarea name="remarks_annotation" rows="2"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">{{ old('remarks_annotation') }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -587,7 +603,7 @@
             const sgInput = document.getElementById('salary_grade');
             const stepSelect = document.getElementById('step');
             const authSalaryInput = document.getElementById('authorized_annual_salary');
-            const actualSalaryInput = document.getElementById('actual_annual_salary');
+            const actualSalaryInput = document.getElementById('base_salary_amount');
 
             const vacantToggle = document.getElementById('explicit_vacant_toggle');
             const empContainer = document.getElementById('employee_fields_container');
@@ -602,9 +618,8 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.annual_salary) {
-                                // Auto-fill if empty or update to give hint
-                                authSalaryInput.value = data.annual_salary;
-                                actualSalaryInput.value = data.annual_salary;
+                                authSalaryInput.value = window.pesoFormat ? window.pesoFormat(data.annual_salary) : data.annual_salary;
+                                actualSalaryInput.value = window.pesoFormat ? window.pesoFormat(data.annual_salary) : data.annual_salary;
                             }
                         })
                         .catch(err => console.error('Error fetching salary:', err));
@@ -621,7 +636,7 @@
                 }
             }
 
-            // Organizational Unit Toggle
+            // OFFICE Toggle
             const orgSelect = document.getElementById('org_unit_select');
             const orgInput = document.getElementById('org_unit_input');
             if (orgSelect && orgInput) {
@@ -724,7 +739,7 @@
                                     'salary_grade': data.salary_grade,
                                     'step': data.step,
                                     'authorized_annual_salary': data.authorized_annual_salary,
-                                    'actual_annual_salary': data.actual_annual_salary,
+                                    'base_salary_amount': data.base_salary_amount,
                                     'emp_status_select': data.employment_status,
                                     'area_code': data.area_code,
                                     'area_type': data.area_type,
@@ -763,7 +778,10 @@
                                                     if (empInput) empInput.value = value;
                                                 }
                                             } else {
-                                                input.value = value;
+                                                const pesoFields = ['authorized_annual_salary', 'base_salary_amount'];
+                                                input.value = pesoFields.includes(idOrName) && window.pesoFormat
+                                                    ? window.pesoFormat(value)
+                                                    : value;
                                                 if (idOrName === 'salary_grade') {
                                                     input.dispatchEvent(new Event('change', { bubbles: true })); // trigger salary fetch
                                                     // Flash effect

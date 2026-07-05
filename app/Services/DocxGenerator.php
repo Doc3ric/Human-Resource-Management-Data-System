@@ -93,7 +93,7 @@ class DocxGenerator
         
         $location = 'Malaybalay City, Bukidnon';
         if ($type === 'NOLP') {
-            $ou = strtoupper($employee->organizational_unit ?? '');
+            $ou = strtoupper($employee->office_department ?? '');
             $locationMap = [
                 'KIBAWE' => 'Kibawe, Bukidnon',
                 'MARAMAG' => 'Maramag, Bukidnon',
@@ -113,7 +113,7 @@ class DocxGenerator
         }
 
         $section->addText($empName, ['bold' => true, 'underline' => 'single'], ['spaceAfter' => 0]);
-        $section->addText($employee->organizational_unit, ['bold' => true], ['spaceAfter' => 0]);
+        $section->addText($employee->office_department, ['bold' => true], ['spaceAfter' => 0]);
         $section->addText($location, ['bold' => true, 'underline' => 'single'], ['spaceAfter' => 0]);
         $section->addTextBreak(1);
 
@@ -170,7 +170,7 @@ class DocxGenerator
         $section->addText('Provincial Governor', [], ['indentation' => ['left' => 5000]]);
 
         $section->addTextBreak(2);
-        $section->addText("Item No. {$employee->item} / Unique Item No. ______", [], ['spaceAfter' => 0]);
+        $section->addText("Item No. {$employee->item_no_new} / Unique Item No. ______", [], ['spaceAfter' => 0]);
         $section->addText("FY " . now()->year . " Personal Services Itemization and/or", [], ['spaceAfter' => 0]);
         $section->addText("Plantilla of Personnel", [], ['spaceAfter' => 0]);
         $section->addText("CF: GSIS", ['size' => 9.5]);

@@ -41,6 +41,35 @@
             </div>
         </div>
 
+        {{-- Salary Grade Stats --}}
+        @php
+            $sgGrades = count($matrix ?? []);
+            $sgSteps  = $sgGrades > 0 ? max(array_map('count', $matrix)) : 0;
+            $sgMinSalary = collect($matrix ?? [])->flatten()->filter()->min();
+            $sgMaxSalary = collect($matrix ?? [])->flatten()->filter()->max();
+        @endphp
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+            <x-stat-card icon="bi-layers-fill" color="indigo" label="Salary Grades" :value="$sgGrades"
+                compliance="DBM / SSL"
+                analysis="Number of salary grades in the active SSL schedule. The Philippine SSL covers SG 1–33 per E.O. 201 and subsequent SSL tranches issued by DBM." />
+
+            <x-stat-card icon="bi-grid-fill" color="blue" label="Steps per Grade" :value="$sgSteps"
+                compliance="CSC Step Rules"
+                analysis="Maximum salary steps per grade. Regular employees advance one step every 3 years via NOSI (CSC Memo Circular 6, s.1994). Hospital staff advance every 5 years via NOLP." />
+
+            <x-stat-card icon="bi-currency-exchange" color="green" label="Minimum Salary (SG1-S1)"
+                :value="(int) ($sgMinSalary ?? 0)"
+                sub="Monthly base (₱)"
+                compliance="SSL / EO 201"
+                analysis="Lowest entry-level salary in the schedule (SG 1, Step 1). Must meet or exceed the national minimum wage per RA 6727 as amended." />
+
+            <x-stat-card icon="bi-graph-up-arrow" color="orange" label="Maximum Salary (SG33-S8)"
+                :value="(int) ($sgMaxSalary ?? 0)"
+                sub="Monthly base (₱)"
+                compliance="SSL / EO 201"
+                analysis="Highest salary in the schedule (SG 33, Step 8). Applies to top-level officials. Any revision requires a new Executive Order from the Office of the President." />
+        </div>
+
         {{-- Active Schedule Banner --}}
         @if($activeSchedule)
             <div class="alert d-flex align-items-center justify-content-between mb-4 border-0 shadow-sm" style="background:#f0fdf4; border-left:4px solid #16a34a !important;" role="alert">

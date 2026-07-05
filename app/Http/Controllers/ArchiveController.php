@@ -166,7 +166,7 @@ class ArchiveController extends Controller
                     $query->where(function ($q) use ($search) {
                         $q->where('first_name', 'like', "%{$search}%")
                           ->orWhere('last_name', 'like', "%{$search}%")
-                          ->orWhere('item', 'like', "%{$search}%")
+                          ->orWhere('item_no_new', 'like', "%{$search}%")
                           ->orWhere('position_title', 'like', "%{$search}%");
                     });
                 })->latest('deleted_at')->paginate(25)->withQueryString(),
@@ -247,7 +247,7 @@ class ArchiveController extends Controller
      */
     public function archivePlantilla(PlantillaRecord $allDatum)
     {
-        $item = $allDatum->item;
+        $item = $allDatum->item_no_new;
         $name = trim($allDatum->first_name . ' ' . $allDatum->last_name) ?: 'Vacant';
 
         $allDatum->delete(); // Soft delete

@@ -11,7 +11,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach($report3->groupBy('organizational_unit') as $office => $records)
+        @foreach($report3->groupBy('office_department') as $office => $records)
         @foreach($records as $idx => $r)
         <tr>
             <td>{{ $idx + 1 }}</td>

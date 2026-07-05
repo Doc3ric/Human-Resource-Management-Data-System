@@ -45,14 +45,26 @@ class PlantillaController extends Controller
      */
     private function hasZeroSalary(PlantillaRecord $record): bool
     {
+        $s = strtolower(trim($record->employment_status ?? ''));
+        if (in_array($s, ['job order', 'jo', 'j.o.', 'job-order', 'casual', 'cas']) || str_contains($s, 'job') || str_contains($s, 'casual')) {
+            return false;
+        }
+
         $auth = (float) ($record->authorized_annual_salary ?? 0);
-        $actual = (float) ($record->actual_annual_salary ?? 0);
+        $actual = (float) ($record->base_salary_amount ?? 0);
         return $auth === 0.0 && $actual === 0.0;
     }
 
     private function resolveCategory(PlantillaRecord $record): string
     {
-        // Zero-salary positions are always Vacant Unfunded
+        $s = strtolower(trim($record->employment_status ?? ''));
+
+        if (in_array($s, ['elected', 'e']) || str_contains($s, 'elect')) return 'Elected';
+        if (in_array($s, ['co-terminous', 'coterminous', 'co terminous', 'ct']) || str_contains($s, 'terminous')) return 'Co-Terminous';
+        if (in_array($s, ['casual', 'cas']) || str_contains($s, 'casual')) return 'Casual';
+        if (in_array($s, ['job order', 'jo', 'j.o.', 'job-order']) || str_contains($s, 'job')) return 'Job Order';
+
+        // Zero-salary positions are always Vacant Unfunded (Plantilla only)
         if ($this->hasZeroSalary($record)) {
             return 'Vacant Unfunded';
         }
@@ -63,31 +75,6 @@ class PlantillaController extends Controller
                 : 'Vacant Funded';
         }
 
-        $s = strtolower(trim($record->employment_status ?? ''));
-
-        if (in_array($s, ['elected', 'e']))
-            return 'Elected';
-        if (in_array($s, ['co-terminous', 'coterminous', 'co terminous', 'ct']))
-            return 'Co-Terminous';
-        if (in_array($s, ['permanent', 'p']))
-            return 'Permanent';
-        if (in_array($s, ['casual', 'cas']))
-            return 'Casual';
-        if (in_array($s, ['job order', 'jo', 'j.o.', 'job-order']))
-            return 'Job Order';
-
-        // Partial matches as fallback
-        if (str_contains($s, 'elect'))
-            return 'Elected';
-        if (str_contains($s, 'terminous'))
-            return 'Co-Terminous';
-        if (str_contains($s, 'permanent'))
-            return 'Permanent';
-        if (str_contains($s, 'casual'))
-            return 'Casual';
-        if (str_contains($s, 'job'))
-            return 'Job Order';
-
         return 'Permanent'; // safe default
     }
 
@@ -96,15 +83,12 @@ class PlantillaController extends Controller
      */
     public function index(Request $request)
     {
+        session(['last_index_url' => request()->fullUrl()]);
+
+
         // ── 1. STATS: Optimize with DB aggregates & caching ─────────────────────
 
-        // Cache stats for 60 seconds — short enough to reflect archives/deletes quickly.
-        // Casual and Job Order employees are tracked in separate tables (casual_employees,
-        // job_orders). Exclude their employment_status values from plantilla_records to
-        // avoid double-counting in the stats.
         $stats = cache()->remember('plantilla_stats_v3', 60, function () {
-            $casuals = ['Casual', 'Cas'];
-            $jos     = ['JO', 'Job Order', 'J.O.', 'job-order'];
             $allRecords = PlantillaRecord::select(
                 'is_vacant',
                 'employment_status',
@@ -113,35 +97,46 @@ class PlantillaController extends Controller
                 'abolished',
                 'dissolved',
                 'authorized_annual_salary',
-                'actual_annual_salary',
+                'base_salary_amount',
                 'position_title',
-                'organizational_unit',
+                'office_department',
                 'first_name',
                 'last_name',
                 'middle_name',
                 'nature_of_separation'
             )
-            ->whereNotIn('employment_status', array_merge($casuals, $jos))
             ->where(function($q) {
                 $q->whereNull('nature_of_separation')->orWhere('is_vacant', true);
             })
             ->get();
             $filledAll = $allRecords->where('is_vacant', false);
 
-            // Status counts
+            // Status counts and Gender Breakdown per Status
             $statusCounts = array_fill_keys(self::CATEGORIES, 0);
+            $genderStats = array_fill_keys(self::CATEGORIES, ['M' => 0, 'F' => 0, 'Unknown' => 0]);
+            
             foreach ($allRecords as $r) {
-                $statusCounts[$this->resolveCategory($r)]++;
+                $cat = $this->resolveCategory($r);
+                if (isset($statusCounts[$cat])) {
+                    $statusCounts[$cat]++;
+                }
             }
-
-            // Also include separate Job Orders from the job_orders table
-            $jobOrderCount = \App\Models\JobOrder::count();
-            $statusCounts['Job Order'] += $jobOrderCount;
 
             // Age ranges (filled employees with a known DOB)
             $ageRanges = ['21-30' => 0, '31-40' => 0, '41-50' => 0, '51-60' => 0, '61-65' => 0, 'Other' => 0];
             $nearRetirement = [];           // employees aged 61–65
+            $genderCounts = ['M' => 0, 'F' => 0, 'Unknown' => 0];
+
             foreach ($filledAll as $r) {
+                $cat = $this->resolveCategory($r);
+                $sex = strtoupper(trim($r->sex ?? ''));
+                if (!in_array($sex, ['M', 'F'])) $sex = 'Unknown';
+                
+                $genderCounts[$sex]++;
+                if (isset($genderStats[$cat])) {
+                    $genderStats[$cat][$sex]++;
+                }
+
                 if (empty($r->date_of_birth))
                     continue;
                 try {
@@ -163,18 +158,6 @@ class PlantillaController extends Controller
                     }
                 } catch (\Exception) {
                 }
-            }
-
-            // Gender counts
-            $genderCounts = ['M' => 0, 'F' => 0, 'Unknown' => 0];
-            foreach ($filledAll as $r) {
-                $sex = strtoupper(trim($r->sex ?? ''));
-                if ($sex === 'M')
-                    $genderCounts['M']++;
-                elseif ($sex === 'F')
-                    $genderCounts['F']++;
-                else
-                    $genderCounts['Unknown']++;
             }
 
             // Vacant Funded — group by position_title with count
@@ -202,6 +185,7 @@ class PlantillaController extends Controller
                 'ageRanges' => $ageRanges,
                 'nearRetirement' => $nearRetirement, // Store array of objects
                 'genderCounts' => $genderCounts,
+                'genderStats' => $genderStats,
                 'vacantFunded' => $vacantFunded,
                 'vacantUnfunded' => $vacantUnfunded,
                 'totalAll' => $allRecords->count()
@@ -216,18 +200,15 @@ class PlantillaController extends Controller
         $vacantFunded = $stats['vacantFunded'];
         $vacantUnfunded = $stats['vacantUnfunded'];
         $totalAll = $stats['totalAll'];
+        $genderStats = $stats['genderStats'];
 
         // ── 2. FILTERED LIST: per-office accordion ─────────────────────────
-        // Exclude Casual and JO — these are stored in separate tables (casual_employees,
-        // job_orders), so any plantilla_records with those statuses are legacy/erroneous.
-        $excludedStatuses = ['Casual', 'Cas', 'JO', 'Job Order', 'J.O.', 'job-order'];
         $query = PlantillaRecord::query()
-            ->whereNotIn('employment_status', $excludedStatuses)
             ->where(function($q) {
                 $q->whereNull('nature_of_separation')->orWhere('is_vacant', true);
             })
-            ->orderBy('organizational_unit')
-            ->orderBy('item');
+            ->orderBy('office_department')
+            ->orderBy('item_no_new');
 
         $isFiltered = false;
 
@@ -237,13 +218,14 @@ class PlantillaController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('last_name', 'like', "%{$search}%")
                     ->orWhere('first_name', 'like', "%{$search}%")
-                    ->orWhere('item', 'like', "%{$search}%")
+                    ->orWhere('item_no_new', 'like', "%{$search}%")
                     ->orWhere('position_title', 'like', "%{$search}%");
             });
         }
         if ($request->filled('office')) {
             $isFiltered = true;
-            $query->where('organizational_unit', $request->input('office'));
+            $selectedOffice = $request->input('office');
+            $query->where('office_department', $selectedOffice);
         }
         if ($request->filled('age_range')) {
             $isFiltered = true;
@@ -279,8 +261,8 @@ class PlantillaController extends Controller
                                 $q3->whereNull('authorized_annual_salary')
                                     ->orWhere('authorized_annual_salary', 0);
                             })->where(function ($q3) {
-                                $q3->whereNull('actual_annual_salary')
-                                    ->orWhere('actual_annual_salary', 0);
+                                $q3->whereNull('base_salary_amount')
+                                    ->orWhere('base_salary_amount', 0);
                             });
                         });
                 });
@@ -314,7 +296,10 @@ class PlantillaController extends Controller
         $grouped = [];
 
         foreach ($filtered as $record) {
-            $office = $record->organizational_unit ?: 'Unassigned';
+            $isJo = in_array($record->employment_status, ['JO', 'Job Order', 'J.O.', 'J']);
+            $officeField = $record->office_department;
+            $office = $officeField ?: 'Unassigned';
+            
             $cat = $this->resolveCategory($record);
             if (!isset($grouped[$office]))
                 $grouped[$office] = $emptySlots;
@@ -323,11 +308,8 @@ class PlantillaController extends Controller
         ksort($grouped);
 
         // Cache offices list since it rarely changes completely
-        $offices = cache()->remember('plantilla_offices_list', 3600, function () {
-            return PlantillaRecord::distinct()
-                ->orderBy('organizational_unit')
-                ->pluck('organizational_unit')
-                ->filter()->values();
+        $offices = cache()->remember('plantilla_offices_list_fixed', 3600, function () {
+            return PlantillaRecord::distinct()->pluck('office_department')->filter()->unique()->sort()->values();
         });
 
         // Distinct position titles for the Position filter dropdown
@@ -350,6 +332,7 @@ class PlantillaController extends Controller
             'ageRanges' => $ageRanges,
             'nearRetirement' => $nearRetirement,
             'genderCounts' => $genderCounts,
+            'genderStats' => $genderStats,
             'vacantFunded' => $vacantFunded,
             'vacantUnfunded' => $vacantUnfunded,
             'isFiltered' => $isFiltered, // Pass this to view to show a warning if truncated
@@ -365,7 +348,7 @@ class PlantillaController extends Controller
     {
         $pwdRecords = PlantillaRecord::where('is_pwd', true)
             ->where('is_vacant', false)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('last_name')
             ->get();
 
@@ -379,7 +362,7 @@ class PlantillaController extends Controller
     {
         $pwdRecords = PlantillaRecord::where('is_pwd', true)
             ->where('is_vacant', false)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('last_name')
             ->get();
 
@@ -408,7 +391,7 @@ class PlantillaController extends Controller
         $ipRecords = PlantillaRecord::whereNotNull('indigenous_people')
             ->where('indigenous_people', '!=', '')
             ->where('is_vacant', false)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('last_name')
             ->get();
 
@@ -423,7 +406,7 @@ class PlantillaController extends Controller
         $ipRecords = PlantillaRecord::whereNotNull('indigenous_people')
             ->where('indigenous_people', '!=', '')
             ->where('is_vacant', false)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('last_name')
             ->get();
 
@@ -525,7 +508,7 @@ class PlantillaController extends Controller
                     $q2->where(function ($q3) {
                         $q3->whereNull('authorized_annual_salary')->orWhere('authorized_annual_salary', 0);
                     })->where(function ($q3) {
-                        $q3->whereNull('actual_annual_salary')->orWhere('actual_annual_salary', 0);
+                        $q3->whereNull('base_salary_amount')->orWhere('base_salary_amount', 0);
                     });
                 });
             })->orderBy('position_title')->get();
@@ -567,8 +550,8 @@ class PlantillaController extends Controller
             ->where('abolished', false)
             ->where('dissolved', false)
             ->where('position_title', $position)
-            ->orderBy('organizational_unit')
-            ->orderBy('item')
+            ->orderBy('office_department')
+            ->orderBy('item_no_new')
             ->get();
 
         return view('plantilla.vacant-funded-detail', compact('records', 'position'));
@@ -607,8 +590,8 @@ class PlantillaController extends Controller
             ->where('abolished', false)
             ->where('dissolved', false)
             ->where('position_title', $position)
-            ->orderBy('organizational_unit')
-            ->orderBy('item')
+            ->orderBy('office_department')
+            ->orderBy('item_no_new')
             ->get();
 
         $pdf = Pdf::loadView('exports.vacant-funded-position-pdf', compact('records', 'position'))
@@ -639,14 +622,14 @@ class PlantillaController extends Controller
                         $q3->whereNull('authorized_annual_salary')
                             ->orWhere('authorized_annual_salary', 0);
                     })->where(function ($q3) {
-                        $q3->whereNull('actual_annual_salary')
-                            ->orWhere('actual_annual_salary', 0);
+                        $q3->whereNull('base_salary_amount')
+                            ->orWhere('base_salary_amount', 0);
                     });
                 });
         })
             ->where('position_title', $position)
-            ->orderBy('organizational_unit')
-            ->orderBy('item')
+            ->orderBy('office_department')
+            ->orderBy('item_no_new')
             ->get();
 
         return view('plantilla.vacant-unfunded-detail', compact('records', 'position'));
@@ -692,14 +675,14 @@ class PlantillaController extends Controller
                     $q3->whereNull('authorized_annual_salary')
                         ->orWhere('authorized_annual_salary', 0);
                 })->where(function ($q3) {
-                    $q3->whereNull('actual_annual_salary')
-                        ->orWhere('actual_annual_salary', 0);
+                    $q3->whereNull('base_salary_amount')
+                        ->orWhere('base_salary_amount', 0);
                 });
             });
         })
             ->where('position_title', $position)
-            ->orderBy('organizational_unit')
-            ->orderBy('item')
+            ->orderBy('office_department')
+            ->orderBy('item_no_new')
             ->get();
 
         $pdf = Pdf::loadView('exports.vacant-unfunded-position-pdf', compact('records', 'position'))
@@ -722,7 +705,7 @@ class PlantillaController extends Controller
         // ── All non-vacant filled records ──────────────────────────────────────
         $filled = PlantillaRecord::where('is_vacant', false)
             ->whereNull('nature_of_separation')
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('last_name')
             ->get();
 
@@ -730,7 +713,7 @@ class PlantillaController extends Controller
         // Columns: Office | Permanent | Elected | Co-Terminous | Casual | Job Order | Total
         $report1 = [];
         foreach ($filled as $r) {
-            $office = $r->organizational_unit ?: 'Unassigned';
+            $office = $r->office_department ?: 'Unassigned';
             $cat = $this->resolveCategory($r);
             if (!isset($report1[$office])) {
                 $report1[$office] = [
@@ -769,7 +752,7 @@ class PlantillaController extends Controller
                 $q->whereYear('date_original_appointment', $year)
                     ->orWhereYear('date_last_promotion', $year);
             })
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('last_name')
             ->get()
             ->each(function ($r) {
@@ -779,7 +762,7 @@ class PlantillaController extends Controller
         // ── REPORT 4: List of Retirees ─────────────────────────────────────────
         $report4 = PlantillaRecord::whereYear('date_separated', $year)
             ->where('nature_of_separation', 'Retired')
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('last_name')
             ->get()
             ->map(function ($r) {
@@ -793,7 +776,7 @@ class PlantillaController extends Controller
         // ── REPORT 5: Terminated/Separated Employees ───────────────────────────
         $report5 = PlantillaRecord::whereYear('date_separated', $year)
             ->whereNotNull('nature_of_separation')
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('last_name')
             ->get();
 
@@ -801,7 +784,7 @@ class PlantillaController extends Controller
         // Office | Status | Total | Employee list | Gender
         $report6 = [];
         foreach ($filled as $r) {
-            $office = $r->organizational_unit ?: 'Unassigned';
+            $office = $r->office_department ?: 'Unassigned';
             $cat = $this->resolveCategory($r);
             if (!isset($report6[$office][$cat])) {
                 $report6[$office][$cat] = [];
@@ -811,8 +794,8 @@ class PlantillaController extends Controller
         ksort($report6);
 
         $offices = PlantillaRecord::distinct()
-            ->orderBy('organizational_unit')
-            ->pluck('organizational_unit')
+            ->orderBy('office_department')
+            ->pluck('office_department')
             ->filter()->values();
 
         // ── REPORT 7: Custom Status Report ─────────────────────────────────────────
@@ -856,7 +839,7 @@ class PlantillaController extends Controller
                 $q->whereNotNull('nature_of_separation')->where('nature_of_separation', '!=', 'Retired')->whereNotNull('date_separated');
             }
 
-            $report7 = $q->orderBy('organizational_unit')
+            $report7 = $q->orderBy('office_department')
                 ->orderBy('last_name')
                 ->get();
         }
@@ -967,7 +950,7 @@ class PlantillaController extends Controller
                 $q->whereNotNull('nature_of_separation')->where('nature_of_separation', '!=', 'Retired')->whereNotNull('date_separated');
             }
 
-            $report7 = $q->orderBy('organizational_unit')
+            $report7 = $q->orderBy('office_department')
                 ->orderBy('last_name')
                 ->get();
         }
@@ -1028,7 +1011,7 @@ class PlantillaController extends Controller
                 $q->whereNotNull('nature_of_separation')->where('nature_of_separation', '!=', 'Retired')->whereNotNull('date_separated');
             }
 
-            $report7 = $q->orderBy('organizational_unit')
+            $report7 = $q->orderBy('office_department')
                 ->orderBy('last_name')
                 ->get();
         }
@@ -1053,14 +1036,14 @@ class PlantillaController extends Controller
 
         $filled = PlantillaRecord::where('is_vacant', false)
             ->whereNull('nature_of_separation')
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('last_name')
             ->get();
 
         // Report 1
         $report1 = [];
         foreach ($filled as $r) {
-            $office = $r->organizational_unit ?: 'Unassigned';
+            $office = $r->office_department ?: 'Unassigned';
             $cat = $this->resolveCategory($r);
             if (!isset($report1[$office])) {
                 $report1[$office] = [
@@ -1099,7 +1082,7 @@ class PlantillaController extends Controller
                 $q->whereYear('date_original_appointment', $year)
                     ->orWhereYear('date_last_promotion', $year);
             })
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('last_name')
             ->get()
             ->each(function ($r) {
@@ -1109,7 +1092,7 @@ class PlantillaController extends Controller
         // Report 4
         $report4 = PlantillaRecord::whereYear('date_separated', $year)
             ->where('nature_of_separation', 'Retired')
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('last_name')
             ->get()
             ->map(function ($r) {
@@ -1123,14 +1106,14 @@ class PlantillaController extends Controller
         // Report 5
         $report5 = PlantillaRecord::whereYear('date_separated', $year)
             ->whereNotNull('nature_of_separation')
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('last_name')
             ->get();
 
         // Report 6
         $report6 = [];
         foreach ($filled as $r) {
-            $office = $r->organizational_unit ?: 'Unassigned';
+            $office = $r->office_department ?: 'Unassigned';
             $cat = $this->resolveCategory($r);
             if (!isset($report6[$office][$cat])) {
                 $report6[$office][$cat] = [];
@@ -1159,12 +1142,12 @@ class PlantillaController extends Controller
      */
     public function getItemDetails(Request $request)
     {
-        $item = $request->query('item');
+        $item = $request->query('item_no_new');
         if (!$item) {
             return response()->json([]);
         }
 
-        $record = PlantillaRecord::where('item', $item)->first();
+        $record = PlantillaRecord::where('item_no_new', $item)->first();
         if ($record) {
             return response()->json($record);
         }
@@ -1177,13 +1160,16 @@ class PlantillaController extends Controller
      */
     public function create()
     {
-        $offices = PlantillaRecord::select('organizational_unit')
-            ->distinct()->orderBy('organizational_unit')
-            ->pluck('organizational_unit');
-        $existingItems = PlantillaRecord::select('item')
-            ->distinct()->orderBy('item')
-            ->pluck('item')->filter()->values();
-        return view('plantilla.create', compact('offices', 'existingItems'));
+        $offices = PlantillaRecord::select('office_department')
+            ->distinct()->orderBy('office_department')
+            ->pluck('office_department')->filter()->values();
+        $positions = PlantillaRecord::select('position_title')
+            ->distinct()->orderBy('position_title')
+            ->pluck('position_title')->filter()->values();
+        $existingItems = PlantillaRecord::select('item_no_new')
+            ->distinct()->orderBy('item_no_new')
+            ->pluck('item_no_new')->filter()->values();
+        return view('plantilla.create', compact('offices', 'existingItems', 'positions'));
     }
 
     /**
@@ -1198,8 +1184,11 @@ class PlantillaController extends Controller
         // Auto-generate employee code if not provided
         if (empty($validated['employee_code']) && !$validated['is_vacant']) {
             $validated['employee_code'] = PlantillaRecord::generateEmployeeCode(
-                $validated['last_name'] ?? null,
-                $validated['date_of_birth'] ?? null
+                $validated['first_name']    ?? null,
+                $validated['date_of_birth'] ?? null,
+                null,
+                $validated['middle_name']   ?? null,
+                $validated['last_name']     ?? null
             );
         }
 
@@ -1209,11 +1198,11 @@ class PlantillaController extends Controller
             ActivityLog::create([
                 'user_id' => Auth::id(),
                 'action' => 'Created Record',
-                'description' => 'Created plantilla record for "' . trim($plantilla->first_name . ' ' . $plantilla->last_name) . '" (Item: ' . $plantilla->item . ')'
+                'description' => 'Created plantilla record for "' . trim($plantilla->first_name . ' ' . $plantilla->last_name) . '" (Item: ' . $plantilla->item_no_new . ')'
             ]);
         }
 
-        return redirect()->route('plantilla.index')
+        return redirect(session('last_index_url', route('plantilla.index')))
             ->with('success', 'Plantilla record created successfully.');
     }
 
@@ -1230,13 +1219,16 @@ class PlantillaController extends Controller
      */
     public function edit(PlantillaRecord $plantilla)
     {
-        $offices = PlantillaRecord::select('organizational_unit')
-            ->distinct()->orderBy('organizational_unit')
-            ->pluck('organizational_unit');
-        $existingItems = PlantillaRecord::select('item')
-            ->distinct()->orderBy('item')
-            ->pluck('item')->filter()->values();
-        return view('plantilla.edit', compact('plantilla', 'offices', 'existingItems'));
+        $offices = PlantillaRecord::select('office_department')
+            ->distinct()->orderBy('office_department')
+            ->pluck('office_department')->filter()->values();
+        $positions = PlantillaRecord::select('position_title')
+            ->distinct()->orderBy('position_title')
+            ->pluck('position_title')->filter()->values();
+        $existingItems = PlantillaRecord::select('item_no_new')
+            ->distinct()->orderBy('item_no_new')
+            ->pluck('item_no_new')->filter()->values();
+        return view('plantilla.edit', compact('plantilla', 'offices', 'existingItems', 'positions'));
     }
 
     /**
@@ -1251,8 +1243,11 @@ class PlantillaController extends Controller
         // Auto-generate employee code if cleared and not vacant
         if (empty($validated['employee_code']) && !$validated['is_vacant']) {
             $validated['employee_code'] = PlantillaRecord::generateEmployeeCode(
-                $validated['last_name'] ?? null,
-                $validated['date_of_birth'] ?? null
+                $validated['first_name']    ?? null,
+                $validated['date_of_birth'] ?? null,
+                null,
+                $validated['middle_name']   ?? null,
+                $validated['last_name']     ?? null
             );
         }
 
@@ -1276,8 +1271,8 @@ class PlantillaController extends Controller
                         . "Former employee: {$formerName}. "
                         . "DOB: {$dobStr}. SG-{$sgStr} Step {$stepStr}. TIN: {$tinStr}.";
 
-            $existing = $validated['comment_annotation'] ?? $plantilla->comment_annotation;
-            $validated['comment_annotation'] = $existing ? $existing . "\n\n" . $annotation : $annotation;
+            $existing = $validated['remarks_annotation'] ?? $plantilla->remarks_annotation;
+            $validated['remarks_annotation'] = $existing ? $existing . "\n\n" . $annotation : $annotation;
 
             // Clear employee fields to auto-declare vacant
             $validated['last_name'] = null;
@@ -1307,12 +1302,12 @@ class PlantillaController extends Controller
             ActivityLog::create([
                 'user_id' => Auth::id(),
                 'action' => 'Modified Data',
-                'description' => 'Updated plantilla record for "' . trim($plantilla->first_name . ' ' . $plantilla->last_name) . '" (Item: ' . $plantilla->item . ')'
+                'description' => 'Updated plantilla record for "' . trim($plantilla->first_name . ' ' . $plantilla->last_name) . '" (Item: ' . $plantilla->item_no_new . ')'
             ]);
         }
 
-        return redirect()->route('plantilla.index')
-            ->with('success', 'Plantilla record updated successfully.');
+        $returnUrl = session('last_index_url', route('plantilla.index'));
+        return redirect($returnUrl)->with('success', 'Plantilla record updated successfully.');
     }
 
     /**
@@ -1321,7 +1316,7 @@ class PlantillaController extends Controller
     public function destroy(PlantillaRecord $plantilla)
     {
         $name = trim($plantilla->first_name . ' ' . $plantilla->last_name);
-        $item = $plantilla->item;
+        $item = $plantilla->item_no_new;
 
         $plantilla->delete();
 
@@ -1333,7 +1328,7 @@ class PlantillaController extends Controller
             ]);
         }
 
-        return redirect()->route('plantilla.index')
+        return redirect(session('last_index_url', route('plantilla.index')))
             ->with('success', 'Plantilla record deleted successfully.');
     }
 
@@ -1377,7 +1372,7 @@ class PlantillaController extends Controller
         $vacantRecords = PlantillaRecord::where('is_vacant', true)
             ->where('abolished', false)
             ->where('dissolved', false)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('position_title')
             ->get();
 
@@ -1402,10 +1397,10 @@ class PlantillaController extends Controller
         $vacantPositions = PlantillaRecord::where('is_vacant', true)
             ->where('abolished', false)
             ->where('dissolved', false)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('position_title')
             ->get()
-            ->groupBy('organizational_unit');
+            ->groupBy('office_department');
 
         return view('plantilla.promote', compact('plantilla', 'vacantPositions'));
     }
@@ -1445,7 +1440,7 @@ class PlantillaController extends Controller
             'date_last_nolp' => $plantilla->date_last_nolp,
             'employment_status' => $plantilla->employment_status,
             'civil_service_eligibility' => $plantilla->civil_service_eligibility,
-            'comment_annotation' => $plantilla->comment_annotation,
+            'remarks_annotation' => $plantilla->remarks_annotation,
             'is_pwd' => $plantilla->is_pwd,
             'type_of_disability' => $plantilla->type_of_disability,
             'indigenous_people' => $plantilla->indigenous_people,
@@ -1477,7 +1472,7 @@ class PlantillaController extends Controller
             'date_last_nolp' => null,
             'employment_status' => null,
             'civil_service_eligibility' => null,
-            'comment_annotation' => null,
+            'remarks_annotation' => null,
             'is_pwd' => false,
             'type_of_disability' => null,
             'indigenous_people' => null,
@@ -1498,7 +1493,7 @@ class PlantillaController extends Controller
             ActivityLog::create([
                 'user_id' => Auth::id(),
                 'action' => 'Promoted/Transferred Employee',
-                'description' => "Promoted {$oldName} from Item {$plantilla->item} to Item {$target->item}"
+                'description' => "Promoted {$oldName} from Item {$plantilla->item_no_new} to Item {$target->item_no_new}"
             ]);
         }
 
@@ -1511,9 +1506,9 @@ class PlantillaController extends Controller
      */
     public function quickAddForm()
     {
-        $offices = PlantillaRecord::select('organizational_unit')
-            ->distinct()->orderBy('organizational_unit')
-            ->pluck('organizational_unit');
+        $offices = PlantillaRecord::select('office_department')
+            ->distinct()->orderBy('office_department')
+            ->pluck('office_department');
 
         return view('plantilla.quick-add', compact('offices'));
     }
@@ -1525,8 +1520,8 @@ class PlantillaController extends Controller
     public function quickAddSubmit(Request $request)
     {
         $validated = $request->validate([
-            'organizational_unit' => 'required|string|max:255',
-            'item' => 'required|string|max:50',
+            'office_department' => 'required|string|max:255',
+            'item_no_new' => 'required|string|max:50',
             'position_title' => 'required|string|max:255',
             'salary_grade' => 'required|integer|min:1|max:33',
             'step' => 'required|integer|min:1|max:8',
@@ -1535,7 +1530,7 @@ class PlantillaController extends Controller
         // Default properties for a vacant position
         $validated['is_vacant'] = true;
         $validated['authorized_annual_salary'] = 0;
-        $validated['actual_annual_salary'] = 0;
+        $validated['base_salary_amount'] = 0;
 
         $plantilla = PlantillaRecord::create($validated);
 
@@ -1543,11 +1538,11 @@ class PlantillaController extends Controller
             ActivityLog::create([
                 'user_id' => Auth::id(),
                 'action' => 'Created Position/Office',
-                'description' => 'Quick added vacant position "' . $plantilla->position_title . '" (Item: ' . $plantilla->item . ') in ' . $plantilla->organizational_unit
+                'description' => 'Quick added vacant position "' . $plantilla->position_title . '" (Item: ' . $plantilla->item_no_new . ') in ' . $plantilla->office_department
             ]);
         }
 
-        return redirect()->route('plantilla.index')
+        return redirect(session('last_index_url', route('plantilla.index')))
             ->with('success', 'New Office/Position slot successfully created.');
     }
 
@@ -1557,27 +1552,29 @@ class PlantillaController extends Controller
     private function validateRecord(Request $request, ?int $exceptId = null): array
     {
         return $request->validate([
-            'organizational_unit' => 'required|string|max:255',
-            'item' => 'required|string|max:50',
+            'office_department' => 'required|string|max:255',
+            'item_no_new' => 'required|string|max:50',
             'position_title' => 'required|string|max:255',
             'salary_grade' => 'required|integer|min:1|max:33',
             'authorized_annual_salary' => 'nullable|numeric|min:0',
-            'actual_annual_salary' => 'nullable|numeric|min:0',
+            'base_salary_amount' => 'nullable|numeric|min:0',
             'step' => 'required|integer|min:1|max:8',
             'area_code' => 'nullable|string|max:10',
             'area_type' => 'nullable|string|max:5',
             'level' => 'nullable|string|max:5',
             'last_name' => 'nullable|string|max:100',
             'first_name' => 'nullable|string|max:100',
-            'middle_name' => 'nullable|string|max:100',
-            'sex' => 'nullable|in:M,F',
-            'date_of_birth' => 'nullable|date',
+            'middle_name'    => 'nullable|string|max:100',
+            'name_extension' => 'nullable|string|max:20',
+            'sex'            => 'nullable|in:M,F',
+            'civil_status'   => 'nullable|string|max:50',
+            'date_of_birth'  => 'nullable|date',
             'tin' => 'nullable|string|max:50',
             'date_original_appointment' => 'nullable|date',
             'date_last_promotion' => 'nullable|date',
             'employment_status' => 'nullable|string|max:20',
             'civil_service_eligibility' => 'nullable|string|max:255',
-            'comment_annotation' => 'nullable|string',
+            'remarks_annotation' => 'nullable|string',
             'is_pwd' => 'boolean',
             'indigenous_people' => 'nullable|string|max:20',
             'solo_parent' => 'nullable|string|max:100',
@@ -1591,5 +1588,42 @@ class PlantillaController extends Controller
             'date_separated' => 'nullable|date',
             'employee_code' => 'nullable|string|max:20|unique:plantilla_records,employee_code' . ($exceptId ? ",{$exceptId}" : ''),
         ]);
+    }
+
+    /**
+     * Module 1.2/1A.6 — the "individual clearance" the batch-renewal block
+     * message points to. This is a single-record call into the same shared
+     * commit service batch renewal uses; it's what actually flips
+     * is_renewed false→true for a flagged record. Also RBAC-gated to
+     * renewal_commit authority — same rule, same service, individual scope.
+     */
+    public function renewIndividual(Request $request, PlantillaRecord $plantilla)
+    {
+        \App\Support\Renewal\RenewalAuthority::assertCanCommit($request->user());
+
+        $data = $request->validate([
+            'contract_start_date' => 'required|date',
+            'contract_end_date' => 'required|date|after:contract_start_date',
+            'rate' => 'nullable|numeric|min:0',
+            'rate_type' => 'nullable|in:Daily,Monthly,Annual',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            app(\App\Support\Renewal\RenewalCommitService::class)->commitOne(
+                $plantilla,
+                $data['contract_start_date'],
+                $data['contract_end_date'],
+                $data['rate'] ?? null,
+                $data['rate_type'] ?? null,
+                $request->user(),
+                \App\Http\Controllers\BatchRenewalController::currentRatingPeriod(),
+                $data['notes'] ?? null,
+            );
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "Renewal cleared for {$plantilla->last_name}, {$plantilla->first_name}.");
     }
 }

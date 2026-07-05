@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\ActivityLog;
+use App\Support\PasswordPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -13,14 +14,15 @@ class UserController extends Controller
     /** Paginated list of all users */
     public function index()
     {
-        $users = User::orderBy('name')->paginate(20);
+        $users = User::with('roles')->orderBy('name')->paginate(20);
         return view('users.index', compact('users'));
     }
 
     /** Show create form */
     public function create()
     {
-        return view('users.create');
+        $roles = \Spatie\Permission\Models\Role::orderBy('name')->get();
+        return view('users.create', compact('roles'));
     }
 
     /** Store a new user */
@@ -29,8 +31,8 @@ class UserController extends Controller
         $data = $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
-            'role'     => 'required|in:super_admin,salary_admin,inventory_admin',
+            'password' => PasswordPolicy::rules(),
+            'role'     => 'required|exists:roles,name',
         ]);
 
         $isApproved = true;
@@ -40,12 +42,18 @@ class UserController extends Controller
         }
 
         $newUser = User::create([
-            'name'        => $data['name'],
-            'email'       => $data['email'],
-            'password'    => Hash::make($data['password']),
-            'role'        => $data['role'],
-            'is_approved' => $isApproved,
+            'name'                  => $data['name'],
+            'email'                 => $data['email'],
+            'password'              => Hash::make($data['password']),
+            'role'                  => $data['role'],
+            'is_approved'           => $isApproved,
+            // Admin-created accounts always get a forced change on first
+            // login (temp password), regardless of complexity gate status.
+            'must_change_password'  => true,
+            'meets_complexity_gate' => PasswordPolicy::meetsGate($data['password']),
         ]);
+
+        $newUser->assignRole($data['role']);
 
         if ($isApproved) {
             ActivityLog::create([
@@ -69,17 +77,20 @@ class UserController extends Controller
     /** Show edit form */
     public function edit(User $user)
     {
-        return view('users.edit', compact('user'));
+        $roles = \Spatie\Permission\Models\Role::orderBy('name')->get();
+        return view('users.edit', compact('user', 'roles'));
     }
 
     /** Update an existing user */
     public function update(Request $request, User $user)
     {
+        $passwordRules = $request->filled('password') ? PasswordPolicy::rules() : ['nullable'];
+
         $data = $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'password' => 'nullable|string|min:8|confirmed',
-            'role'     => 'required|in:super_admin,salary_admin,inventory_admin',
+            'password' => $passwordRules,
+            'role'     => 'required|exists:roles,name',
         ]);
 
         $user->name  = $data['name'];
@@ -88,9 +99,15 @@ class UserController extends Controller
 
         if (!empty($data['password'])) {
             $user->password = Hash::make($data['password']);
+            // An admin resetting someone's password quarantines them the
+            // same way a self-registered non-compliant password would.
+            $meetsGate = PasswordPolicy::meetsGate($data['password']);
+            $user->meets_complexity_gate = $meetsGate;
+            $user->must_change_password = !$meetsGate;
         }
 
         $user->save();
+        $user->syncRoles($data['role']);
 
         return redirect()->route('users.index')
             ->with('success', 'User updated successfully.');

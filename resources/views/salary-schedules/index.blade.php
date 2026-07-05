@@ -28,8 +28,32 @@
         </div>
     @endif
 
+    {{-- Enhanced Stats with compliance analysis --}}
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+        <x-stat-card icon="bi-check-circle-fill" color="blue"
+            label="Active Schedule"
+            :value="1"
+            sub="{{ $activeSchedule ? $activeSchedule->name.' ('.$activeSchedule->effective_date?->format('M Y').')' : 'No active schedule set' }}"
+            compliance="DBM / EO 201"
+            analysis="{{ $activeSchedule ? 'Active SSL: '.($activeSchedule->law_name ?? 'N/A').'. All salary calculations system-wide use this schedule. Switching requires PHRMO and DBM coordination.' : 'No active schedule. Set an active SSL tranche to drive salary computations across all modules.' }}" />
+
+        <x-stat-card icon="bi-cash-stack" color="green"
+            label="Annual Budget Requirement"
+            :value="(int) $budgetTotal"
+            sub="Total PS cost — filled positions (₱)"
+            compliance="DBM / GAA"
+            analysis="Total annual Personal Services (PS) cost for all filled plantilla positions. Must align with the approved GAA/budget ceiling for the province. Excess requires DBM approval." />
+
+        <x-stat-card icon="bi-layers-fill" color="purple"
+            label="SSL Tranches on Record"
+            :value="$schedules->count()"
+            sub="Historical SSL schedules"
+            compliance="SSL Law Series"
+            analysis="Total SSL tranches configured. Only ONE schedule may be active at a time. Historical schedules are retained for audit, retroactive computation, and back-pay verification." />
+    </div>
+
     {{-- Summary Cards --}}
-    <div class="grid sm:grid-cols-3 gap-4 mb-2">
+    <div class="grid sm:grid-cols-3 gap-4 mb-2" style="display:none!important">
         {{-- Active Schedule Card --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
             <div class="flex items-center gap-3">

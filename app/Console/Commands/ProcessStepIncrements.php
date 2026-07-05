@@ -55,7 +55,7 @@ class ProcessStepIncrements extends Command
 
             $previousStep = $plantilla->step;
             $previousSg = $plantilla->salary_grade;
-            $previousSalary = $plantilla->actual_annual_salary;
+            $previousSalary = $plantilla->base_salary_amount;
 
             $stepIncrease = ($dueType === 'nolp' || $dueType === 'both') ? 2 : 1;
             $newStep = min(8, $plantilla->step + $stepIncrease);
@@ -66,7 +66,7 @@ class ProcessStepIncrements extends Command
 
             $updates = [
                 'step'                 => $newStep,
-                'actual_annual_salary' => $newAnnualSalary ?: $plantilla->actual_annual_salary,
+                'base_salary_amount' => $newAnnualSalary ?: $plantilla->base_salary_amount,
             ];
 
             if ($dueType === 'nolp' || $dueType === 'both') {

@@ -26,7 +26,7 @@ class NoticeController extends Controller
 
         $allDue = PlantillaRecord::stepDue()
             ->where('is_vacant', false)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('salary_grade')
             ->get();
 
@@ -87,7 +87,7 @@ class NoticeController extends Controller
 
         $allDue = PlantillaRecord::stepDue()
             ->where('is_vacant', false)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('salary_grade')
             ->get();
 
@@ -221,8 +221,8 @@ class NoticeController extends Controller
         $schedule = \App\Models\SalarySchedule::getActive();
 
         $newSalary      = \App\Models\SalaryGrade::getRate($plantilla->salary_grade, $plantilla->step ?: 1);
-        $previousSalary = $plantilla->actual_annual_salary
-            ? round($plantilla->actual_annual_salary / 12, 2)
+        $previousSalary = $plantilla->base_salary_amount
+            ? round($plantilla->base_salary_amount / 12, 2)
             : $newSalary;
 
         // Effective date: prefer schedule date, then today
@@ -332,7 +332,7 @@ class NoticeController extends Controller
 
         $allDue = PlantillaRecord::stepDue()
             ->where('is_vacant', false)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('salary_grade')
             ->get();
 
@@ -388,7 +388,7 @@ class NoticeController extends Controller
 
         $allDue = PlantillaRecord::stepDue()
             ->where('is_vacant', false)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('salary_grade')
             ->get();
 

@@ -304,6 +304,37 @@
         </div>
     @endif
 
+    {{-- Statistics with compliance analysis --}}
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:20px;">
+        <x-stat-card icon="bi-people-fill" color="blue" label="Total Positions" :value="$totalPositions"
+            compliance="DBM Plantilla"
+            analysis="Total authorized positions in the approved plantilla. Any increase requires DBM authority per EO 366 and RA 10149 (GOCC Governance Act for GOCCs)." />
+
+        <x-stat-card icon="bi-person-fill-check" color="green" label="Filled Positions" :value="$filledCount"
+            :pct="$totalPositions > 0 ? round($filledCount/$totalPositions*100,0) : 0"
+            sub="of authorized positions"
+            compliance="DBM / CSC"
+            analysis="Filled plantilla items with incumbents. Salary and benefits are charged to the office's MOOE/PS budget per GAA." />
+
+        <x-stat-card icon="bi-person-fill-slash" color="slate" label="Vacant Positions" :value="$vacantCount"
+            compliance="RA 7041"
+            analysis="Vacant plantilla positions must be published per RA 7041 before filling. Prolonged vacancies must be reported to DBM within 30 days." />
+
+        <x-stat-card icon="bi-alarm" color="orange" label="Due for Step Increment" :value="$dueCount"
+            :alert="$dueCount > 0"
+            compliance="CSC / SSL"
+            analysis="{{ $dueCount > 0 ? $dueCount.' employee(s) due for step increment this period. Process NOSI/NOLP immediately to avoid delayed salary adjustments per CSC Step Increment Rules.' : 'No step increments due this period.' }}" />
+
+        <x-stat-card icon="bi-award-fill" color="yellow" label="Loyalty Incentive" :value="$loyaltyCount"
+            compliance="EO 77 / CSC"
+            analysis="Employees eligible for Loyalty Cash Award (₱5,000 to ₱20,000) based on years of service per EO 77 and DBM BC 2004-1." />
+
+        <x-stat-card icon="bi-heart-pulse-fill" color="red" label="NOSA Due (Magna Carta)" :value="$magnaCartaCount"
+            :alert="$magnaCartaCount > 0"
+            compliance="RA 7305"
+            analysis="{{ $magnaCartaCount > 0 ? $magnaCartaCount.' health worker(s) due for NOSA under RA 7305 (Magna Carta for Public Health Workers). SG+1 entitlement must be processed.' : 'No Magna Carta NOSA due at this time.' }}" />
+    </div>
+
     {{-- ── MAIN 3 CARDS ── --}}
     <div class="hub-section-title"><i class="bi bi-grid-3x3-gap-fill"></i> Choose a Module</div>
     <div class="hub-cards-main">
@@ -352,7 +383,7 @@
                     <div class="hub-card-label">Step Increment &amp; Longevity</div>
                     <div class="hub-card-title">NOSI / NOLP</div>
                     <p class="hub-card-desc">
-                        Process <strong>Notice of Step Increment (NOSI)</strong> for permanent employees every 3 years,
+                        Process <strong>Notice of Step Increment (NOSI)</strong> for REGULAR employees every 3 years,
                         and <strong>Notice of Longevity Pay (NOLP)</strong> for hospital personnel every 5 years.
                         Includes Magna Carta NOSA and Increment History.
                     </p>

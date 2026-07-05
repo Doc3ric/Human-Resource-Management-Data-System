@@ -3,13 +3,18 @@
 namespace App\Exports;
 
 use App\Models\PlantillaRecord;
+use Maatwebsite\Excel\Concerns\WithDrawings;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class RetirementExport implements FromCollection, WithHeadings, WithTitle, ShouldAutoSize
+class RetirementExport implements FromCollection, WithHeadings, WithTitle, ShouldAutoSize, WithDrawings, WithEvents, WithCustomStartCell
 {
+    use \App\Exports\Traits\HasPhrmoHeader;
+
     const RETIREMENT_AGE = 65;
     protected string $tab;
     protected string $search;
@@ -50,9 +55,9 @@ class RetirementExport implements FromCollection, WithHeadings, WithTitle, Shoul
             if ($this->search) {
                 $term = '%' . $this->search . '%';
                 $query->where(function ($q) use ($term) {
-                    $q->where('organizational_unit', 'like', $term)
+                    $q->where('office_department', 'like', $term)
                         ->orWhere('position_title', 'like', $term)
-                        ->orWhere('comment_annotation', 'like', $term);
+                        ->orWhere('remarks_annotation', 'like', $term);
                 });
             }
             if ($this->year) {
@@ -69,31 +74,31 @@ class RetirementExport implements FromCollection, WithHeadings, WithTitle, Shoul
                 ->orderBy('date_of_birth')->get();
         }
 
-        // For history, extract former name from comment_annotation
+        // For history, extract former name from remarks_annotation
         if ($this->tab === 'history') {
             return $records->values()->map(fn($r, $i) => [
                 'No.' => $i + 1,
-                'Item No.' => $r->item,
-                'Office' => $r->organizational_unit,
-                'Last Name' => $this->parseFormerName($r->comment_annotation ?? '')['last'],
-                'First Name' => $this->parseFormerName($r->comment_annotation ?? '')['first'],
+                'Item No.' => $r->item_no_new,
+                'Office' => $r->office_department,
+                'Last Name' => $this->parseFormerName($r->remarks_annotation ?? '')['last'],
+                'First Name' => $this->parseFormerName($r->remarks_annotation ?? '')['first'],
                 'Position' => $r->position_title,
                 'SG-Step' => "SG-{$r->salary_grade} Step {$r->step}",
                 'Date Retired' => $r->retired_at?->format('m/d/Y') ?? '',
-                'Annotation' => $r->comment_annotation ?? '',
+                'Annotation' => $r->remarks_annotation ?? '',
             ]);
         }
 
         return $records->map(fn($r, $i) => [
             'No.' => $i + 1,
-            'Item No.' => $r->item,
+            'Item No.' => $r->item_no_new,
             'Last Name' => strtoupper($r->last_name ?? ''),
             'First Name' => $r->first_name ?? '',
             'Middle Name' => $r->middle_name ?? '',
-            'Date of Birth' => $r->date_of_birth?->format('m/d/Y') ?? '',
+            'Birthday' => $r->date_of_birth?->format('m/d/Y') ?? '',
             'Age' => $r->age ?? '',
             'Position' => $r->position_title,
-            'Office' => $r->organizational_unit,
+            'Office' => $r->office_department,
             'SG-Step' => "SG-{$r->salary_grade} Step {$r->step}",
         ]);
     }
@@ -122,7 +127,7 @@ class RetirementExport implements FromCollection, WithHeadings, WithTitle, Shoul
             'Last Name',
             'First Name',
             'Middle Name',
-            'Date of Birth',
+            'Birthday',
             'Age',
             'Position Title',
             'Office / Unit',

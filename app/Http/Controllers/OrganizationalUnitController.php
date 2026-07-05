@@ -30,8 +30,8 @@ class OrganizationalUnitController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:organizational_units',
-            'code' => 'required|string|max:255|unique:organizational_units',
+            'name' => 'required|string|max:255|unique:office_departments',
+            'code' => 'required|string|max:255|unique:office_departments',
             'status' => 'required|in:Active,Inactive',
         ]);
 
@@ -63,8 +63,8 @@ class OrganizationalUnitController extends Controller
     public function update(Request $request, OrganizationalUnit $organizationalUnit)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:organizational_units,name,' . $organizationalUnit->id,
-            'code' => 'required|string|max:255|unique:organizational_units,code,' . $organizationalUnit->id,
+            'name' => 'required|string|max:255|unique:office_departments,name,' . $organizationalUnit->id,
+            'code' => 'required|string|max:255|unique:office_departments,code,' . $organizationalUnit->id,
             'status' => 'required|in:Active,Inactive',
         ]);
 

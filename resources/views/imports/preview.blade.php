@@ -426,19 +426,19 @@
                 <tbody id="preview-tbody">
                     @foreach($mapped as $row)
                     @php
-                        $isDupe   = isset($duplicates) && in_array($row['item'], $duplicates);
+                        $isDupe   = isset($duplicates) && in_array($row['item_no_new'], $duplicates);
                         $isVacant = $row['is_vacant'] ?? false;
                         $rowType  = $isVacant ? 'vacant' : ($isDupe ? 'update' : 'new');
                         $rowClass = $isVacant ? 'is-vacant' : ($isDupe ? 'is-update' : 'is-new');
-                        $hasChanges = isset($changeComparisons[$row['item']]);
+                        $hasChanges = isset($changeComparisons[$row['item_no_new']]);
                     @endphp
                     <tr class="{{ $rowClass }}" data-rowtype="{{ $rowType }}">
                         <td style="color:#94a3b8;font-size:11px;">{{ $row['row_number'] }}</td>
                         <td>
-                            <span class="item-code">{{ $row['item'] ?: '—' }}</span>
+                            <span class="item-code">{{ $row['item_no_new'] ?: '—' }}</span>
                             @if($isDupe && $hasChanges)
-                                <button class="change-detail-btn" onclick="showChanges('{{ $row['item'] }}')">
-                                    <i class="bi bi-eye"></i> {{ count($changeComparisons[$row['item']]) }} change{{ count($changeComparisons[$row['item']]) > 1 ? 's' : '' }}
+                                <button class="change-detail-btn" onclick="showChanges('{{ $row['item_no_new'] }}')">
+                                    <i class="bi bi-eye"></i> {{ count($changeComparisons[$row['item_no_new']]) }} change{{ count($changeComparisons[$row['item_no_new']]) > 1 ? 's' : '' }}
                                 </button>
                             @elseif($isDupe)
                                 <i class="bi bi-arrow-repeat ms-1" style="color:#d97706;font-size:10px;" title="Will be updated"></i>
@@ -509,6 +509,8 @@
                 <input type="hidden" name="replace_all"       value="{{ $replaceAll ? '1' : '0' }}">
                 <input type="hidden" name="dry_run"           value="{{ $dryRun     ? '1' : '0' }}">
                 <input type="hidden" name="original_filename" value="{{ $originalFileName ?? '' }}">
+                <input type="hidden" name="routing_mode"      value="{{ $routingMode ?? 'global' }}">
+                <input type="hidden" name="granular_status"   value="{{ $granularStatus ?? '' }}">
 
                 @if(isset($mappingJson) && $mappingJson)
                     <input type="hidden" name="tmp_key"      value="{{ $tmpKey }}">
@@ -577,6 +579,8 @@
     <input type="hidden" name="tmp_key"     value="{{ $tmpKey }}">
     <input type="hidden" name="replace_all" value="{{ $replaceAll ? '1' : '0' }}">
     <input type="hidden" name="dry_run"     value="{{ $dryRun ? '1' : '0' }}">  
+    <input type="hidden" name="routing_mode"      value="{{ $routingMode ?? 'global' }}">
+    <input type="hidden" name="granular_status"   value="{{ $granularStatus ?? '' }}">
 </form>
 @endif
 
@@ -619,7 +623,7 @@
         const fieldLabels = {
             position_title: 'Position Title', salary_grade: 'Salary Grade', step: 'Step',
             employment_status: 'Employment Status', first_name: 'First Name',
-            last_name: 'Last Name', organizational_unit: 'Org. Unit'
+            last_name: 'Last Name', office_department: 'Org. Unit'
         };
 
         let html = '';

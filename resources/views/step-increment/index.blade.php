@@ -604,11 +604,11 @@
                                     <div class="si-emp-name">{{ $record->full_name }}</div>
                                     <div class="si-emp-unit"><i class="bi bi-building"
                                             style="color:{{ $activeTab === 'upcoming_nolp' ? '#8b5cf6' : '#0ea5e9' }};"></i>
-                                        {{ $record->organizational_unit }}</div>
+                                        {{ $record->office_department }}</div>
                                 </td>
                                 <td>
                                     <div class="si-pos-title">{{ $record->position_title }}</div>
-                                    <div class="si-pos-item">{{ $record->item }}</div>
+                                    <div class="si-pos-item">{{ $record->item_no_new }}</div>
                                 </td>
                                 <td class="tc"><span class="si-sg-badge">{{ $record->salary_grade }}</span></td>
                                 <td class="tc">
@@ -617,7 +617,7 @@
                                         {{ $record->step }}</span>
                                 </td>
                                 <td class="tc"><span
-                                        class="si-salary">&#8369;{{ number_format($record->actual_annual_salary, 2) }}</span>
+                                        class="si-salary">&#8369;{{ number_format($record->base_salary_amount, 2) }}</span>
                                 </td>
                                 <td class="tc">
                                     @if($dueDate)
@@ -698,7 +698,7 @@
                                         <div style="font-weight:700;color:#0f172a;font-size:13px;">
                                             {{ $log->plantillaRecord->full_name }}</div>
                                         <div style="font-size:11px;color:#64748b;margin-top:2px;">Item:
-                                            {{ $log->plantillaRecord->item }} | {{ $log->plantillaRecord->position_title }}</div>
+                                            {{ $log->plantillaRecord->item_no_new }} | {{ $log->plantillaRecord->position_title }}</div>
                                     @else
                                         <span style="color:#ef4444;font-size:12px;"><i class="bi bi-exclamation-triangle"></i>
                                             Record Removed</span>
@@ -787,11 +787,11 @@
                                 <td>
                                     <div class="si-emp-name">{{ $record->full_name }}</div>
                                     <div class="si-emp-unit"><i class="bi bi-building" style="color:#c4b5fd;"></i>
-                                        {{ $record->organizational_unit }}</div>
+                                        {{ $record->office_department }}</div>
                                 </td>
                                 <td>
                                     <div class="si-pos-title">{{ $record->position_title }}</div>
-                                    <div class="si-pos-item">{{ $record->item }}</div>
+                                    <div class="si-pos-item">{{ $record->item_no_new }}</div>
                                 </td>
                                 <td class="tc"><span class="si-sg-badge">{{ $record->salary_grade }}</span></td>
                                 <td class="tc"><span
@@ -877,11 +877,11 @@
                                 <td>
                                     <div class="si-emp-name">{{ $record->full_name }}</div>
                                     <div class="si-emp-unit"><i class="bi bi-building" style="color:#c4b5fd;"></i>
-                                        {{ $record->organizational_unit }}</div>
+                                        {{ $record->office_department }}</div>
                                 </td>
                                 <td>
                                     <div class="si-pos-title">{{ $record->position_title }}</div>
-                                    <div class="si-pos-item">{{ $record->item }}</div>
+                                    <div class="si-pos-item">{{ $record->item_no_new }}</div>
                                 </td>
                                 <td class="tc"><span class="si-sg-badge">{{ $record->salary_grade }}</span></td>
                                 <td class="tc">
@@ -892,7 +892,7 @@
                                     </div>
                                 </td>
                                 <td class="tc"><span
-                                        class="si-salary">&#8369;{{ number_format($record->actual_annual_salary, 2) }}</span>
+                                        class="si-salary">&#8369;{{ number_format($record->base_salary_amount, 2) }}</span>
                                 </td>
                                 <td class="tc">
                                     @if($dueDate)
@@ -969,11 +969,11 @@
                                 <td>
                                     <div class="si-emp-name">{{ $record->full_name }}</div>
                                     <div class="si-emp-unit"><i class="bi bi-building" style="color:#c4b5fd;"></i>
-                                        {{ $record->organizational_unit }}</div>
+                                        {{ $record->office_department }}</div>
                                 </td>
                                 <td>
                                     <div class="si-pos-title">{{ $record->position_title }}</div>
-                                    <div class="si-pos-item">{{ $record->item }}</div>
+                                    <div class="si-pos-item">{{ $record->item_no_new }}</div>
                                 </td>
                                 <td class="tc"><span class="si-sg-badge">{{ $record->salary_grade }}</span></td>
                                 <td class="tc">
@@ -984,7 +984,7 @@
                                     </div>
                                 </td>
                                 <td class="tc"><span
-                                        class="si-salary">&#8369;{{ number_format($record->actual_annual_salary, 2) }}</span>
+                                        class="si-salary">&#8369;{{ number_format($record->base_salary_amount, 2) }}</span>
                                 </td>
                                 <td class="tc">
                                     @if($dueDate)
@@ -1060,11 +1060,11 @@
                                 <td>
                                     <div class="si-emp-name">{{ $record->full_name }}</div>
                                     <div class="si-emp-unit"><i class="bi bi-building" style="color:#f43f5e;"></i>
-                                        {{ $record->organizational_unit }}</div>
+                                        {{ $record->office_department }}</div>
                                 </td>
                                 <td>
                                     <div class="si-pos-title">{{ $record->position_title }}</div>
-                                    <div class="si-pos-item">{{ $record->item }}</div>
+                                    <div class="si-pos-item">{{ $record->item_no_new }}</div>
                                 </td>
                                 <td class="tc">
                                     <div class="si-step-flow">
@@ -1081,7 +1081,7 @@
                                         {{ $record->step }}</span>
                                 </td>
                                 <td class="tc"><span
-                                        class="si-salary">&#8369;{{ number_format($record->actual_annual_salary, 2) }}</span>
+                                        class="si-salary">&#8369;{{ number_format($record->base_salary_amount, 2) }}</span>
                                 </td>
                                 <td class="tc">
                                     <div class="si-due-upcoming" style="color:#e11d48;">
@@ -1145,14 +1145,14 @@
                                     <div class="si-emp-name">{{ $record->full_name }}</div>
                                     <div class="si-emp-unit">
                                         <i class="bi bi-building" style="color:#c4b5fd;"></i>
-                                        {{ $record->organizational_unit }}
+                                        {{ $record->office_department }}
                                     </div>
                                 </td>
 
                                 {{-- Position --}}
                                 <td>
                                     <div class="si-pos-title">{{ $record->position_title }}</div>
-                                    <div class="si-pos-item">{{ $record->item }}</div>
+                                    <div class="si-pos-item">{{ $record->item_no_new }}</div>
                                 </td>
 
                                 {{-- SG --}}
@@ -1176,7 +1176,7 @@
 
                                 {{-- Salary --}}
                                 <td class="tc">
-                                    <span class="si-salary">&#8369;{{ number_format($record->actual_annual_salary, 2) }}</span>
+                                    <span class="si-salary">&#8369;{{ number_format($record->base_salary_amount, 2) }}</span>
                                 </td>
 
                                 {{-- Due Date --}}
@@ -1226,13 +1226,13 @@
                                         <button type="button" class="si-process-btn" onclick="openProcessModal({
                                             formId: 'form-process-{{ $record->id }}',
                                             name: '{{ addslashes($record->full_name) }}',
-                                            unit: '{{ addslashes($record->organizational_unit) }}',
+                                            unit: '{{ addslashes($record->office_department) }}',
                                             position: '{{ addslashes($record->position_title) }}',
                                             sg: {{ $record->salary_grade }},
                                             stepFrom: {{ $record->step }},
                                             stepTo: {{ $newStep }},
                                             dueType: '{{ $dueType }}',
-                                            salary: '&#8369;{{ number_format($record->actual_annual_salary, 2) }}',
+                                            salary: '&#8369;{{ number_format($record->base_salary_amount, 2) }}',
                                             dueDate: '{{ $dueDate ? $dueDate->format("M d, Y") : "â€”" }}'
                                         })">
                                             <i class="bi bi-lightning-fill"></i> Process

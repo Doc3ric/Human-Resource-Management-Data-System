@@ -40,7 +40,7 @@
             <th style="width:88px;">Item No.</th>
             <th style="width:36px;">SG</th>
             <th style="width:36px;">Step</th>
-            <th>Organizational Unit</th>
+            <th>OFFICE</th>
             <th style="width:110px;">Auth. Annual Salary</th>
             <th style="width:72px;">Area Code</th>
             <th style="width:60px;">Level</th>
@@ -50,10 +50,10 @@
         @forelse($records as $i => $r)
         <tr>
             <td>{{ $i + 1 }}</td>
-            <td class="item">{{ $r->item }}</td>
+            <td class="item_no_new">{{ $r->item_no_new }}</td>
             <td style="text-align:center; font-weight:700;">{{ $r->salary_grade }}</td>
             <td style="text-align:center;">{{ $r->step }}</td>
-            <td>{{ $r->organizational_unit }}</td>
+            <td>{{ $r->office_department }}</td>
             <td class="money">₱{{ number_format($r->authorized_annual_salary ?? 0, 2) }}</td>
             <td>{{ $r->area_code }}</td>
             <td>{{ $r->level }}</td>

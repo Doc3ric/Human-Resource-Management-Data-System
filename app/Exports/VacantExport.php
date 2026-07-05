@@ -3,13 +3,18 @@
 namespace App\Exports;
 
 use App\Models\PlantillaRecord;
+use Maatwebsite\Excel\Concerns\WithDrawings;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class VacantExport implements FromCollection, WithHeadings, WithTitle, ShouldAutoSize
+class VacantExport implements FromCollection, WithHeadings, WithTitle, ShouldAutoSize, WithDrawings, WithEvents, WithCustomStartCell
 {
+    use \App\Exports\Traits\HasPhrmoHeader;
+
     protected string $type;
 
     public function __construct(string $type = 'funded')
@@ -28,7 +33,7 @@ class VacantExport implements FromCollection, WithHeadings, WithTitle, ShouldAut
                     $q2->where(function ($q3) {
                         $q3->whereNull('authorized_annual_salary')->orWhere('authorized_annual_salary', 0);
                     })->where(function ($q3) {
-                        $q3->whereNull('actual_annual_salary')->orWhere('actual_annual_salary', 0);
+                        $q3->whereNull('base_salary_amount')->orWhere('base_salary_amount', 0);
                     });
                 });
             })->orderBy('position_title')->get();
@@ -42,9 +47,9 @@ class VacantExport implements FromCollection, WithHeadings, WithTitle, ShouldAut
 
         return $records->map(fn ($r, $i) => [
             'No.'                   => $i + 1,
-            'Item No.'              => $r->item,
+            'Item No.'              => $r->item_no_new,
             'Position Title'        => $r->position_title,
-            'Office / Unit'         => $r->organizational_unit,
+            'Office / Unit'         => $r->office_department,
             'Salary Grade'          => $r->salary_grade,
             'Step'                  => $r->step,
             'Authorized Salary'     => number_format($r->authorized_annual_salary ?? 0, 2),

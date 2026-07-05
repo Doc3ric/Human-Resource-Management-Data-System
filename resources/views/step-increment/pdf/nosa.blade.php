@@ -9,60 +9,7 @@
             font-size: 11pt;
             margin: 30px 40px;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 25px;
-            position: relative;
-        }
-        .header table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .header td {
-            vertical-align: top;
-            padding: 0;
-        }
-        .header-logo-left {
-            width: 90px;
-            text-align: left;
-        }
-        .header-logo-left img {
-            width: 80px;
-            height: auto;
-        }
-        .header-center {
-            text-align: center;
-            vertical-align: middle;
-            padding-top: 5px;
-        }
-        .header-logo-right {
-            width: 90px;
-            text-align: right;
-            vertical-align: middle;
-        }
-        .header-logo-right img {
-            width: 90px;
-            height: auto;
-        }
-        .repub {
-            font-size: 11pt;
-            margin-bottom: 2px;
-        }
-        .province {
-            font-size: 11pt;
-            font-weight: bold;
-            margin-bottom: 2px;
-        }
-        .city {
-            font-size: 11pt;
-            margin-bottom: 12px;
-        }
-        .office {
-            font-size: 12pt;
-            font-weight: bold;
-            color: #0f4c81;
-            letter-spacing: 0.5px;
-        }
+        /* Header now comes from exports.partials.official-header (scoped styles) */
         .title {
             text-align: center;
             font-weight: bold;
@@ -172,29 +119,7 @@
 </head>
 <body>
 
-    <div class="header">
-        <table>
-            <tr>
-                <td class="header-logo-left">
-                    <img src="{{ public_path('img/logo.png') }}" alt="Seal">
-                </td>
-                <td class="header-center">
-                    <div class="repub">Republic of the Philippines</div>
-                    <div class="province">PROVINCE OF BUKIDNON</div>
-                    <div class="city">Malaybalay City</div>
-                    <br>
-                    <div class="office">OFFICE OF THE PROVINCIAL GOVERNOR</div>
-                </td>
-                <td class="header-logo-right">
-                    @if(file_exists(public_path('img/bagong-pilipinas.png')))
-                        <img src="{{ public_path('img/bagong-pilipinas.png') }}" alt="Bagong Pilipinas">
-                    @endif
-                </td>
-            </tr>
-        </table>
-    </div>
-    
-    <div style="border-top: 2px solid #000; margin-bottom: 20px;"></div>
+    @include('exports.partials.official-header')
 
     <div class="title">
         NOTICE OF SALARY ADJUSTMENT
@@ -212,7 +137,7 @@
             $title = ($employee->sex == 'Female' || $employee->sex === 'F') ? 'Ms.' : 'Mr.';
         @endphp
         <span class="emp-name">{{ $title }} {{ strtoupper($employee->first_name . ' ' . ($employee->middle_name ? substr($employee->middle_name, 0, 1) . '. ' : '') . $employee->last_name) }}</span>
-        <span class="emp-unit">{{ $employee->organizational_unit }}</span>
+        <span class="emp-unit">{{ $employee->office_department }}</span>
         <span class="emp-address">Malaybalay City, Bukidnon</span>
     </div>
 
@@ -280,7 +205,7 @@
     </div>
 
     <div class="footer-info">
-        Item No. <strong>{{ $employee->item }}</strong> / Unique Item No. ______<br>
+        Item No. <strong>{{ $employee->item_no_new }}</strong> / Unique Item No. ______<br>
         FY <strong>{{ now()->year }}</strong> Personal Services Itemization and/or<br>
         Plantilla of Personnel<br><br>
         <span style="font-size: 9pt;">CF: GSIS</span>

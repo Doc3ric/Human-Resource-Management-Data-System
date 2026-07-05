@@ -117,7 +117,7 @@
             The nature of this appointment is <span class="field" style="min-width: 150px;">{{ strtoupper($plantilla->nature_of_appointment ?? '______________') }}</span>
             vice <span class="field" style="min-width: 200px;">________________________</span>, 
             who was <span class="field" style="min-width: 150px;">________________________</span>, with Plantilla Item No. 
-            <span class="field" style="min-width: 100px;">{{ $plantilla->item }}</span>.
+            <span class="field" style="min-width: 100px;">{{ $plantilla->item_no_new }}</span>.
         </div>
         
         <div class="paragraph">

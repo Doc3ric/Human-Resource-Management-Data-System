@@ -16,6 +16,7 @@
         <link rel="stylesheet" href="{{ asset('css/theme-financial.css') }}">
         <link rel="stylesheet" href="{{ asset('css/theme-corona.css') }}">
 
+        <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.default.min.css" rel="stylesheet">
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <style>
@@ -444,10 +445,18 @@
                     <a href="{{ route('permanent.index') }}"
                        class="sidebar-link {{ request()->routeIs('permanent.*') ? 'active' : '' }}">
                         <i class="bi bi-person-badge-fill"></i>
-                        <span>Permanent</span>
+                        <span>Regular</span>
                     </a>
                     @endif
                     @endif
+
+                    <div class="sidebar-section-label">Salary / Plantilla of Personnel</div>
+
+                    <a href="{{ route('step-increment.hub') }}"
+                       class="sidebar-link {{ request()->routeIs('step-increment.*') ? 'active' : '' }}">
+                        <i class="bi bi-building-fill-gear"></i>
+                        <span>Plantilla of Personnel</span>
+                    </a>
 
                     @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
                     <a href="{{ route('retirement.index') }}"
@@ -461,11 +470,23 @@
                     </a>
                     @endif
 
-                    <a href="{{ route('step-increment.hub') }}"
-                       class="sidebar-link {{ request()->routeIs('step-increment.*') ? 'active' : '' }}">
-                        <i class="bi bi-building-fill-gear"></i>
-                        <span>Plantilla of Personnel</span>
+                    <div class="sidebar-section-label">Recruitment</div>
+
+                    @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin() || auth()->user()->isAppointmentAdmin() || auth()->user()->isAppointmentEncoder())
+                    <a href="{{ route('recruitment.index') }}"
+                       class="sidebar-link {{ request()->routeIs('recruitment.*') ? 'active' : '' }}">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Recruitment</span>
                     </a>
+                    @endif
+
+                    @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
+                    <a href="{{ route('batch-renewal.index') }}"
+                       class="sidebar-link {{ request()->routeIs('batch-renewal.*') ? 'active' : '' }}">
+                        <i class="bi bi-arrow-repeat"></i>
+                        <span>Batch Contract Renewal</span>
+                    </a>
+                    @endif
 
                     @if(Route::has('appointments.index'))
                     <a href="{{ route('appointments.index') }}"
@@ -844,6 +865,17 @@
 
         // Sidebar Generate Codes Modal
         // (moved to Archives page â€” no longer needed here)
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                document.querySelectorAll('.tom-select-tags').forEach(function(el) {
+                    new TomSelect(el, {
+                        create: true,
+                        sortField: { field: "text", direction: "asc" }
+                    });
+                });
+            });
         </script>
     </body>
 

@@ -23,53 +23,53 @@ class JobOrderController extends Controller
      */
     public function index(Request $request)
     {
-        $query = JobOrder::query()->orderBy('charges')->orderBy('last_name');
+        session(['last_index_url' => request()->fullUrl()]);
+
+
+        $query = JobOrder::query()
+            ->whereNull('nature_of_separation')
+            ->orderBy('office_department')->orderBy('last_name');
 
         if ($request->filled('search')) {
             $query->search($request->input('search'));
         }
         if ($request->filled('office')) {
-            $query->where('office', $request->input('office'));
+            $query->where('detailed_unit', $request->input('office'));
         }
-        if ($request->filled('charges')) {
-            $query->where('charges', $request->input('charges'));
-        }
-        if ($request->filled('nature_of_work')) {
-            $query->where('nature_of_work', 'like', '%' . $request->input('nature_of_work') . '%');
-        }
-        if ($request->filled('gender')) {
-            $query->where('gender', strtoupper($request->input('gender')));
+        if ($request->filled('office_department')) {
+            $query->where('office_department', $request->input('office_department'));
         }
         if ($request->filled('detail')) {
-            $query->where('nature_of_work_detail', 'like', '%' . $request->input('detail') . '%');
+            $query->where('nature_of_work_detail', $request->input('detail'));
+        }
+        if ($request->filled('sex')) {
+            $query->where('sex', strtoupper($request->input('sex')));
         }
 
         // Stats
         $total       = (clone $query)->count();
-        $maleCount   = (clone $query)->where('gender', 'M')->count();
-        $femaleCount = (clone $query)->where('gender', 'F')->count();
+        $maleCount   = (clone $query)->where('sex', 'M')->count();
+        $femaleCount = (clone $query)->where('sex', 'F')->count();
 
-        $byOffice = (clone $query)->reorder()->select('office', \DB::raw('count(*) as count'))
-            ->groupBy('office')
-            ->pluck('count', 'office')
+        $byOffice = (clone $query)->reorder()->select('office_department', \DB::raw('count(*) as count'))
+            ->groupBy('office_department')
+            ->pluck('count', 'office_department')
             ->sortKeys();
 
-        $byNature = (clone $query)->reorder()->select('nature_of_work', \DB::raw('count(*) as count'))
-            ->groupBy('nature_of_work')
-            ->pluck('count', 'nature_of_work')
-            ->sortKeys();
-            
-        $records = $query->paginate(50)->withQueryString();
 
-        // Filter options
-        $offices     = JobOrder::distinct()->orderBy('office')->pluck('office')->filter()->values();
-        $chargesList = JobOrder::distinct()->orderBy('charges')->pluck('charges')->filter()->values();
-        $natures     = JobOrder::distinct()->orderBy('nature_of_work')->pluck('nature_of_work')->filter()->values();
+        $perPageInput = $request->input('per_page', 50);
+        $perPage = $perPageInput === 'all' ? max(1, $total) : (int) $perPageInput;
+        $records = $query->paginate($perPage)->withQueryString();
+
+        $offices     = JobOrder::distinct()->orderBy('detailed_unit')->pluck('detailed_unit')->filter()->values();
+        $chargesList = JobOrder::distinct()->orderBy('office_department')->pluck('office_department')->filter()->values();
+
         $detailList  = JobOrder::distinct()->orderBy('nature_of_work_detail')->pluck('nature_of_work_detail')->filter()->values();
+        $positions   = JobOrder::distinct()->pluck('position_title')->filter()->map(fn($v) => trim($v))->unique()->sortBy(fn($v) => strtolower($v))->values();
 
         return view('job-orders.index', compact(
             'records', 'total', 'maleCount', 'femaleCount',
-            'byOffice', 'byNature', 'offices', 'chargesList', 'natures', 'detailList'
+            'byOffice', 'offices', 'chargesList', 'detailList', 'positions'
         ));
     }
 
@@ -78,10 +78,11 @@ class JobOrderController extends Controller
      */
     public function create()
     {
-        $offices     = JobOrder::distinct()->orderBy('office')->pluck('office')->filter()->values();
-        $chargesList = JobOrder::distinct()->orderBy('charges')->pluck('charges')->filter()->values();
-        $natures     = JobOrder::distinct()->orderBy('nature_of_work')->pluck('nature_of_work')->filter()->values();
-        return view('job-orders.create', compact('offices', 'chargesList', 'natures'));
+        $offices     = JobOrder::distinct()->orderBy('detailed_unit')->pluck('detailed_unit')->filter()->values();
+        $chargesList = JobOrder::distinct()->orderBy('office_department')->pluck('office_department')->filter()->values();
+        $detailList  = JobOrder::distinct()->orderBy('nature_of_work_detail')->pluck('nature_of_work_detail')->filter()->values();
+        $positions   = JobOrder::distinct()->pluck('position_title')->filter()->map(fn($v) => trim($v))->unique()->sortBy(fn($v) => strtolower($v))->values();
+        return view('job-orders.create', compact('offices', 'chargesList', 'detailList', 'positions'));
     }
 
     /**
@@ -94,8 +95,11 @@ class JobOrderController extends Controller
         // Auto-generate employee code if not provided
         if (empty($validated['employee_code'])) {
             $validated['employee_code'] = JobOrder::generateEmployeeCode(
-                $validated['last_name'] ?? null,
-                $validated['birthdate'] ?? null
+                $validated['first_name']  ?? null,
+                $validated['date_of_birth'] ?? null,
+                null,
+                $validated['middle_name'] ?? null,
+                $validated['last_name']   ?? null
             );
         }
 
@@ -109,7 +113,7 @@ class JobOrderController extends Controller
             ]);
         }
 
-        return redirect()->route('job-orders.index')
+        return redirect(session('last_index_url', route('job-orders.index')))
             ->with('success', 'Job Order record created successfully.');
     }
 
@@ -119,10 +123,11 @@ class JobOrderController extends Controller
     public function edit(JobOrder $jobOrder)
     {
         $jobOrder->load('attachments');
-        $offices     = JobOrder::distinct()->orderBy('office')->pluck('office')->filter()->values();
-        $chargesList = JobOrder::distinct()->orderBy('charges')->pluck('charges')->filter()->values();
-        $natures     = JobOrder::distinct()->orderBy('nature_of_work')->pluck('nature_of_work')->filter()->values();
-        return view('job-orders.edit', compact('jobOrder', 'offices', 'chargesList', 'natures'));
+        $offices     = JobOrder::distinct()->orderBy('detailed_unit')->pluck('detailed_unit')->filter()->values();
+        $chargesList = JobOrder::distinct()->orderBy('office_department')->pluck('office_department')->filter()->values();
+        $detailList  = JobOrder::distinct()->orderBy('nature_of_work_detail')->pluck('nature_of_work_detail')->filter()->values();
+        $positions   = JobOrder::distinct()->pluck('position_title')->filter()->map(fn($v) => trim($v))->unique()->sortBy(fn($v) => strtolower($v))->values();
+        return view('job-orders.edit', compact('jobOrder', 'offices', 'chargesList', 'detailList', 'positions'));
     }
 
     /**
@@ -135,8 +140,11 @@ class JobOrderController extends Controller
         // Auto-generate employee code if cleared
         if (empty($validated['employee_code'])) {
             $validated['employee_code'] = JobOrder::generateEmployeeCode(
-                $validated['last_name'] ?? null,
-                $validated['birthdate'] ?? null
+                $validated['first_name']  ?? null,
+                $validated['date_of_birth'] ?? null,
+                null,
+                $validated['middle_name'] ?? null,
+                $validated['last_name']   ?? null
             );
         }
 
@@ -150,7 +158,7 @@ class JobOrderController extends Controller
             ]);
         }
 
-        return redirect()->route('job-orders.index')
+        return redirect(session('last_index_url', route('job-orders.index')))
             ->with('success', 'Job Order record updated successfully.');
     }
 
@@ -170,7 +178,7 @@ class JobOrderController extends Controller
             ]);
         }
 
-        return redirect()->route('job-orders.index')
+        return redirect(session('last_index_url', route('job-orders.index')))
             ->with('success', 'Job Order record deleted successfully.');
     }
 
@@ -209,7 +217,7 @@ class JobOrderController extends Controller
         }
 
         $type = empty($import->errors) ? 'success' : 'error';
-        return redirect()->route('job-orders.index')->with($type, $message);
+        return redirect(session('last_index_url', route('job-orders.index')))->with($type, $message);
     }
 
     /**
@@ -223,31 +231,31 @@ class JobOrderController extends Controller
 
         // ── Header row (row 1) ─────────────────────────────────────────────
         // Columns:
-        // A=CHARGES  B=LASTNAME  C=FIRSTNAME  D=M.I.  E=EXT.  F=POSITION
-        // G=NATURE OF WORK  H=OFFICE ASSIGNED  I=RATE/DAY
+        // A=OFFICE  B=LASTNAME  C=FIRSTNAME  D=M.I.  E=EXT.  F=POSITION
+        // G=NATURE OF WORK  H=DETAILED UNIT  I=RATE/DAY
         // J=FIRST DAY OF SERVICE  K=LENGTH YR/S  L=MONTH/S
         // M=BIRTHDATE  N=STATUS  O=ADDRESS  P=ELIGIBILITY
-        // Q=NATURE OF WORK (detail)  R=GENDER  S=LEVEL
+        // Q=NATURE OF WORK (detail)  R=SEX  S=LEVEL
         // T=IP COMMUNITY MEMBERSHIP  U=SOLO PARENT  V=REMARKS
         $headers = [
-            'A1' => 'CHARGES',
+            'A1' => 'OFFICE',
             'B1' => 'LASTNAME',
             'C1' => 'FIRSTNAME',
             'D1' => 'M.I.',
             'E1' => 'EXT.',
             'F1' => 'POSITION',
             'G1' => 'NATURE OF WORK',
-            'H1' => 'OFFICE ASSIGNED',
+            'H1' => 'DETAILED UNIT',
             'I1' => 'RATE/DAY',
             'J1' => 'FIRST DAY OF SERVICE',
             'K1' => 'LENGHT OF SERVICE YEAR/S',
             'L1' => 'MONTH/S',
-            'M1' => 'BIRTHDATE',
+            'M1' => 'DATE OF BIRTH',
             'N1' => 'STATUS',
             'O1' => 'ADDRESS',
             'P1' => 'ELIGIBILITY',
             'Q1' => 'NATURE OF WORK',
-            'R1' => 'GENDER',
+            'R1' => 'SEX',
             'S1' => 'LEVEL',
             'T1' => 'IP COMMUNNITY MEMBERSHIP',
             'U1' => 'SOLO PARENT',
@@ -300,7 +308,7 @@ class JobOrderController extends Controller
 
         // Note row
         $sheet->mergeCells('A3:V3');
-        $sheet->setCellValue('A3', '⚠ GENDER: enter M or F. LEVEL: M1, F1, M2, F2. STATUS: SINGLE, MARRIED, WIDOW, etc. Dates: YYYY-MM-DD or YYYY/MM/DD. Delete rows 2–3 before uploading real data.');
+        $sheet->setCellValue('A3', '⚠ SEX: enter M or F. LEVEL: M1, F1, M2, F2. STATUS: SINGLE, MARRIED, WIDOW, etc. Dates: YYYY-MM-DD or YYYY/MM/DD. Delete rows 2–3 before uploading real data.');
         $sheet->getStyle('A3')->applyFromArray([
             'font'      => ['italic' => true, 'color' => ['rgb' => '888888'], 'size' => 8],
             'alignment' => ['wrapText' => true],
@@ -331,12 +339,16 @@ class JobOrderController extends Controller
      */
     public function exportPdf(Request $request)
     {
-        $query = JobOrder::query()->orderBy('charges')->orderBy('last_name');
+        $query = JobOrder::query()->orderBy('office_department')->orderBy('last_name');
 
-        if ($request->filled('office'))       $query->where('office', $request->input('office'));
-        if ($request->filled('charges'))      $query->where('charges', $request->input('charges'));
-        if ($request->filled('nature_of_work')) $query->where('nature_of_work', 'like', '%'.$request->input('nature_of_work').'%');
-        if ($request->filled('gender'))       $query->where('gender', strtoupper($request->input('gender')));
+        $statusFilter = $request->input('status_filter', 'active');
+        if ($statusFilter === 'active')   $query->whereNull('nature_of_separation');
+        elseif ($statusFilter === 'inactive') $query->whereNotNull('nature_of_separation');
+
+        if ($request->filled('office'))       $query->where('office_department', $request->input('office'));
+        if ($request->filled('office_department'))      $query->where('office_department', $request->input('office_department'));
+
+        if ($request->filled('sex'))       $query->where('sex', strtoupper($request->input('sex')));
 
         $columns = $request->input('columns', []);
         $records = $query->get();
@@ -352,13 +364,17 @@ class JobOrderController extends Controller
      */
     public function exportExcel(Request $request)
     {
-        $query = JobOrder::query()->orderBy('charges')->orderBy('last_name');
+        $query = JobOrder::query()->orderBy('office_department')->orderBy('last_name');
+
+        $statusFilter = $request->input('status_filter', 'active');
+        if ($statusFilter === 'active')       $query->whereNull('nature_of_separation');
+        elseif ($statusFilter === 'inactive') $query->whereNotNull('nature_of_separation');
 
         if ($request->filled('search'))         $query->search($request->input('search'));
-        if ($request->filled('office'))         $query->where('office', $request->input('office'));
-        if ($request->filled('charges'))        $query->where('charges', $request->input('charges'));
-        if ($request->filled('nature_of_work')) $query->where('nature_of_work', 'like', '%'.$request->input('nature_of_work').'%');
-        if ($request->filled('gender'))         $query->where('gender', strtoupper($request->input('gender')));
+        if ($request->filled('office'))         $query->where('detailed_unit', $request->input('office'));
+        if ($request->filled('office_department'))        $query->where('office_department', $request->input('office_department'));
+
+        if ($request->filled('sex'))         $query->where('sex', strtoupper($request->input('sex')));
 
         $columns = $request->input('columns', []);
         $records = $query->get();
@@ -369,28 +385,29 @@ class JobOrderController extends Controller
 
         // ── Headers and Filter Setup ──────────────────────────────────────
         $allCols = [
-            'charges'              => 'CHARGES',
-            'family_name'          => 'LASTNAME',
-            'first_name'           => 'FIRSTNAME',
-            'mi'                   => 'M.I.',
-            'ext'                  => 'EXT.',
-            'position'             => 'POSITION',
-            'nature_of_work'       => 'NATURE OF WORK',
-            'office'               => 'OFFICE ASSIGNED',
-            'rate_day'             => 'RATE/DAY',
-            'first_day'            => 'FIRST DAY OF SERVICE',
-            'length_yrs'           => 'LENGHT OF SERVICE YEAR/S',
-            'length_mos'           => 'MONTH/S',
-            'birthdate'            => 'BIRTHDATE',
-            'civil_status'         => 'STATUS',
-            'address'              => 'ADDRESS',
-            'eligibility'          => 'ELIGIBILITY',
-            'nature_of_work_detail'=> 'NATURE OF WORK',
-            'gender'               => 'GENDER',
-            'level'                => 'LEVEL',
-            'ip'                   => 'IP COMMUNNITY MEMBERSHIP',
-            'solo_parent'          => 'SOLO PARENT',
-            'remarks'              => 'REMARKS',
+            'office_department'        => 'OFFICE',
+            'last_name'                => 'LAST NAME',
+            'first_name'               => 'FIRST NAME',
+            'middle_name'              => 'MIDDLE NAME',
+            'name_extension'           => 'SUFFIX',
+            'position_title'           => 'POSITION',
+            'nature_of_work_detail'    => 'NATURE OF WORK DETAIL',
+            'detailed_unit'            => 'DETAILED/ REASSIGNED TO',
+            'rate_per_day'             => 'RATE/DAY',
+            'first_day_of_service'     => 'FIRST DAY OF SERVICE',
+            'date_of_birth'                => 'DATE OF BIRTH',
+            'civil_status'             => 'CIVIL STATUS',
+            'address'                  => 'ADDRESS',
+            'eligibility'              => 'ELIGIBILITY',
+            'sex'                   => 'SEX',
+            'level'                    => 'LEVEL',
+            'first_level_eligibility'  => 'FIRST LEVEL ELIGIBILITY',
+            'second_level_eligibility' => 'SECOND LEVEL ELIGIBILITY',
+            'ip_community_membership'  => 'IP COMMUNITY MEMBERSHIP',
+            'solo_parent'              => 'SOLO PARENT',
+            'reemployment'             => 'REEMPLOYMENT',
+            'remarks'                  => 'REMARKS',
+            'employee_code'            => 'EMPLOYEE CODE',
         ];
 
         $cols = ['NO.'];
@@ -439,7 +456,7 @@ class JobOrderController extends Controller
         // ── Data rows ─────────────────────────────────────────────────────
         $rateDayColLetter = '';
         foreach ($exportKeys as $idx => $key) {
-            if ($key === 'rate_day') {
+            if ($key === 'rate_per_day') {
                 $rateDayColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($idx + 2);
             }
         }
@@ -454,28 +471,29 @@ class JobOrderController extends Controller
             foreach ($exportKeys as $key) {
                 $val = '';
                 switch ($key) {
-                    case 'charges': $val = $jo->charges; break;
-                    case 'family_name': $val = strtoupper($jo->last_name); break;
+                    case 'office_department': $val = $jo->office_department; break;
+                    case 'last_name': $val = strtoupper($jo->last_name); break;
                     case 'first_name': $val = $jo->first_name; break;
-                    case 'mi': $val = $jo->middle_initial; break;
-                    case 'ext': $val = $jo->name_extension; break;
-                    case 'position': $val = $jo->position_title; break;
-                    case 'nature_of_work': $val = $jo->nature_of_work; break;
-                    case 'office': $val = $jo->office; break;
-                    case 'rate_day': $val = $jo->rate_per_day; break;
-                    case 'first_day': $val = $jo->first_day_of_service ? $jo->first_day_of_service->format('Y-m-d') : ''; break;
-                    case 'length_yrs': $val = $jo->first_day_of_service ? $jo->years_of_service : ''; break;
-                    case 'length_mos': $val = $jo->first_day_of_service ? $jo->months_of_service : ''; break;
-                    case 'birthdate': $val = $jo->birthdate ? $jo->birthdate->format('Y-m-d') : ''; break;
+                    case 'middle_name': $val = $jo->middle_name; break;
+                    case 'name_extension': $val = $jo->name_extension; break;
+                    case 'position_title': $val = $jo->position_title; break;
+                    case 'nature_of_work_detail': $val = $jo->nature_of_work_detail; break;
+                    case 'detailed_unit': $val = $jo->detailed_unit; break;
+                    case 'rate_per_day': $val = $jo->rate_per_day; break;
+                    case 'first_day_of_service': $val = $jo->first_day_of_service ? $jo->first_day_of_service->format('Y-m-d') : ''; break;
+                    case 'date_of_birth': $val = $jo->date_of_birth ? $jo->date_of_birth->format('Y-m-d') : ''; break;
                     case 'civil_status': $val = $jo->civil_status; break;
                     case 'address': $val = $jo->address; break;
                     case 'eligibility': $val = $jo->eligibility; break;
-                    case 'nature_of_work_detail': $val = $jo->nature_of_work_detail; break;
-                    case 'gender': $val = $jo->gender; break;
+                    case 'sex': $val = $jo->sex; break;
                     case 'level': $val = $jo->level; break;
-                    case 'ip': $val = $jo->ip_community_membership; break;
-                    case 'solo_parent': $val = $jo->solo_parent ? '/' : ''; break;
+                    case 'first_level_eligibility': $val = $jo->first_level_eligibility ? 'Y' : 'N'; break;
+                    case 'second_level_eligibility': $val = $jo->second_level_eligibility ? 'Y' : 'N'; break;
+                    case 'ip_community_membership': $val = $jo->ip_community_membership; break;
+                    case 'solo_parent': $val = $jo->solo_parent ? 'Y' : 'N'; break;
+                    case 'reemployment': $val = $jo->reemployment ? 'Y' : 'N'; break;
                     case 'remarks': $val = $jo->remarks; break;
+                    case 'employee_code': $val = $jo->employee_code; break;
                 }
                 $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex) . $row;
                 $sheet->setCellValue($cell, $val);
@@ -499,8 +517,9 @@ class JobOrderController extends Controller
         }
 
         // Auto-width
-        foreach (range('A', $lastColLetter) as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
+        $lastColIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($lastColLetter);
+        for ($col = 1; $col <= $lastColIndex; $col++) {
+            $sheet->getColumnDimension(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col))->setAutoSize(true);
         }
 
         // Freeze pane below headers
@@ -521,31 +540,35 @@ class JobOrderController extends Controller
      */
     private function validateRecord(Request $request, ?int $exceptId = null): array
     {
-        return $request->validate([
-            'charges'                  => 'nullable|string|max:100',
+        $rules = [
+            'office_department'        => 'nullable|string|max:100',
             'last_name'                => 'required|string|max:100',
             'first_name'               => 'required|string|max:100',
-            'middle_initial'           => 'nullable|string|max:10',
+            'middle_name'              => 'nullable|string|max:255',
             'name_extension'           => 'nullable|string|max:20',
             'position_title'           => 'required|string|max:200',
-            'nature_of_work'           => 'nullable|string|max:200',
             'nature_of_work_detail'    => 'nullable|string|max:200',
-            'office'                   => 'nullable|string|max:200',
+            'detailed_unit'            => 'nullable|string|max:100',
             'rate_per_day'             => 'nullable|numeric|min:0',
             'first_day_of_service'     => 'nullable|date',
-            'birthdate'                => 'nullable|date',
+            'date_of_birth'                => 'nullable|date',
             'civil_status'             => 'nullable|string|max:50',
             'address'                  => 'nullable|string|max:500',
             'eligibility'              => 'nullable|string|max:200',
-            'gender'                   => 'nullable|in:M,F',
+            'sex'                   => 'nullable|in:M,F',
             'level'                    => 'nullable|string|max:20',
             'first_level_eligibility'  => 'boolean',
             'second_level_eligibility' => 'boolean',
             'ip_community_membership'  => 'nullable|string|max:200',
             'solo_parent'              => 'boolean',
+            'reemployment'             => 'boolean',
             'remarks'                  => 'nullable|string|max:1000',
-            'employee_code'            => 'nullable|string|max:20|unique:job_orders,employee_code' . ($exceptId ? ",{$exceptId}" : ''),
-        ]);
+            'nature_of_separation'     => 'nullable|string|max:100',
+            'date_separated'           => 'nullable|date',
+            'employee_code'            => 'nullable|string|max:20|unique:plantilla_records,employee_code' . ($exceptId ? ",{$exceptId}" : ''),
+        ];
+
+        return $request->validate($rules);
     }
 
     /**
@@ -646,7 +669,7 @@ class JobOrderController extends Controller
             'description' => "Permanently wiped {$joCount} Job Order record(s).",
         ]);
 
-        return redirect()->route('job-orders.index')
+        return redirect(session('last_index_url', route('job-orders.index')))
             ->with('success', "All {$joCount} Job Order record(s) have been permanently deleted.");
     }
 }

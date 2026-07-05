@@ -1,4 +1,4 @@
-{{-- Report 2 Excel View: Inventory by Appointment Status with Gender & Age --}}
+{{-- Report 2 Excel View: Inventory by Appointment Status with SEX & Age --}}
 <table>
     <thead>
         <tr>
@@ -6,7 +6,7 @@
             <th>Status</th>
             <th>Employee Name</th>
             <th>Position Title</th>
-            <th>Gender</th>
+            <th>SEX</th>
             <th>Age</th>
         </tr>
     </thead>

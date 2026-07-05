@@ -207,34 +207,18 @@
                 {{-- Role --}}
                 <div class="form-group full-width">
                     <label class="form-label">Role Assignment</label>
-                    <div class="role-option-grid">
+                    <div class="role-option-grid" style="grid-template-columns:1fr 1fr 1fr 1fr;">
+                        @foreach($roles as $r)
                         <div>
-                            <input type="radio" name="role" id="role_super" value="super_admin"
-                                   class="role-option" {{ old('role',$user->role)==='super_admin'?'checked':'' }}>
-                            <label for="role_super" class="role-option-label">
-                                <span class="role-icon">🛡️</span>
-                                <span class="role-name">Super Admin</span>
-                                <span class="role-desc">Full access to all modules</span>
+                            <input type="radio" name="role" id="role_{{ $r->id }}" value="{{ $r->name }}"
+                                   class="role-option" {{ old('role', $user->roles->first()?->name) === $r->name ? 'checked' : '' }}>
+                            <label for="role_{{ $r->id }}" class="role-option-label">
+                                <span class="role-icon">👤</span>
+                                <span class="role-name">{{ $r->name }}</span>
+                                <span class="role-desc">Custom access based on Role-Permission Matrix.</span>
                             </label>
                         </div>
-                        <div>
-                            <input type="radio" name="role" id="role_salary" value="salary_admin"
-                                   class="role-option" {{ old('role',$user->role)==='salary_admin'?'checked':'' }}>
-                            <label for="role_salary" class="role-option-label">
-                                <span class="role-icon">💰</span>
-                                <span class="role-name">Salary Admin</span>
-                                <span class="role-desc">Step Increment access only</span>
-                            </label>
-                        </div>
-                        <div>
-                            <input type="radio" name="role" id="role_inventory" value="inventory_admin"
-                                   class="role-option" {{ old('role',$user->role)==='inventory_admin'?'checked':'' }}>
-                            <label for="role_inventory" class="role-option-label">
-                                <span class="role-icon">📋</span>
-                                <span class="role-name">Inventory Admin</span>
-                                <span class="role-desc">Plantilla + user management</span>
-                            </label>
-                        </div>
+                        @endforeach
                     </div>
                     @error('role')<div class="form-error mt-1">{{ $message }}</div>@enderror
                 </div>

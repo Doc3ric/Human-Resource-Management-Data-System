@@ -46,7 +46,7 @@ td.tc { text-align:center; }
             <td style="font-weight:600;">{{ strtoupper($r->last_name ?? '') }}, {{ $r->first_name ?? '' }}</td>
             <td>
                 <div style="font-weight:600;">{{ $r->position_title }}</div>
-                <div class="sub-text">{{ $r->organizational_unit }}</div>
+                <div class="sub-text">{{ $r->office_department }}</div>
             </td>
             <td class="tc">
                 {{ $r->date_separated ? \Carbon\Carbon::parse($r->date_separated)->format('m/d/Y') : '—' }}

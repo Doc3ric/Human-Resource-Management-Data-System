@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    // Google Drive backup — service account key path must be outside web root
+    // Never expose this path via any HTTP response or API endpoint
+    'google_drive' => [
+        'service_account_path' => env('GOOGLE_SA_KEY_PATH'),      // e.g. /etc/hrmds/sa-key.json
+        'backup_folder_id'     => env('GOOGLE_DRIVE_FOLDER_ID'),  // Google Drive folder ID
+    ],
+
 ];

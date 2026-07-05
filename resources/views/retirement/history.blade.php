@@ -219,11 +219,11 @@
         <tbody>
             @forelse($records as $index => $r)
             @php
-                // Parse former name from comment_annotation
+                // Parse former name from remarks_annotation
                 // Format: "Former employee: LAST NAME, First Name Middle Name."
                 $formerLast  = '';
                 $formerFirst = '';
-                $annotation  = $r->comment_annotation ?? '';
+                $annotation  = $r->remarks_annotation ?? '';
 
                 if (preg_match('/Former employee:\s*([^.]+)\./i', $annotation, $m)) {
                     $namePart = trim($m[1]);
@@ -241,7 +241,7 @@
                 <td class="col-no">{{ $records->firstItem() + $index }}</td>
                 <td>
                     <div style="font-weight:600; color:#0f172a; font-size:13px;">
-                        {{ $r->organizational_unit ?? '—' }}
+                        {{ $r->office_department ?? '—' }}
                     </div>
                 </td>
                 <td>
@@ -252,14 +252,14 @@
                 </td>
                 <td>
                     <div class="pos-title">{{ $r->position_title ?? '—' }}</div>
-                    <div class="pos-office">{{ $r->item ?? '' }}</div>
+                    <div class="pos-office">{{ $r->item_no_new ?? '' }}</div>
                 </td>
                 <td>
                     <span class="sg-badge">SG-{{ $r->salary_grade }} Step {{ $r->step }}</span>
                 </td>
                 <td>
                     <span class="salary-val">
-                        ₱{{ $r->actual_annual_salary ? number_format($r->actual_annual_salary / 12, 2) : '—' }}
+                        ₱{{ $r->base_salary_amount ? number_format($r->base_salary_amount / 12, 2) : '—' }}
                         <span style="font-size:10px; color:#94a3b8; font-weight:400;">/mo</span>
                     </span>
                 </td>
@@ -273,7 +273,7 @@
                     <button type="button" class="btn-clear" style="padding:4px 8px; font-size:12px; margin:0 auto;"
                         data-id="{{ $r->id }}"
                         data-date="{{ $r->retired_at?->format('Y-m-d') }}"
-                        data-annotation="{{ $r->comment_annotation ?? '' }}"
+                        data-annotation="{{ $r->remarks_annotation ?? '' }}"
                         onclick="editHistory(this.dataset.id, this.dataset.date, this.dataset.annotation)">
                         <i class="bi bi-pencil-square"></i> Edit
                     </button>
@@ -364,7 +364,7 @@ function editHistory(recordId, currentDate, currentAnnotation) {
 
             let annInput = document.createElement('input');
             annInput.type = 'hidden';
-            annInput.name = 'comment_annotation';
+            annInput.name = 'remarks_annotation';
             annInput.value = result.value.annotation;
             form.appendChild(annInput);
 

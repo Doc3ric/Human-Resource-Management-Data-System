@@ -382,7 +382,7 @@
                 {{ $employee->last_name }}
             </div>
             <div class="emp-position">{{ $employee->position_title }}</div>
-            <div class="emp-office">{{ $employee->organizational_unit }}</div>
+            <div class="emp-office">{{ $employee->office_department }}</div>
 
             {{-- Body paragraph --}}
             <div class="cert-body">

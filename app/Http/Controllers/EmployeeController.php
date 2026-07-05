@@ -31,8 +31,8 @@ class EmployeeController extends Controller
         }
 
         // Filter by gender
-        if ($request->filled('gender')) {
-            $query->where('gender', $request->input('gender'));
+        if ($request->filled('sex')) {
+            $query->where('sex', $request->input('sex'));
         }
 
         // Filter by civil status
@@ -76,7 +76,7 @@ class EmployeeController extends Controller
             'last_name' => 'required|string|max:255',
             'employee_number' => 'required|string|max:255|unique:employees',
             'date_of_birth' => 'nullable|date',
-            'gender' => 'nullable|in:Male,Female',
+            'sex' => 'nullable|in:Male,Female',
             'email' => 'nullable|email|unique:employees',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
@@ -119,7 +119,7 @@ class EmployeeController extends Controller
             'last_name' => 'required|string|max:255',
             'employee_number' => 'required|string|max:255|unique:employees,employee_number,' . $employee->id,
             'date_of_birth' => 'nullable|date',
-            'gender' => 'nullable|in:Male,Female',
+            'sex' => 'nullable|in:Male,Female',
             'email' => 'nullable|email|unique:employees,email,' . $employee->id,
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',

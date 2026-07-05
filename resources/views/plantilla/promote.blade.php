@@ -18,7 +18,7 @@
                 </div>
                 <div>
                     <div style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase;">Current Item No.</div>
-                    <div style="font-size: 16px; font-weight: 700; color: #1e293b;">{{ $plantilla->item }}</div>
+                    <div style="font-size: 16px; font-weight: 700; color: #1e293b;">{{ $plantilla->item_no_new }}</div>
                 </div>
                 <div>
                     <div style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase;">Current Position</div>
@@ -26,7 +26,7 @@
                 </div>
                 <div>
                     <div style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase;">Current Office</div>
-                    <div style="font-size: 14px; font-weight: 600; color: #334155;">{{ $plantilla->organizational_unit }}</div>
+                    <div style="font-size: 14px; font-weight: 600; color: #334155;">{{ $plantilla->office_department }}</div>
                 </div>
             </div>
         </div>
@@ -45,7 +45,7 @@
                             <optgroup label="{{ $office ?: 'Unassigned Office' }}">
                                 @foreach($positions as $vp)
                                     <option value="{{ $vp->id }}">
-                                        Item {{ $vp->item }} - {{ $vp->position_title }} (SG {{ $vp->salary_grade }})
+                                        Item {{ $vp->item_no_new }} - {{ $vp->position_title }} (SG {{ $vp->salary_grade }})
                                     </option>
                                 @endforeach
                             </optgroup>
@@ -69,7 +69,7 @@
                         <i class="bi bi-exclamation-triangle-fill" style="color: #ef4444; font-size: 20px;"></i>
                         <div>
                             <strong style="color: #991b1b; display: block; margin-bottom: 4px;">Warning</strong>
-                            <p style="margin:0; font-size: 13px; color: #b91c1c;">This action will permanently move all employee data (Name, DOB, UMID, etc.) to the new position. The current position (Item {{ $plantilla->item }}) will immediately be marked as <strong>VACANT</strong>.</p>
+                            <p style="margin:0; font-size: 13px; color: #b91c1c;">This action will permanently move all employee data (Name, DOB, UMID, etc.) to the new position. The current position (Item {{ $plantilla->item_no_new }}) will immediately be marked as <strong>VACANT</strong>.</p>
                         </div>
                     </div>
                 </div>

@@ -40,9 +40,9 @@
         @forelse($records as $i => $r)
         <tr>
             <td>{{ $i + 1 }}</td>
-            <td class="item">{{ $r->item }}</td>
+            <td class="item_no_new">{{ $r->item_no_new }}</td>
             <td>{{ $r->position_title }}</td>
-            <td>{{ $r->organizational_unit }}</td>
+            <td>{{ $r->office_department }}</td>
             <td>{{ $r->salary_grade }}</td>
             <td>{{ $r->step }}</td>
             <td>{{ number_format($r->authorized_annual_salary ?? 0, 2) }}</td>

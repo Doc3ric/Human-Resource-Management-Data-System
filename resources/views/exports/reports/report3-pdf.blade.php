@@ -38,7 +38,7 @@ td { padding:4px 8px; font-size:7.5px; border:1px solid #ccc; vertical-align:mid
         </tr>
     </thead>
     <tbody>
-        @forelse($report3->groupBy('organizational_unit') as $office => $records)
+        @forelse($report3->groupBy('office_department') as $office => $records)
         <tr class="group-hdr">
             <td colspan="5">Office: {{ $office }} ({{ count($records) }} records)</td>
         </tr>

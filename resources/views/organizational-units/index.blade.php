@@ -424,7 +424,7 @@
                 <div class="empty-state">
                     <i class="bi bi-inbox"></i>
                     <h3>No Organizational Units Found</h3>
-                    <p>Get started by creating your first organizational unit</p>
+                    <p>Get started by creating your first OFFICE</p>
                     <a href="{{ route('organizational-units.create') }}" class="btn-primary-custom">
                         <i class="bi bi-plus-lg"></i>
                         Create First Unit

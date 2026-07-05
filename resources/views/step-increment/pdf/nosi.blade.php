@@ -18,70 +18,7 @@
             line-height: 1.5;
         }
 
-        .header table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .header td {
-            vertical-align: middle;
-            padding: 0;
-        }
-
-        .header-logo-left {
-            width: 85px;
-            text-align: left;
-        }
-
-        .header-logo-left img {
-            width: 80px;
-            height: 80px;
-        }
-
-        .header-center {
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .header-logo-right {
-            width: 85px;
-            text-align: right;
-            vertical-align: middle;
-        }
-
-        .header-logo-right img {
-            width: 80px;
-            height: 80px;
-        }
-
-        .repub {
-            font-size: 11pt;
-            margin: 0;
-        }
-
-        .province {
-            font-size: 11pt;
-            font-weight: bold;
-            margin: 2px 0;
-        }
-
-        .city {
-            font-size: 11pt;
-            margin: 2px 0;
-        }
-
-        .office {
-            font-size: 12pt;
-            font-weight: bold;
-            color: #0f4c81;
-            letter-spacing: 0.5px;
-            margin-top: 6px;
-        }
-
-        .divider {
-            border-top: 2px solid #000;
-            margin: 10px 0 14px 0;
-        }
+        /* Header now comes from exports.partials.official-header (scoped styles) */
 
         .title {
             text-align: center;
@@ -217,28 +154,7 @@
 
 <body>
 
-    <div class="header">
-        <table>
-            <tr>
-                <td class="header-logo-left">
-                    <img src="{{ public_path('img/logo.png') }}" alt="Seal">
-                </td>
-                <td class="header-center">
-                    <div class="repub">Republic of the Philippines</div>
-                    <div class="province">PROVINCE OF BUKIDNON</div>
-                    <div class="city">Malaybalay City</div>
-                    <div class="office">OFFICE OF THE PROVINCIAL GOVERNOR</div>
-                </td>
-                <td class="header-logo-right">
-                    @if(file_exists(public_path('img/bagong-pilipinas.png')))
-                        <img src="{{ public_path('img/bagong-pilipinas.png') }}" alt="Bagong Pilipinas">
-                    @endif
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="divider"></div>
+    @include('exports.partials.official-header')
 
     <div class="title">
         NOTICE OF STEP INCREMENT DUE TO LENGTH OF SERVICE
@@ -257,7 +173,7 @@
         @endphp
         <span class="emp-name">{{ $title }}
             {{ strtoupper($employee->first_name . ' ' . ($employee->middle_name ? substr($employee->middle_name, 0, 1) . '. ' : '') . $employee->last_name) }}</span>
-        <span class="emp-unit">{{ $employee->organizational_unit }}</span>
+        <span class="emp-unit">{{ $employee->office_department }}</span>
         <span class="emp-address">Malaybalay City, Bukidnon</span>
     </div>
 
@@ -325,7 +241,7 @@
     </div>
 
     <div class="footer-info">
-        Item No. <strong>{{ $employee->item }}</strong> / Unique Item No. ______<br>
+        Item No. <strong>{{ $employee->item_no_new }}</strong> / Unique Item No. ______<br>
         FY <strong>{{ now()->year }}</strong> Personal Services Itemization and/or<br>
         Plantilla of Personnel<br>
         <span style="font-size: 9.5pt;">CF: GSIS</span>

@@ -281,8 +281,8 @@ function getCatPill($cat) {
         <table class="report-table">
             <thead>
                 <tr>
-                    <th>Office / Department</th>
-                    <th class="tc">Permanent</th>
+                    <th>OFFICE</th>
+                    <th class="tc">REGULAR</th>
                     <th class="tc">Elected</th>
                     <th class="tc">Co-Terminous</th>
                     <th class="tc">Casual</th>
@@ -332,7 +332,7 @@ function getCatPill($cat) {
 </div>
 
 {{-- ─────────────────────────────────────────────────────────────────────────
-     REPORT 2: Inventory by Status + Employee + Gender + Age
+     REPORT 2: Inventory by Status + Employee + SEX + Age
  ──────────────────────────────────────────────────────────────────────────── --}}
 <div class="office-card">
     <button type="button" onclick="rptToggle('r2')" class="office-btn">
@@ -342,7 +342,7 @@ function getCatPill($cat) {
             </div>
             <div>
                 <div class="off-name">Inventory of Personnel by Appointment Status</div>
-                <div class="off-sub">With Gender & Age profiles for active filled positions</div>
+                <div class="off-sub">With SEX & Age profiles for active filled positions</div>
             </div>
         </div>
         <div class="off-right no-print" style="gap:10px;">
@@ -367,7 +367,7 @@ function getCatPill($cat) {
                     <th style="width:50px;">#</th>
                     <th>Employee Name</th>
                     <th>Position Title</th>
-                    <th class="tc">Gender</th>
+                    <th class="tc">SEX</th>
                     <th class="tc">Age</th>
                 </tr>
             </thead>
@@ -439,7 +439,7 @@ function getCatPill($cat) {
                 </tr>
             </thead>
             <tbody>
-                @forelse($report3->groupBy('organizational_unit') as $office => $records)
+                @forelse($report3->groupBy('office_department') as $office => $records)
                 <tr class="group-header">
                     <td colspan="5">
                         Office: {{ $office }}
@@ -512,7 +512,7 @@ function getCatPill($cat) {
                     <td style="font-weight:600;">{{ strtoupper($r->last_name ?? '') }}, {{ $r->first_name ?? '' }}</td>
                     <td>
                         <div style="font-weight:600;">{{ $r->position_title }}</div>
-                        <div style="color:#64748b; font-size:12px; margin-top:2px;">{{ $r->organizational_unit }}</div>
+                        <div style="color:#64748b; font-size:12px; margin-top:2px;">{{ $r->office_department }}</div>
                     </td>
                     <td class="tc" style="color:#dc2626; font-weight:600;">
                         {{ $r->date_separated ? \Carbon\Carbon::parse($r->date_separated)->format('m/d/Y') : '—' }}
@@ -575,7 +575,7 @@ function getCatPill($cat) {
                     <td style="font-weight:600;">{{ strtoupper($r->last_name ?? '') }}, {{ $r->first_name ?? '' }}</td>
                     <td>
                         <div style="font-weight:600;">{{ $r->position_title }}</div>
-                        <div style="color:#64748b; font-size:12px; margin-top:2px;">{{ $r->organizational_unit }}</div>
+                        <div style="color:#64748b; font-size:12px; margin-top:2px;">{{ $r->office_department }}</div>
                     </td>
                     <td class="tc">
                         {{ $r->date_separated ? \Carbon\Carbon::parse($r->date_separated)->format('m/d/Y') : '—' }}
@@ -627,7 +627,7 @@ function getCatPill($cat) {
                     <th style="width:50px;">#</th>
                     <th>Employee Name</th>
                     <th>Position Title</th>
-                    <th class="tc">Gender</th>
+                    <th class="tc">SEX</th>
                 </tr>
             </thead>
             <tbody>
@@ -760,7 +760,7 @@ function getCatPill($cat) {
                         <td style="font-weight:600;">{{ strtoupper($r->last_name ?? '') }}, {{ $r->first_name ?? '' }}</td>
                         <td>
                             <div style="font-weight:600;">{{ $r->position_title }}</div>
-                            <div style="color:#64748b; font-size:12px; margin-top:2px;">{{ $r->organizational_unit }}</div>
+                            <div style="color:#64748b; font-size:12px; margin-top:2px;">{{ $r->office_department }}</div>
                         </td>
                         <td class="tc" style="font-weight:600; color:#4338ca;">
                             @if($r7_status === 'Newly Hired')

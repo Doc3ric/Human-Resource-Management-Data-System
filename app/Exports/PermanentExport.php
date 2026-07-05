@@ -3,6 +3,9 @@
 namespace App\Exports;
 
 use App\Models\PlantillaRecord;
+use Maatwebsite\Excel\Concerns\WithDrawings;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\WithTitle;
@@ -13,8 +16,10 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class PermanentExport implements FromView, WithTitle, ShouldAutoSize, WithStyles, WithEvents
+class PermanentExport implements FromView, WithTitle, ShouldAutoSize, WithStyles, WithEvents, WithDrawings, WithCustomStartCell
 {
+    use \App\Exports\Traits\HasPhrmoHeader;
+
     protected array $filters;
     protected array $columns;
 
@@ -34,7 +39,7 @@ class PermanentExport implements FromView, WithTitle, ShouldAutoSize, WithStyles
     public function view(): View
     {
         $query = PlantillaRecord::whereIn('employment_status', self::STATUSES)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('last_name');
 
         if (!empty($this->filters['search'])) {
@@ -42,14 +47,14 @@ class PermanentExport implements FromView, WithTitle, ShouldAutoSize, WithStyles
             $query->where(function ($q) use ($term) {
                 $q->where('last_name',             'like', "%{$term}%")
                   ->orWhere('first_name',           'like', "%{$term}%")
-                  ->orWhere('item',                 'like', "%{$term}%")
+                  ->orWhere('item_no_new',                 'like', "%{$term}%")
                   ->orWhere('position_title',       'like', "%{$term}%")
-                  ->orWhere('organizational_unit',  'like', "%{$term}%");
+                  ->orWhere('office_department',  'like', "%{$term}%");
             });
         }
 
         if (!empty($this->filters['office'])) {
-            $query->where('organizational_unit', 'like', '%' . $this->filters['office'] . '%');
+            $query->where('office_department', 'like', '%' . $this->filters['office'] . '%');
         }
 
         if (!empty($this->filters['sex'])) {
@@ -59,6 +64,10 @@ class PermanentExport implements FromView, WithTitle, ShouldAutoSize, WithStyles
         if (!empty($this->filters['vacant'])) {
             $query->where('is_vacant', $this->filters['vacant'] === 'vacant');
         }
+
+        $statusFilter = $this->filters['status_filter'] ?? 'active';
+        if ($statusFilter === 'active')       $query->whereNull('nature_of_separation');
+        elseif ($statusFilter === 'inactive') $query->whereNotNull('nature_of_separation');
 
         $records = $query->get();
         $columns = $this->columns;

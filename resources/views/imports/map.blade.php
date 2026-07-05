@@ -164,6 +164,8 @@
     <input type="hidden" name="replace_all"       value="{{ $replaceAll ? '1' : '0' }}">
     <input type="hidden" name="dry_run"           value="{{ $dryRun     ? '1' : '0' }}">
     <input type="hidden" name="original_filename" value="{{ $originalFileName ?? '' }}">
+    <input type="hidden" name="routing_mode"      value="{{ $routingMode ?? 'global' }}">
+    <input type="hidden" name="granular_status"   value="{{ $granularStatus ?? '' }}">
 
     <div class="map-card">
         <div class="map-card-header">

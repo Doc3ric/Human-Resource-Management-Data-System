@@ -29,7 +29,7 @@ class StepIncrementController extends Controller
 
         // OVERDUE / DUE THIS MONTH
         $allDue = PlantillaRecord::stepDue()
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('salary_grade')
             ->get();
 
@@ -51,19 +51,19 @@ class StepIncrementController extends Controller
         }
 
         $overdue = PlantillaRecord::whereIn('id', $overdueIds)
-            ->orderBy('organizational_unit')->orderBy('salary_grade')
+            ->orderBy('office_department')->orderBy('salary_grade')
             ->paginate(15, ['*'], 'od_page')->appends($request->except('od_page'));
 
         $due = PlantillaRecord::whereIn('id', $dueIds)
-            ->orderBy('organizational_unit')->orderBy('salary_grade')
+            ->orderBy('office_department')->orderBy('salary_grade')
             ->paginate(15, ['*'], 'due_page')->appends($request->except('due_page'));
 
         $nosi = PlantillaRecord::whereIn('id', $nosiIds)
-            ->orderBy('organizational_unit')->orderBy('salary_grade')
+            ->orderBy('office_department')->orderBy('salary_grade')
             ->paginate(15, ['*'], 'nosi_page')->appends($request->except('nosi_page'));
 
         $nolp = PlantillaRecord::whereIn('id', $nolpIds)
-            ->orderBy('organizational_unit')->orderBy('salary_grade')
+            ->orderBy('office_department')->orderBy('salary_grade')
             ->paginate(15, ['*'], 'nolp_page')->appends($request->except('nolp_page'));
 
         // UPCOMING (within 6 months) — split into NOLP (hospital) and NOSI (non-hospital)
@@ -82,18 +82,18 @@ class StepIncrementController extends Controller
         $upcomingNosiIds = $upcomingAll->filter(fn($r) => !$r->is_hospital_personnel)->pluck('id');
 
         $upcomingNolp = PlantillaRecord::whereIn('id', $upcomingNolpIds)
-            ->orderBy('organizational_unit')->orderBy('salary_grade')
+            ->orderBy('office_department')->orderBy('salary_grade')
             ->paginate(15, ['*'], 'up_nolp_page')->withQueryString();
 
         $upcomingNosi = PlantillaRecord::whereIn('id', $upcomingNosiIds)
-            ->orderBy('organizational_unit')->orderBy('salary_grade')
+            ->orderBy('office_department')->orderBy('salary_grade')
             ->paginate(15, ['*'], 'up_nosi_page')->withQueryString();
 
         $upcomingCount = $upcomingNolpIds->count() + $upcomingNosiIds->count();
 
         // MAGNA CARTA PRE-RETIREMENT (NOSA) — now a tab inside NOSI/NOLP view
         $magnaCartaDue = PlantillaRecord::magnaCartaNosaDue()
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('salary_grade')
             ->paginate(15, ['*'], 'mc_page')
             ->withQueryString();
@@ -106,7 +106,7 @@ class StepIncrementController extends Controller
             $historyQuery->whereHas('plantillaRecord', function ($q) use ($historySearch) {
                 $q->where('last_name', 'like', "%{$historySearch}%")
                   ->orWhere('first_name', 'like', "%{$historySearch}%")
-                  ->orWhere('item', 'like', "%{$historySearch}%");
+                  ->orWhere('item_no_new', 'like', "%{$historySearch}%");
             });
         }
         $histories = $historyQuery->paginate(25, ['*'], 'hist_page')->withQueryString();
@@ -188,12 +188,12 @@ class StepIncrementController extends Controller
                 $afterTen = $years - 10;
                 return $afterTen % 5 === 0;
             })
-            ->sortBy('organizational_unit');
+            ->sortBy('office_department');
 
         $loyaltyIds = $loyaltyRecords->pluck('id');
 
         $loyalty = PlantillaRecord::whereIn('id', $loyaltyIds)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderBy('salary_grade')
             ->paginate(15)
             ->withQueryString();
@@ -233,21 +233,21 @@ class StepIncrementController extends Controller
             }
         })
         ->where('abolished', false)
-        ->orderBy('organizational_unit')
+        ->orderBy('office_department')
         ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item,''), '[^0-9]', '') AS UNSIGNED)");
 
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('last_name', 'like', "%{$search}%")
                   ->orWhere('first_name', 'like', "%{$search}%")
-                  ->orWhere('item', 'like', "%{$search}%")
+                  ->orWhere('item_no_new', 'like', "%{$search}%")
                   ->orWhere('position_title', 'like', "%{$search}%")
-                  ->orWhere('organizational_unit', 'like', "%{$search}%");
+                  ->orWhere('office_department', 'like', "%{$search}%");
             });
         }
 
         if ($officeFilter) {
-            $query->where('organizational_unit', $officeFilter);
+            $query->where('office_department', $officeFilter);
         }
 
         if ($positionFilter) {
@@ -258,13 +258,13 @@ class StepIncrementController extends Controller
 
         $grouped = [];
         foreach ($allRecords as $record) {
-            $office = $record->organizational_unit ?: 'Unassigned';
+            $office = $record->office_department ?: 'Unassigned';
             $grouped[$office][] = $record;
         }
         ksort($grouped);
 
-        $offices = PlantillaRecord::distinct()->orderBy('organizational_unit')
-            ->pluck('organizational_unit')->filter()->values();
+        $offices = PlantillaRecord::distinct()->orderBy('office_department')
+            ->pluck('office_department')->filter()->values();
 
         $positions = PlantillaRecord::distinct()->pluck('position_title')
             ->filter()->map(fn($v) => trim($v))->unique()->sortBy(fn($v) => strtolower($v))->values();
@@ -312,14 +312,14 @@ class StepIncrementController extends Controller
         ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item,''), '[^0-9]', '') AS UNSIGNED)");
 
         if ($officeName) {
-            $query->where('organizational_unit', $officeName);
+            $query->where('office_department', $officeName);
         }
 
         $allRecords = $query->get();
 
         $grouped = [];
         foreach ($allRecords as $record) {
-            $office = $record->organizational_unit ?: 'Unassigned';
+            $office = $record->office_department ?: 'Unassigned';
             $grouped[$office][] = $record;
         }
 
@@ -371,7 +371,7 @@ class StepIncrementController extends Controller
         
         $previousStep = $plantilla->step;
         $previousSg = $plantilla->salary_grade;
-        $previousSalary = $plantilla->actual_annual_salary;
+        $previousSalary = $plantilla->base_salary_amount;
 
         $newStep = min(8, $plantilla->step + $stepIncrease);
 
@@ -381,7 +381,7 @@ class StepIncrementController extends Controller
 
         $updates = [
             'step'                 => $newStep,
-            'actual_annual_salary' => $newAnnualSalary ?: $plantilla->actual_annual_salary,
+            'base_salary_amount' => $newAnnualSalary ?: $plantilla->base_salary_amount,
         ];
 
         if ($dueType === 'nolp' || $dueType === 'both') {
@@ -434,7 +434,7 @@ class StepIncrementController extends Controller
 
             $previousStep = $plantilla->step;
             $previousSg = $plantilla->salary_grade;
-            $previousSalary = $plantilla->actual_annual_salary;
+            $previousSalary = $plantilla->base_salary_amount;
 
             $stepIncrease = ($dueType === 'nolp' || $dueType === 'both') ? 2 : 1;
             $newStep = min(8, $plantilla->step + $stepIncrease);
@@ -445,7 +445,7 @@ class StepIncrementController extends Controller
 
             $updates = [
                 'step'                 => $newStep,
-                'actual_annual_salary' => $newAnnualSalary ?: $plantilla->actual_annual_salary,
+                'base_salary_amount' => $newAnnualSalary ?: $plantilla->base_salary_amount,
             ];
 
             if ($dueType === 'nolp' || $dueType === 'both') {
@@ -498,21 +498,21 @@ class StepIncrementController extends Controller
                 }
             })
             ->where('abolished', false)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item,''), '[^0-9]', '') AS UNSIGNED)");
 
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('last_name', 'like', "%{$search}%")
                   ->orWhere('first_name', 'like', "%{$search}%")
-                  ->orWhere('item', 'like', "%{$search}%")
+                  ->orWhere('item_no_new', 'like', "%{$search}%")
                   ->orWhere('position_title', 'like', "%{$search}%")
-                  ->orWhere('organizational_unit', 'like', "%{$search}%");
+                  ->orWhere('office_department', 'like', "%{$search}%");
             });
         }
 
         if ($officeFilter) {
-            $query->where('organizational_unit', $officeFilter);
+            $query->where('office_department', $officeFilter);
         }
 
         if ($positionFilter) {
@@ -523,13 +523,13 @@ class StepIncrementController extends Controller
 
         $grouped = [];
         foreach ($allRecords as $record) {
-            $office = $record->organizational_unit ?: 'Unassigned';
+            $office = $record->office_department ?: 'Unassigned';
             $grouped[$office][] = $record;
         }
         ksort($grouped);
 
-        $offices = PlantillaRecord::distinct()->orderBy('organizational_unit')
-            ->pluck('organizational_unit')->filter()->values();
+        $offices = PlantillaRecord::distinct()->orderBy('office_department')
+            ->pluck('office_department')->filter()->values();
         
         $positions = PlantillaRecord::distinct()->pluck('position_title')
             ->filter()->map(fn($v) => trim($v))->unique()->sortBy(fn($v) => strtolower($v))->values();
@@ -561,13 +561,13 @@ class StepIncrementController extends Controller
                 }
             })
             ->where('abolished', false)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item,''), '[^0-9]', '') AS UNSIGNED)")
             ->get();
 
         $grouped = [];
         foreach ($allRecords as $record) {
-            $office = $record->organizational_unit ?: 'Unassigned';
+            $office = $record->office_department ?: 'Unassigned';
             $grouped[$office][] = $record;
         }
         ksort($grouped);
@@ -599,13 +599,13 @@ class StepIncrementController extends Controller
                 }
             })
             ->where('abolished', false)
-            ->orderBy('organizational_unit')
+            ->orderBy('office_department')
             ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item,''), '[^0-9]', '') AS UNSIGNED)")
             ->get();
 
         $grouped = [];
         foreach ($allRecords as $record) {
-            $office = $record->organizational_unit ?: 'Unassigned';
+            $office = $record->office_department ?: 'Unassigned';
             $grouped[$office][] = $record;
         }
         ksort($grouped);
@@ -642,13 +642,13 @@ class StepIncrementController extends Controller
             ->where('abolished', false)
             ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item,''), '[^0-9]', '') AS UNSIGNED)");
         if ($officeName) {
-            $query->where('organizational_unit', $officeName);
+            $query->where('office_department', $officeName);
         }
         $allRecords = $query->get();
 
         $grouped = [];
         foreach ($allRecords as $record) {
-            $office = $record->organizational_unit ?: 'Unassigned';
+            $office = $record->office_department ?: 'Unassigned';
             $grouped[$office][] = $record;
         }
 
@@ -684,13 +684,13 @@ class StepIncrementController extends Controller
             ->where('abolished', false)
             ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item,''), '[^0-9]', '') AS UNSIGNED)");
         if ($officeName) {
-            $query->where('organizational_unit', $officeName);
+            $query->where('office_department', $officeName);
         }
         $allRecords = $query->get();
 
         $grouped = [];
         foreach ($allRecords as $record) {
-            $office = $record->organizational_unit ?: 'Unassigned';
+            $office = $record->office_department ?: 'Unassigned';
             $grouped[$office][] = $record;
         }
 
@@ -719,7 +719,7 @@ class StepIncrementController extends Controller
 
         $previousStep = $plantilla->step;
         $previousSg = $plantilla->salary_grade;
-        $previousSalary = $plantilla->actual_annual_salary;
+        $previousSalary = $plantilla->base_salary_amount;
 
         $newSg = min(33, $plantilla->salary_grade + 1);
         $newStep = $plantilla->step; // retain step
@@ -729,7 +729,7 @@ class StepIncrementController extends Controller
 
         $plantilla->update([
             'salary_grade' => $newSg,
-            'actual_annual_salary' => $newAnnualSalary,
+            'base_salary_amount' => $newAnnualSalary,
             'authorized_annual_salary' => $newAnnualSalary,
         ]);
 
@@ -788,7 +788,7 @@ class StepIncrementController extends Controller
             $query->whereHas('plantillaRecord', function ($q) use ($search) {
                 $q->where('last_name', 'like', "%{$search}%")
                   ->orWhere('first_name', 'like', "%{$search}%")
-                  ->orWhere('item', 'like', "%{$search}%");
+                  ->orWhere('item_no_new', 'like', "%{$search}%");
             });
         }
 

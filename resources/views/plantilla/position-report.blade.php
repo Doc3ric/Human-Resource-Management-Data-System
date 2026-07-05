@@ -412,7 +412,7 @@
                                 </th>
                             </tr>
                             <tr>
-                                <th class="th-sub" style="width:9%;">Permanent<br><span
+                                <th class="th-sub" style="width:9%;">REGULAR<br><span
                                         style="font-weight:400;">(4.1)</span></th>
                                 <th class="th-sub" style="width:9%;">Contractual<br><span
                                         style="font-weight:400;">(4.2)</span></th>

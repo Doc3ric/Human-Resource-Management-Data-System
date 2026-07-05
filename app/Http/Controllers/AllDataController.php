@@ -18,21 +18,23 @@ class AllDataController extends Controller
     {
         return [
             'employee_code' => 'nullable|string|max:20|unique:plantilla_records,employee_code' . ($ignoreId ? ",{$ignoreId}" : ''),
-            'organizational_unit' => 'nullable|string|max:255',
-            'item' => 'nullable|string|max:255|unique:plantilla_records,item' . ($ignoreId ? ",{$ignoreId}" : ''),
+            'office_department' => 'nullable|string|max:255',
+            'item_no_new' => 'nullable|string|max:255|unique:plantilla_records,item' . ($ignoreId ? ",{$ignoreId}" : ''),
             'position_title' => 'nullable|string|max:255',
             'salary_grade' => 'nullable|integer|min:1|max:33',
             'authorized_annual_salary' => 'nullable|numeric|min:0',
-            'actual_annual_salary' => 'nullable|numeric|min:0',
+            'base_salary_amount' => 'nullable|numeric|min:0',
             'step' => 'nullable|integer|min:1|max:8',
             'area_code' => 'nullable|string|max:10',
             'area_type' => 'nullable|string|max:5',
             'level' => 'nullable|string|max:5',
             'last_name' => 'nullable|string|max:255',
             'first_name' => 'nullable|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
-            'sex' => 'nullable|in:M,F',
-            'religion' => 'nullable|string|max:100',
+            'middle_name'    => 'nullable|string|max:255',
+            'name_extension' => 'nullable|string|max:20',
+            'sex'            => 'nullable|in:M,F',
+            'civil_status'   => 'nullable|string|max:50',
+            'religion'       => 'nullable|string|max:100',
             'date_of_birth' => 'nullable|date',
             'tin' => 'nullable|string|max:50',
             'date_original_appointment' => 'nullable|date',
@@ -40,7 +42,7 @@ class AllDataController extends Controller
             'date_last_nolp' => 'nullable|date',
             'employment_status' => 'nullable|string|max:50',
             'civil_service_eligibility' => 'nullable|string|max:255',
-            'comment_annotation' => 'nullable|string',
+            'remarks_annotation' => 'nullable|string',
             'is_pwd' => 'boolean',
             'type_of_disability' => 'nullable|string|max:100',
             'indigenous_people' => 'nullable|string|max:50',
@@ -72,10 +74,13 @@ class AllDataController extends Controller
 
     public function index(Request $request)
     {
+        session(['last_index_url' => request()->fullUrl()]);
+
+
         $query = PlantillaRecord::query()
             ->whereNull('nature_of_separation')
-            ->orderBy('organizational_unit')
-            ->orderBy('item');
+            ->orderBy('office_department')
+            ->orderBy('item_no_new');
 
         // Global search
         if ($request->filled('search')) {
@@ -84,16 +89,17 @@ class AllDataController extends Controller
                 $q->where('last_name', 'like', "%{$term}%")
                     ->orWhere('first_name', 'like', "%{$term}%")
                     ->orWhere('middle_name', 'like', "%{$term}%")
-                    ->orWhere('item', 'like', "%{$term}%")
+                    ->orWhere('item_no_new', 'like', "%{$term}%")
                     ->orWhere('position_title', 'like', "%{$term}%")
-                    ->orWhere('organizational_unit', 'like', "%{$term}%")
+                    ->orWhere('office_department', 'like', "%{$term}%")
                     ->orWhere('tin', 'like', "%{$term}%");
             });
         }
 
         // Office filter
         if ($request->filled('office')) {
-            $query->where('organizational_unit', $request->input('office'));
+            $selectedOffices = $request->input('office'); // Array from multiple select
+            $query->whereIn('office_department', $selectedOffices);
         }
 
         // Status filter
@@ -134,7 +140,7 @@ class AllDataController extends Controller
                         $q2->where(function($q3) {
                             $q3->whereNull('authorized_annual_salary')->orWhere('authorized_annual_salary', 0);
                         })->where(function($q3) {
-                            $q3->whereNull('actual_annual_salary')->orWhere('actual_annual_salary', 0);
+                            $q3->whereNull('base_salary_amount')->orWhere('base_salary_amount', 0);
                         });
                     });
                 });
@@ -168,15 +174,25 @@ class AllDataController extends Controller
             $query->where('position_title', $request->input('position'));
         }
 
-        $perPage = $request->input('per_page', 50);
+        $perPageInput = $request->input('per_page', 50);
+        $totalForPaginate = max(1, (clone $query)->count());
+        $perPage = $perPageInput === 'all' ? $totalForPaginate : (int) $perPageInput;
         $records = $query->paginate($perPage)->withQueryString();
-        $offices = PlantillaRecord::distinct()->orderBy('organizational_unit')
-            ->pluck('organizational_unit')->filter()->values();
+        
+        // Get all unique offices from office_department across all employment types
+        $offices = PlantillaRecord::distinct()->orderBy('office_department')
+            ->pluck('office_department')->filter()->values();
+
         $positions = PlantillaRecord::distinct()->orderBy('position_title')
             ->pluck('position_title')->filter()->values();
         $total = PlantillaRecord::whereNull('nature_of_separation')->count();
+        $maleCount = (clone $query)->where('sex', 'M')->count();
+        $femaleCount = (clone $query)->where('sex', 'F')->count();
+        $regularCount = (clone $query)->whereNotIn('employment_status', ['Casual', 'Cas', 'C', 'JO', 'Job Order', 'J.O.', 'J'])->count();
+        $casualCount = (clone $query)->whereIn('employment_status', ['Casual', 'Cas', 'C'])->count();
+        $jobOrderCount = (clone $query)->whereIn('employment_status', ['JO', 'Job Order', 'J.O.', 'J'])->count();
 
-        return view('all-data.index', compact('records', 'offices', 'positions', 'total'));
+        return view('all-data.index', compact('records', 'offices', 'positions', 'total', 'maleCount', 'femaleCount', 'regularCount', 'casualCount', 'jobOrderCount'));
     }
 
     // ── Create ────────────────────────────────────────────────────────────────
@@ -184,8 +200,8 @@ class AllDataController extends Controller
     public function create()
     {
         $plantilla = null; // so the shared form partial knows we're creating
-        $offices = PlantillaRecord::distinct()->orderBy('organizational_unit')
-            ->pluck('organizational_unit')->filter()->values();
+        $offices = PlantillaRecord::distinct()->orderBy('office_department')
+            ->pluck('office_department')->filter()->values();
         return view('all-data.create', compact('offices'));
     }
 
@@ -233,12 +249,12 @@ class AllDataController extends Controller
         // Auto-Calculate Annual Salary from Salary Grades if blank
         if (
             !empty($data['salary_grade']) && !empty($data['step']) &&
-            (empty($data['actual_annual_salary']) || empty($data['authorized_annual_salary']))
+            (empty($data['base_salary_amount']) || empty($data['authorized_annual_salary']))
         ) {
             $monthlySalary = \App\Models\SalaryGrade::getRate($data['salary_grade'], $data['step']);
             if ($monthlySalary > 0) {
-                if (empty($data['actual_annual_salary'])) {
-                    $data['actual_annual_salary'] = round($monthlySalary * 12, 2);
+                if (empty($data['base_salary_amount'])) {
+                    $data['base_salary_amount'] = round($monthlySalary * 12, 2);
                 }
                 if (empty($data['authorized_annual_salary'])) {
                     $data['authorized_annual_salary'] = round($monthlySalary * 12, 2);
@@ -258,11 +274,17 @@ class AllDataController extends Controller
 
         // Auto-generate employee code if blank
         if (empty($data['employee_code']) && !empty($data['last_name']) && !empty($data['date_of_birth'])) {
-            $data['employee_code'] = \App\Models\PlantillaRecord::generateEmployeeCode($data['last_name'], $data['date_of_birth']);
+            $data['employee_code'] = \App\Models\PlantillaRecord::generateEmployeeCode(
+                $data['first_name']    ?? null,
+                $data['date_of_birth'] ?? null,
+                null,
+                $data['middle_name']   ?? null,
+                $data['last_name']     ?? null
+            );
         }
 
         // Check if a record with this item number already exists
-        $existing = PlantillaRecord::where('item', $data['item'])->first();
+        $existing = PlantillaRecord::where('item_no_new', $data['item_no_new'])->first();
 
         if ($existing) {
             if ($existing->is_vacant) {
@@ -271,20 +293,20 @@ class AllDataController extends Controller
                 $record = $existing;
                 $action = 'Filled Vacant Position';
                 $desc = $hasEmployee
-                    ? 'Assigned "' . trim($record->first_name . ' ' . $record->last_name) . '" to previously vacant Item: ' . $record->item
-                    : 'Re-registered Item ' . $record->item . ' as Vacant';
+                    ? 'Assigned "' . trim($record->first_name . ' ' . $record->last_name) . '" to previously vacant Item: ' . $record->item_no_new
+                    : 'Re-registered Item ' . $record->item_no_new . ' as Vacant';
             } else {
                 // Item is already occupied — block the creation
                 return back()
                     ->withInput()
-                    ->withErrors(['item' => 'Item number "' . $data['item'] . '" is already assigned to an active employee. Please use a different item number or edit the existing record.']);
+                    ->withErrors(['item_no_new' => 'Item number "' . $data['item_no_new'] . '" is already assigned to an active employee. Please use a different item number or edit the existing record.']);
             }
         } else {
             $record = PlantillaRecord::create($data);
             $action = $hasEmployee ? 'Created Record' : 'Added Vacant Position';
             $desc = $hasEmployee
-                ? 'Created plantilla record for "' . trim($record->first_name . ' ' . $record->last_name) . '" (Item: ' . $record->item . ')'
-                : 'Added new vacant position slot for Item: ' . $record->item;
+                ? 'Created plantilla record for "' . trim($record->first_name . ' ' . $record->last_name) . '" (Item: ' . $record->item_no_new . ')'
+                : 'Added new vacant position slot for Item: ' . $record->item_no_new;
         }
 
         if (Auth::check()) {
@@ -295,7 +317,7 @@ class AllDataController extends Controller
             ]);
         }
 
-        return redirect()->route('all-data.index')
+        return redirect(session('last_index_url', route('all-data.index')))
             ->with('success', 'Record saved successfully.');
     }
 
@@ -303,8 +325,8 @@ class AllDataController extends Controller
 
     public function edit(PlantillaRecord $allDatum)
     {
-        $offices = PlantillaRecord::distinct()->orderBy('organizational_unit')
-            ->pluck('organizational_unit')->filter()->values();
+        $offices = PlantillaRecord::distinct()->orderBy('office_department')
+            ->pluck('office_department')->filter()->values();
         return view('all-data.edit', ['plantilla' => $allDatum, 'offices' => $offices]);
     }
 
@@ -367,8 +389,8 @@ class AllDataController extends Controller
                         . "Former employee: {$formerName}. "
                         . "DOB: {$dobStr}. SG-{$sgStr} Step {$stepStr}. TIN: {$tinStr}.";
 
-            $existing = $data['comment_annotation'] ?? $allDatum->comment_annotation;
-            $data['comment_annotation'] = $existing ? $existing . "\n\n" . $annotation : $annotation;
+            $existing = $data['remarks_annotation'] ?? $allDatum->remarks_annotation;
+            $data['remarks_annotation'] = $existing ? $existing . "\n\n" . $annotation : $annotation;
 
             // Clear employee fields to auto-declare vacant
             $data['last_name'] = null;
@@ -395,12 +417,12 @@ class AllDataController extends Controller
         // Auto-Calculate Annual Salary from Salary Grades if blank
         if (
             !empty($data['salary_grade']) && !empty($data['step']) &&
-            (empty($data['actual_annual_salary']) || empty($data['authorized_annual_salary']))
+            (empty($data['base_salary_amount']) || empty($data['authorized_annual_salary']))
         ) {
             $monthlySalary = \App\Models\SalaryGrade::getRate($data['salary_grade'], $data['step']);
             if ($monthlySalary > 0) {
-                if (empty($data['actual_annual_salary'])) {
-                    $data['actual_annual_salary'] = round($monthlySalary * 12, 2);
+                if (empty($data['base_salary_amount'])) {
+                    $data['base_salary_amount'] = round($monthlySalary * 12, 2);
                 }
                 if (empty($data['authorized_annual_salary'])) {
                     $data['authorized_annual_salary'] = round($monthlySalary * 12, 2);
@@ -420,7 +442,13 @@ class AllDataController extends Controller
 
         // Auto-generate employee code if blank
         if (empty($data['employee_code']) && !empty($data['last_name']) && !empty($data['date_of_birth'])) {
-            $data['employee_code'] = \App\Models\PlantillaRecord::generateEmployeeCode($data['last_name'], $data['date_of_birth']);
+            $data['employee_code'] = \App\Models\PlantillaRecord::generateEmployeeCode(
+                $data['first_name']    ?? null,
+                $data['date_of_birth'] ?? null,
+                null,
+                $data['middle_name']   ?? null,
+                $data['last_name']     ?? null
+            );
         }
 
         $allDatum->update($data);
@@ -432,12 +460,12 @@ class AllDataController extends Controller
             ActivityLog::create([
                 'user_id' => Auth::id(),
                 'action' => 'Modified Data',
-                'description' => 'Updated plantilla record for ' . $label . ' (Item: ' . $allDatum->item . ')',
+                'description' => 'Updated plantilla record for ' . $label . ' (Item: ' . $allDatum->item_no_new . ')',
             ]);
         }
 
-        return redirect()->route('all-data.index')
-            ->with('success', 'Record updated successfully.');
+        $returnUrl = session('last_index_url', route('all-data.index'));
+        return redirect($returnUrl)->with('success', 'Record updated successfully.');
     }
 
     // ── Destroy ───────────────────────────────────────────────────────────────
@@ -445,7 +473,7 @@ class AllDataController extends Controller
     public function destroy(PlantillaRecord $allDatum)
     {
         $name = trim($allDatum->first_name . ' ' . $allDatum->last_name);
-        $item = $allDatum->item;
+        $item = $allDatum->item_no_new;
 
         // Capture a full snapshot of the employee's data BEFORE clearing it,
         // so the "Undo" feature can restore it from the activity log.
@@ -462,7 +490,7 @@ class AllDataController extends Controller
             'date_last_nolp' => $allDatum->date_last_nolp?->format('Y-m-d'),
             'employment_status' => $allDatum->employment_status,
             'civil_service_eligibility' => $allDatum->civil_service_eligibility,
-            'comment_annotation' => $allDatum->comment_annotation,
+            'remarks_annotation' => $allDatum->remarks_annotation,
             'gsis_bp_number' => $allDatum->gsis_bp_number,
             'umid' => $allDatum->umid,
             'is_pwd' => $allDatum->is_pwd,
@@ -491,7 +519,7 @@ class AllDataController extends Controller
             'date_last_nolp' => null,
             'employment_status' => null,
             'civil_service_eligibility' => null,
-            'comment_annotation' => null,
+            'remarks_annotation' => null,
             'gsis_bp_number' => null,
             'umid' => null,
             'is_pwd' => false,
@@ -515,7 +543,7 @@ class AllDataController extends Controller
             ]);
         }
 
-        return redirect()->route('all-data.index')
+        return redirect(session('last_index_url', route('all-data.index')))
             ->with('success', 'Employee "' . $name . '" removed. Position ' . $item . ' is now Vacant. You can undo this from Activity Logs.');
     }
 
@@ -524,22 +552,22 @@ class AllDataController extends Controller
     private function buildExportQuery(Request $request)
     {
         $query = PlantillaRecord::query()
-            ->orderBy('organizational_unit')
-            ->orderBy('item');
+            ->orderBy('office_department')
+            ->orderBy('item_no_new');
 
         if ($request->filled('search')) {
             $term = $request->input('search');
             $query->where(function ($q) use ($term) {
                 $q->where('last_name', 'like', "%{$term}%")
                     ->orWhere('first_name', 'like', "%{$term}%")
-                    ->orWhere('item', 'like', "%{$term}%")
+                    ->orWhere('item_no_new', 'like', "%{$term}%")
                     ->orWhere('position_title', 'like', "%{$term}%")
-                    ->orWhere('organizational_unit', 'like', "%{$term}%")
+                    ->orWhere('office_department', 'like', "%{$term}%")
                     ->orWhere('tin', 'like', "%{$term}%");
             });
         }
         if ($request->filled('office')) {
-            $query->where('organizational_unit', $request->input('office'));
+            $query->where('office_department', $request->input('office'));
         }
         if ($request->filled('status')) {
             $statusMap = [
@@ -574,7 +602,7 @@ class AllDataController extends Controller
                         $q2->where(function($q3) {
                             $q3->whereNull('authorized_annual_salary')->orWhere('authorized_annual_salary', 0);
                         })->where(function($q3) {
-                            $q3->whereNull('actual_annual_salary')->orWhere('actual_annual_salary', 0);
+                            $q3->whereNull('base_salary_amount')->orWhere('base_salary_amount', 0);
                         });
                     });
                 });
@@ -614,6 +642,24 @@ class AllDataController extends Controller
         }
 
         return Excel::download(new AllDataExport($filters, $columns), $filename);
+    }
+
+    // ── Full Database Export (all records, all statuses, all columns) ─────────
+
+    public function exportFull()
+    {
+        $filename = 'plantilla-full-database-' . now()->format('Ymd-His') . '.xlsx';
+
+        if (Auth::check()) {
+            ActivityLog::create([
+                'user_id'     => Auth::id(),
+                'action'      => 'Exported Full Database',
+                'description' => 'Downloaded all plantilla records — all statuses, all columns',
+            ]);
+        }
+
+        // Empty filters = no restrictions; empty columns = all columns included
+        return Excel::download(new AllDataExport([], []), $filename);
     }
 
     // ── PDF Export ────────────────────────────────────────────────────────────
@@ -669,10 +715,10 @@ class AllDataController extends Controller
             return response()->json([]);
 
         // Return full details for each vacant item so the form can auto-fill position title & SG
-        $items = \App\Models\PlantillaRecord::where('organizational_unit', $office)
+        $items = \App\Models\PlantillaRecord::where('office_department', $office)
             ->where('is_vacant', true)
-            ->orderBy('item')
-            ->get(['item', 'position_title', 'salary_grade']);
+            ->orderBy('item_no_new')
+            ->get(['item_no_new', 'position_title', 'salary_grade']);
 
         return response()->json($items);
     }
@@ -699,13 +745,13 @@ class AllDataController extends Controller
                 ON pr.salary_grade = sg.grade AND pr.step = sg.step
                 AND {$scheduleFilter}
             SET
-                pr.actual_annual_salary      = (sg.monthly_salary * 12),
+                pr.base_salary_amount      = (sg.monthly_salary * 12),
                 pr.authorized_annual_salary  = (sg.monthly_salary * 12),
                 pr.updated_at                = NOW()
             WHERE
                 pr.deleted_at IS NULL
                 AND (
-                    pr.actual_annual_salary      != (sg.monthly_salary * 12)
+                    pr.base_salary_amount      != (sg.monthly_salary * 12)
                     OR pr.authorized_annual_salary != (sg.monthly_salary * 12)
                 )
         ";

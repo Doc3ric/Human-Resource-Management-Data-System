@@ -102,7 +102,7 @@
                         @if($log->plantillaRecord)
                             <div style="font-weight: 700; color: #0f172a; font-size: 13px;">{{ $log->plantillaRecord->full_name }}</div>
                             <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
-                                Item No: {{ $log->plantillaRecord->item }} | {{ $log->plantillaRecord->position_title }}
+                                Item No: {{ $log->plantillaRecord->item_no_new }} | {{ $log->plantillaRecord->position_title }}
                             </div>
                         @else
                             <span style="color:#ef4444; font-size: 12px;"><i class="bi bi-exclamation-triangle"></i> Record Removed</span>

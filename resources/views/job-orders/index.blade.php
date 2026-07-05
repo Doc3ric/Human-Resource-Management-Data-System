@@ -4,6 +4,244 @@
     ══════════════════════════════════════════════════════════ --}}
 
     <style>
+/* Filter bar */
+        .cas-hero {
+            background: linear-gradient(135deg, #052c65 0%, #1e3a8a 55%, #1e40af 100%);
+            border-radius: 14px;
+            padding: 24px 28px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .cas-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255, 255, 255, .07) 1px, transparent 1px);
+            background-size: 22px 22px;
+        }
+
+        .cas-hero-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .cas-hero h1 {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .cas-hero p {
+            color: rgba(255, 255, 255, .65);
+            font-size: 12px;
+            margin: 4px 0 0;
+        }
+
+        .cas-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, .15);
+            border: 1px solid rgba(255, 255, 255, .25);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .cas-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .cas-stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .cas-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .cas-stat {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px 22px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .02);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .cas-stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .cas-stat-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .cas-stat-value {
+            font-size: 30px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1;
+            margin: 0;
+        }
+
+        .cas-stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .cas-stat-icon.indigo {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .cas-stat-icon.blue {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+
+        .cas-stat-icon.purple {
+            background: #f3e8ff;
+            color: #9333ea;
+        }
+
+        .cas-stat-icon.red {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .cas-stat-sub {
+            margin-top: 14px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+        .cas-filter {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+        }
+
+        .cas-input,
+        .cas-select {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #374151;
+            outline: none;
+            background: #fafafa;
+            transition: border .15s, box-shadow .15s;
+        }
+
+        .cas-input:focus,
+        .cas-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, .1);
+            background: #fff;
+        }
+
+        .cas-input {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .cas-select {
+            min-width: 140px;
+        }
+
+        .cas-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all .15s;
+            white-space: nowrap;
+        }
+
+        .cas-btn.primary {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .cas-btn.primary:hover {
+            background: #1d4ed8;
+        }
+
+        .cas-btn.reset {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .cas-btn.reset:hover {
+            background: #e2e8f0;
+        }
+
+        .cas-btn.add {
+            background: linear-gradient(135deg, #1e3a8a, #1e40af);
+            color: #fff;
+        }
+
+        .cas-btn.add:hover {
+            opacity: .88;
+            transform: translateY(-1px);
+        }
+
+        .cas-btn.import {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .cas-btn.import:hover {
+            background: #6d28d9;
+        }
+
         /* ── Page-level overrides ─────────────────────────────── */
         .jo-page {
             display: flex;
@@ -538,130 +776,111 @@
         }
     </style>
 
-    <div class="jo-page">
-
-        {{-- Flash messages --}}
-        @if(session('success'))
-            <div
-                style="background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;">
-                <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
+        {{-- Hero --}}
+    <div class="cas-hero">
+        <div class="cas-hero-inner">
+            <div>
+                <h1><i class="bi bi-person-workspace me-2"></i>Job Order Employees</h1>
+                <p>Job Order personnel inventory — all {{ number_format($total) }} entries</p>
             </div>
-        @endif
-        @if(session('error'))
-            <div
-                style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;">
-                <i class="bi bi-exclamation-triangle-fill"></i> {{ session('error') }}
-            </div>
-        @endif
-
-        {{-- ── STATS BAR ── --}}
-        <div class="jo-stats-grid">
-            <div class="jo-stat-card">
-                <div class="jo-stat-label">Total JO</div>
-                <div class="jo-stat-value">{{ $total }}</div>
-                <div class="jo-stat-sub">employees</div>
-            </div>
-            <div class="jo-stat-card">
-                <div class="jo-stat-label">Male</div>
-                <div class="jo-stat-value" style="color:#1d4ed8;">{{ $maleCount }}</div>
-                <div class="jo-stat-sub">{{ $total > 0 ? round(($maleCount / $total) * 100) : 0 }}%</div>
-            </div>
-            <div class="jo-stat-card">
-                <div class="jo-stat-label">Female</div>
-                <div class="jo-stat-value" style="color:#be185d;">{{ $femaleCount }}</div>
-                <div class="jo-stat-sub">{{ $total > 0 ? round(($femaleCount / $total) * 100) : 0 }}%</div>
-            </div>
-            @foreach($byOffice->take(4) as $office => $count)
-                <div class="jo-stat-card">
-                    <div class="jo-stat-label">{{ $office ?: 'No Office' }}</div>
-                    <div class="jo-stat-value" style="color:#0369a1;">{{ $count }}</div>
-                    <div class="jo-stat-sub">JO employees</div>
-                </div>
-            @endforeach
+            <span class="cas-hero-badge"><i class="bi bi-database-fill"></i> {{ number_format($total) }} Records</span>
         </div>
+    </div>
 
-        {{-- ── FILTER BAR ── --}}
-        <form method="GET" action="{{ route('job-orders.index') }}" class="jo-filter-bar" id="jo-filter-form">
-            <div class="filter-group">
-                <label>Search Name / Position</label>
-                <input type="text" name="search" id="jo-search" value="{{ request('search') }}" placeholder="Search...">
-            </div>
-            <div class="filter-group">
-                <label>Charges / Office Code</label>
-                <select name="charges" id="jo-charges">
-                    <option value="">All Charges</option>
+    {{-- Flash messages --}}
+    @if(session('success'))
+        <div class="flash-success"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="flash-error"><i class="bi bi-exclamation-circle-fill"></i> {{ session('error') }}</div>
+    @endif
+
+    {{-- Stats bar --}}
+    @php
+        $joGadTotal = $maleCount + $femaleCount;
+        $joFemalePct = $joGadTotal > 0 ? round($femaleCount / $joGadTotal * 100, 1) : 0;
+        $joGadOk = $joFemalePct >= 40 && $joFemalePct <= 60;
+        $joOfficeCount = isset($officeCounts) ? count($officeCounts) : 0;
+    @endphp
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;">
+        <x-stat-card icon="bi-briefcase-fill" color="indigo" label="Total Job Orders" :value="$total"
+            sub="Active JO workers"
+            compliance="COA / DBM"
+            analysis="JO workers are NOT government employees (COA Circular 2012-001). Engagement limited to 12 months per fiscal year; no benefits attached." />
+
+        <x-stat-card icon="bi-gender-male" color="blue" label="Male" :value="$maleCount"
+            :pct="$joGadTotal > 0 ? round($maleCount/$joGadTotal*100,1) : 0"
+            sub="of sex-tagged JO workers"
+            compliance="RA 9710 GAD"
+            analysis="Male JO workers. Even non-regular engagements must be tracked for GAD purposes under RA 9710 and the Annual GAD Plan." />
+
+        <x-stat-card icon="bi-gender-female" color="pink" label="Female" :value="$femaleCount"
+            :pct="$joFemalePct"
+            sub="of sex-tagged JO workers"
+            compliance="RA 9710 GAD"
+            :alert="!$joGadOk"
+            analysis="{{ $joGadOk ? 'GAD compliant: '.$joFemalePct.'% female JO ratio is within the 40–60% window (RA 9710).' : 'ATTENTION: '.$joFemalePct.'% female ratio is outside the 40–60% GAD target (RA 9710 §12).' }}" />
+
+        <x-stat-card icon="bi-building" color="teal" label="Offices Covered" :value="$joOfficeCount"
+            sub="Distinct offices/units"
+            compliance="COA / DBM"
+            analysis="JO engagements must have approved Work Program and detailed outputs per office. Each office endorsement is required for renewal (COA Circular 2012-001)." />
+    </div>
+    <form method="GET" action="{{ route('job-orders.index') }}" id="jo-search-form">
+    <div class="cas-filter" style="display: flex; flex-direction: column; gap: 12px; align-items: stretch; padding: 14px 18px; margin-bottom: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, .04);">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <input type="text" name="search" id="jo-search" value="{{ request('search') }}" class="cas-input" placeholder="🔍 Search Name / Position...">
+                
+                <select name="office_department" id="jo-charges" class="cas-select">
+                    <option value="">— All Charges —</option>
                     @foreach($chargesList as $c)
-                        <option value="{{ $c }}" {{ request('charges') == $c ? 'selected' : '' }}>{{ $c }}</option>
+                        <option value="{{ $c }}" {{ request('office_department') == $c ? 'selected' : '' }}>{{ $c }}</option>
                     @endforeach
                 </select>
-            </div>
-            <div class="filter-group">
-                <label>Office</label>
-                <select name="office" id="jo-office">
-                    <option value="">All Offices</option>
+                
+                <select name="office" id="jo-office" class="cas-select">
+                    <option value="">— All Detailed Units —</option>
                     @foreach($offices as $o)
                         <option value="{{ $o }}" {{ request('office') == $o ? 'selected' : '' }}>{{ $o }}</option>
                     @endforeach
                 </select>
-            </div>
-            <div class="filter-group">
-                <label>Detailed / Reassigned</label>
-                <select name="detail" id="jo-detail">
-                    <option value="">All</option>
-                    @foreach($detailList as $d)
-                        <option value="{{ $d }}" {{ request('detail') == $d ? 'selected' : '' }}>{{ $d }}</option>
-                    @endforeach
+                
+                <select name="sex" id="jo-sex" class="cas-select">
+                    <option value="">— SEX —</option>
+                    <option value="M" {{ request('sex') == 'M' ? 'selected' : '' }}>M</option>
+                    <option value="F" {{ request('sex') == 'F' ? 'selected' : '' }}>F</option>
+                </select>
+                
+                <button type="submit" class="cas-btn primary" id="btn-apply-filter"><i class="bi bi-search"></i> Search</button>
+                <a href="{{ route('job-orders.index') }}" class="cas-btn reset"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+                <select name="per_page" class="cas-select" style="min-width: 80px;" onchange="this.form.submit()">
+                    <option value="20" {{ request('per_page', 50) == 20 ? 'selected' : '' }}>20</option>
+                    <option value="50" {{ request('per_page', 50) == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                    <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
                 </select>
             </div>
-            <div class="filter-btn-group">
-                <button type="submit" class="btn-filter btn-filter-apply" id="btn-apply-filter">
-                    <i class="bi bi-funnel-fill"></i> Apply
-                </button>
-                <a href="{{ route('job-orders.index') }}" class="btn-filter btn-filter-clear">
-                    <i class="bi bi-x-circle"></i> Clear
-                </a>
-            </div>
-        </form>
-
-        {{-- ── ACTION ROW ── --}}
-        <div class="jo-action-row">
-            <div class="jo-title">
-                <i class="bi bi-file-earmark-person-fill" style="color:#0369a1;"></i>
-                Job Order Inventory
-                <span
-                    style="font-size:12px;font-weight:600;color:#64748b;background:#f1f5f9;padding:3px 10px;border-radius:20px;">{{ $total }}
-                    record(s)</span>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button type="button" class="btn-export" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;cursor:pointer;" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()">
-                    <i class="bi bi-file-earmark-arrow-down-fill"></i> Export Settings
-                </button>
-                <button type="button" class="btn-export" id="btn-open-import"
-                    style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;"
-                    onclick="document.getElementById('import-modal-bg').classList.add('open')">
-                    <i class="bi bi-upload"></i> Import Excel
-                </button>
-                <a href="{{ route('job-orders.import.history') }}" class="btn-export"
-                    style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;">
-                    <i class="bi bi-clock-history"></i> Import History
-                </a>
-                <a href="{{ route('job-orders.create') }}" class="btn-create" id="btn-create-jo">
-                    <i class="bi bi-plus-lg"></i> Add JO Record
-                </a>
+            
+            <!-- Bottom Row: Actions (Far Left) -->
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-start;">
                 @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                    <button type="button" class="btn-export" id="toggle-select-multiple" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;">
-                        <i class="bi bi-ui-checks-grid"></i> Select Multiple
-                    </button>
+                    <a href="{{ route('job-orders.create') }}" class="cas-btn add" id="btn-create-jo"><i class="bi bi-plus-lg"></i> Add Record</a>
+                    <button type="button" class="cas-btn import" id="btn-open-import" onclick="document.getElementById('import-modal-bg').classList.add('open')"><i class="bi bi-upload"></i> Import Excel</button>
+                @endif
+                @unless(auth()->user()->isViewer())
+                <a href="{{ route('job-orders.import.history') }}" class="cas-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;"><i class="bi bi-clock-history"></i> Import History</a>
+                @endunless
+                <button type="button" class="cas-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;cursor:pointer;" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()"><i class="bi bi-file-earmark-arrow-down-fill"></i> Export Settings</button>
+                @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
+                    <button type="button" class="cas-btn" id="toggle-select-multiple" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;"><i class="bi bi-ui-checks-grid"></i> Select Multiple</button>
                 @endif
                 @if(auth()->user()->isSuperAdmin())
-                    <button type="button" id="delete-all-btn"
-                        style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;background:#ffffff;color:#334155;border:1px solid #cbd5e1;transition:all .15s;"
-                        onclick="document.getElementById('jo-delete-all-overlay').classList.add('active')">
-                        <i class="bi bi-trash3-fill"></i> Delete All Data
-                    </button>
+                    <button type="button" id="delete-all-btn" class="cas-btn" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;background:#ffffff;color:#334155;border:1px solid #cbd5e1;transition:all .15s;" onclick="document.getElementById('jo-delete-all-overlay').classList.add('active')"><i class="bi bi-trash3-fill"></i> Delete All Data</button>
                 @endif
             </div>
-        </div>
+        </div></form>
+
+        {{-- ── ACTION ROW (Removed per request) ── --}}
 
         {{-- Bulk Action Bar --}}
         @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
@@ -708,14 +927,15 @@
                         {{-- NAME group --}}
                         <th colspan="4">NAME</th>
                         <th rowspan="2">POSITION</th>
-                        <th rowspan="2">GENDER</th>
-                        <th rowspan="2">ACTIONS</th>
+                        <th rowspan="2" style="text-align:center;">DATE OF BIRTH</th>
+                        <th rowspan="2" style="text-align:center;">SEX</th>
+                        <th rowspan="2" style="text-align:center;">ACTIONS</th>
                     </tr>
                     <tr class="sub-header">
                         <th>LASTNAME</th>
                         <th>FIRSTNAME</th>
                         <th>MIDDLE NAME</th>
-                        <th>EXT.</th>
+                        <th>SUFFIX</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -727,18 +947,23 @@
                                 </td>
                             @endif
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ $jo->office }}</td>
+                            <td>{{ $jo->office_department }}</td>
                             <td class="text-left" style="font-weight:700;">{{ strtoupper($jo->last_name) }}</td>
                             <td class="text-left">{{ $jo->first_name }}</td>
-                            <td>{{ $jo->middle_initial }}</td>
+                            <td>{{ $jo->middle_name }}</td>
                             <td>{{ $jo->name_extension }}</td>
                             <td class="text-left">{{ $jo->position_title }}</td>
+                            <td style="color:#6b7280;text-align:center;font-size:11px;">
+                                {{ $jo->date_of_birth ? \Carbon\Carbon::parse($jo->date_of_birth)->format('M d, Y') : '—' }}
+                            </td>
                             {{-- Gender --}}
-                            <td>
-                                @if($jo->gender === 'M')
+                            <td style="text-align:center;">
+                                @if(strtoupper($jo->sex) === 'M')
                                     <span class="gender-badge gender-m">M</span>
-                                @elseif($jo->gender === 'F')
+                                @elseif(strtoupper($jo->sex) === 'F')
                                     <span class="gender-badge gender-f">F</span>
+                                @else
+                                    —
                                 @endif
                             </td>
                             <td>
@@ -766,7 +991,7 @@
                                 <div class="empty-state">
                                     <i class="bi bi-file-earmark-person" style="color:#cbd5e1;"></i>
                                     <p>No Job Order records found</p>
-                                    <small>{{ request()->anyFilled(['search', 'office', 'charges', 'detail']) ? 'Try adjusting your filters.' : 'Start by adding your first JO record.' }}</small>
+                                    <small>{{ request()->anyFilled(['search', 'office', 'office_department', 'detail']) ? 'Try adjusting your filters.' : 'Start by adding your first JO record.' }}</small>
                                 </div>
                             </td>
                         </tr>
@@ -891,7 +1116,7 @@
                                     ['E', 'M.I.', 'Middle initial'],
                                     ['F', 'EXT', 'Jr., Sr., III, etc.'],
                                     ['G', 'POSITION', 'Position title'],
-                                    ['H', 'NATURE OF WORK', 'Clerical, Trades, Technical…'],
+
                                     ['I', 'OFFICE', 'Assigned office'],
                                     ['J', 'RATE/DAY', 'Numeric, e.g. 615.00'],
                                     ['K', 'FIRST DAY OF SERVICE', 'YYYY-MM-DD'],
@@ -900,8 +1125,8 @@
                                     ['N', 'BIRTHDATE', 'YYYY-MM-DD'],
                                     ['O', 'ADDRESS', 'Full address'],
                                     ['P', 'ELIGIBILITY', 'e.g. CS PROF, NO ELIGIBILITY'],
-                                    ['Q', 'GENDER (M)', 'Enter / or x if Male'],
-                                    ['R', 'GENDER (F)', 'Enter / or x if Female'],
+                                    ['Q', 'SEX (M)', 'Enter / or x if Male'],
+                                    ['R', 'SEX (F)', 'Enter / or x if Female'],
                                     ['S', '1st LEVEL', '/ or x if with 1st level'],
                                     ['T', '2nd LEVEL', '/ or x if with 2nd level'],
                                     ['U', 'IP COMMUNITY MEMBERSHIP', 'Text or blank'],
@@ -928,18 +1153,37 @@
                 <form id="exportForm" method="GET">
                     {{-- Hidden inputs to preserve filters --}}
                     <input type="hidden" name="search" value="{{ request('search') }}">
-                    <input type="hidden" name="charges" value="{{ request('charges') }}">
+                    <input type="hidden" name="office_department" value="{{ request('office_department') }}">
                     <input type="hidden" name="office" value="{{ request('office') }}">
-                    <input type="hidden" name="nature_of_work" value="{{ request('nature_of_work') }}">
-                    <input type="hidden" name="gender" value="{{ request('gender') }}">
+
+                    <input type="hidden" name="sex" value="{{ request('sex') }}">
 
                     <div class="modal-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; border-radius: 12px 12px 0 0;">
                         <h5 class="modal-title" id="exportModalLabel" style="font-weight: 800; color: #831843;"><i class="bi bi-download"></i> Export Data Options</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" style="padding: 24px;">
+                        {{-- Record Status Filter --}}
+                        <div style="margin-bottom:16px;padding:12px 16px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+                            <p style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:8px;"><i class="bi bi-person-check-fill"></i> Record Status</p>
+                            <div class="d-flex gap-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="status_filter" value="active" id="sf_jo_active" checked>
+                                    <label class="form-check-label" for="sf_jo_active" style="font-size:13px;font-weight:600;color:#16a34a;">Active Only</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="status_filter" value="inactive" id="sf_jo_inactive">
+                                    <label class="form-check-label" for="sf_jo_inactive" style="font-size:13px;font-weight:600;color:#dc2626;">Inactive Only</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="status_filter" value="both" id="sf_jo_both">
+                                    <label class="form-check-label" for="sf_jo_both" style="font-size:13px;font-weight:600;color:#2563eb;">Both</label>
+                                </div>
+                            </div>
+                        </div>
+
                         <p style="font-size: 14px; color: #475569; margin-bottom: 16px;">Select the columns you want to include in your export:</p>
-                        
+
                         <div style="margin-bottom: 12px;">
                             <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelectorAll('.export-cb').forEach(cb => cb.checked = true)" style="font-size: 11px; font-weight: 600;">Select All</button>
                             <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelectorAll('.export-cb').forEach(cb => cb.checked = false)" style="font-size: 11px; font-weight: 600;">Deselect All</button>
@@ -948,28 +1192,30 @@
                         <div class="row">
                             @php
                                 $exportColumns = [
-                                    'charges' => 'CHARGES',
-                                    'family_name' => 'FAMILY NAME',
+                                    'office_department' => 'OFFICE',
+                                    'last_name' => 'LAST NAME',
                                     'first_name' => 'FIRST NAME',
-                                    'mi' => 'M.I.',
-                                    'ext' => 'EXT',
-                                    'position' => 'POSITION',
-                                    'nature_of_work' => 'NATURE OF WORK',
-                                    'office' => 'OFFICE',
-                                    'rate_day' => 'RATE/DAY',
-                                    'first_day' => 'FIRST DAY OF SERVICE',
-                                    'length_yrs' => 'LENGTH (YRS)',
-                                    'length_mos' => 'LENGTH (MOS)',
-                                    'birthdate' => 'BIRTHDATE',
+                                    'middle_initial' => 'MIDDLE NAME',
+                                    'name_extension' => 'SUFFIX',
+                                    'position_title' => 'POSITION TITLE',
+
+                                    'nature_of_work_detail' => 'NATURE OF WORK DETAIL',
+                                    'office' => 'DETAILED UNIT',
+                                    'rate_per_day' => 'RATE PER DAY',
+                                    'first_day_of_service' => 'FIRST DAY OF SERVICE',
+                                    'date_of_birth' => 'DATE OF BIRTH',
+                                    'civil_status' => 'CIVIL STATUS',
                                     'address' => 'ADDRESS',
                                     'eligibility' => 'ELIGIBILITY',
-                                    'gender_m' => 'GENDER (M)',
-                                    'gender_f' => 'GENDER (F)',
-                                    'level_1' => '1st LEVEL',
-                                    'level_2' => '2nd LEVEL',
-                                    'ip' => 'IP COMMUNITY MEMBERSHIP',
+                                    'sex' => 'SEX',
+                                    'level' => 'LEVEL',
+                                    'first_level_eligibility' => 'FIRST LEVEL ELIGIBILITY',
+                                    'second_level_eligibility' => 'SECOND LEVEL ELIGIBILITY',
+                                    'ip_community_membership' => 'IP COMMUNITY MEMBERSHIP',
                                     'solo_parent' => 'SOLO PARENT',
+                                    'reemployment' => 'REEMPLOYMENT',
                                     'remarks' => 'REMARKS',
+                                    'employee_code' => 'EMPLOYEE CODE'
                                 ];
                             @endphp
                             @foreach($exportColumns as $key => $label)

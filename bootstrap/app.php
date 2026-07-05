@@ -12,8 +12,20 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'role'                => \App\Http\Middleware\RoleMiddleware::class,
+            'force.password'      => \App\Http\Middleware\ForcePasswordChange::class,
+            'permission'          => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'spatie.role'         => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'role_or_permission'  => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
+        $middleware->appendToGroup('web', \App\Http\Middleware\ForcePasswordChange::class);
+
+        $middleware->redirectUsersTo(function (\Illuminate\Http\Request $request) {
+            if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->hasRole('Appointment Encoder')) {
+                return route('recruitment.index');
+            }
+            return route('dashboard');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

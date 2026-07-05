@@ -18,9 +18,29 @@ class RoleMiddleware
             return redirect()->route('login');
         }
 
-        $userRole = auth()->user()->role;
+        $user = auth()->user();
 
-        if (!in_array($userRole, $roles)) {
+        // Map role aliases to Spatie role names
+        $roleMap = [
+            'super_admin'         => 'System & Administration',
+            'inventory_admin'     => 'Personnel Records',
+            'salary_admin'        => 'Welfare & Benefits',
+            'appointment_admin'   => 'Appointment',
+            'appointment_encoder' => 'Appointment Encoder',
+            'performance_admin'   => 'Performance Management',
+            'viewer'              => 'Viewer',
+        ];
+
+        $hasAccess = false;
+        foreach ($roles as $r) {
+            $mappedRole = $roleMap[$r] ?? $r;
+            if ($user->hasRole($mappedRole)) {
+                $hasAccess = true;
+                break;
+            }
+        }
+
+        if (!$hasAccess) {
             abort(403, 'You do not have permission to access this page.');
         }
 

@@ -226,7 +226,7 @@
                 <tbody>
                     @foreach($typeRecords as $index => $rec)
                     @php
-                        $extractedNum = preg_replace('/[^0-9]/', '', $rec->item ?? '');
+                        $extractedNum = preg_replace('/[^0-9]/', '', $rec->item_no_new ?? '');
                         $itemNum = $extractedNum !== '' ? $extractedNum : $loop->iteration;
 
                         // Current rates

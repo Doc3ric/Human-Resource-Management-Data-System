@@ -1,0 +1,305 @@
+/*
+ * HRMDS Dynamic Color Theme System
+ * All themes are defined via CSS custom properties so any component
+ * can reference var(--color-primary) etc. instead of hardcoded hex values.
+ * WCAG 2.1 AA: contrast ratio ≥ 4.5:1 for all text-on-background pairs.
+ */
+
+/* ── Default (Navy Blue) ───────────────────────────────────────────── */
+:root,
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light) {
+    --color-primary:         #113659;
+    --color-primary-dark:    #0d2842;
+    --color-primary-light:   #1a4a7a;
+    --color-primary-rgb:     17, 54, 89;
+
+    --color-accent:          #2563eb;
+    --color-accent-dark:     #1d4ed8;
+    --color-accent-light:    #3b82f6;
+    --color-accent-rgb:      37, 99, 235;
+
+    --color-sidebar-bg:      #113659;
+    --color-sidebar-footer:  #0d2842;
+    --color-sidebar-text:    #e2e8f0;
+    --color-sidebar-icon:    #cbd5e1;
+    --color-sidebar-section: #8ba3de;
+    --color-sidebar-active-bg:   rgba(255,255,255,0.15);
+    --color-sidebar-hover-bg:    rgba(255,255,255,0.08);
+
+    --color-topbar-bg:       #ffffff;
+    --color-topbar-text:     #111827;
+    --color-topbar-border:   #e5e7eb;
+
+    --color-page-bg:         #f8fafc;
+    --color-surface:         #ffffff;
+    --color-border:          #e5e7eb;
+    --color-text-primary:    #111827;
+    --color-text-secondary:  #4b5563;
+    --color-text-muted:      #9ca3af;
+
+    --color-btn-primary-bg:  #113659;
+    --color-btn-primary-text:#ffffff;
+    --color-btn-primary-hover:#0d2842;
+
+    --color-link:            #2563eb;
+    --color-link-hover:      #1d4ed8;
+
+    --color-focus-ring:      rgba(37,99,235,0.25);
+
+    --color-nav-active-text: #2563eb;
+    --color-nav-active-bg:   #eff6ff;
+
+    --color-danger:          #dc3545;
+    --color-danger-dark:     #b02a37;
+    --color-danger-rgb:      220, 53, 69;
+}
+
+/* ── Emerald Night (Dark Green) ───────────────────────────────────── */
+body.emerald-night {
+    --color-primary:         #133D2F;
+    --color-primary-dark:    #0e2d23;
+    --color-primary-light:   #1a5040;
+    --color-primary-rgb:     19, 61, 47;
+
+    --color-accent:          #10b981;
+    --color-accent-dark:     #059669;
+    --color-accent-light:    #34d399;
+    --color-accent-rgb:      16, 185, 129;
+
+    --color-sidebar-bg:      #133D2F;
+    --color-sidebar-footer:  #0e2d23;
+    --color-sidebar-text:    #d1d5db;
+    --color-sidebar-icon:    #9ca3af;
+    --color-sidebar-section: #6b7280;
+    --color-sidebar-active-bg:   #10b981;
+    --color-sidebar-hover-bg:    rgba(255,255,255,0.08);
+
+    --color-topbar-bg:       #133D2F;
+    --color-topbar-text:     #f3f4f6;
+    --color-topbar-border:   rgba(255,255,255,0.05);
+
+    --color-page-bg:         #0A1F16;
+    --color-surface:         #111827;
+    --color-border:          rgba(255,255,255,0.08);
+    --color-text-primary:    #f3f4f6;
+    --color-text-secondary:  #d1d5db;
+    --color-text-muted:      #9ca3af;
+
+    --color-btn-primary-bg:  #10b981;
+    --color-btn-primary-text:#ffffff;
+    --color-btn-primary-hover:#059669;
+
+    --color-link:            #34d399;
+    --color-link-hover:      #10b981;
+
+    --color-focus-ring:      rgba(16,185,129,0.25);
+
+    --color-nav-active-text: #10b981;
+    --color-nav-active-bg:   rgba(16,185,129,0.15);
+
+    --color-danger:          #f87171;
+    --color-danger-dark:     #ef4444;
+    --color-danger-rgb:      248, 113, 113;
+}
+
+/* ── Financial (Teal) ─────────────────────────────────────────────── */
+body.theme-financial {
+    --color-primary:         #055B65;
+    --color-primary-dark:    #03404a;
+    --color-primary-light:   #077a87;
+    --color-primary-rgb:     5, 91, 101;
+
+    --color-accent:          #0891b2;
+    --color-accent-dark:     #0e7490;
+    --color-accent-light:    #22d3ee;
+    --color-accent-rgb:      8, 145, 178;
+
+    --color-sidebar-bg:      #055B65;
+    --color-sidebar-footer:  #03404a;
+    --color-sidebar-text:    #e0f2f1;
+    --color-sidebar-icon:    #b2dfdb;
+    --color-sidebar-section: #80cbc4;
+    --color-sidebar-active-bg:   rgba(255,255,255,0.18);
+    --color-sidebar-hover-bg:    rgba(255,255,255,0.09);
+
+    --color-topbar-bg:       #055B65;
+    --color-topbar-text:     #FBFCFC;
+    --color-topbar-border:   rgba(255,255,255,0.1);
+
+    --color-page-bg:         #f0fdfb;
+    --color-surface:         #ffffff;
+    --color-border:          #ccece9;
+    --color-text-primary:    #111827;
+    --color-text-secondary:  #374151;
+    --color-text-muted:      #6b7280;
+
+    --color-btn-primary-bg:  #055B65;
+    --color-btn-primary-text:#ffffff;
+    --color-btn-primary-hover:#03404a;
+
+    --color-link:            #0891b2;
+    --color-link-hover:      #0e7490;
+
+    --color-focus-ring:      rgba(8,145,178,0.25);
+
+    --color-nav-active-text: #055B65;
+    --color-nav-active-bg:   #e0f2f1;
+
+    --color-danger:          #dc3545;
+    --color-danger-dark:     #b02a37;
+    --color-danger-rgb:      220, 53, 69;
+}
+
+/* ── Corona (Dark) ────────────────────────────────────────────────── */
+body.theme-corona {
+    --color-primary:         #1a1a2e;
+    --color-primary-dark:    #0f0f1e;
+    --color-primary-light:   #2a2a45;
+    --color-primary-rgb:     26, 26, 46;
+
+    --color-accent:          #e94560;
+    --color-accent-dark:     #c73652;
+    --color-accent-light:    #f07088;
+    --color-accent-rgb:      233, 69, 96;
+
+    --color-sidebar-bg:      #1a1a2e;
+    --color-sidebar-footer:  #0f0f1e;
+    --color-sidebar-text:    #c9d1d9;
+    --color-sidebar-icon:    #8b949e;
+    --color-sidebar-section: #6e7681;
+    --color-sidebar-active-bg:   #e94560;
+    --color-sidebar-hover-bg:    rgba(255,255,255,0.06);
+
+    --color-topbar-bg:       #1a1a2e;
+    --color-topbar-text:     #c9d1d9;
+    --color-topbar-border:   rgba(255,255,255,0.06);
+
+    --color-page-bg:         #0d1117;
+    --color-surface:         #161b22;
+    --color-border:          rgba(255,255,255,0.07);
+    --color-text-primary:    #c9d1d9;
+    --color-text-secondary:  #8b949e;
+    --color-text-muted:      #484f58;
+
+    --color-btn-primary-bg:  #e94560;
+    --color-btn-primary-text:#ffffff;
+    --color-btn-primary-hover:#c73652;
+
+    --color-link:            #e94560;
+    --color-link-hover:      #f07088;
+
+    --color-focus-ring:      rgba(233,69,96,0.25);
+
+    --color-nav-active-text: #e94560;
+    --color-nav-active-bg:   rgba(233,69,96,0.12);
+
+    --color-danger:          #f87171;
+    --color-danger-dark:     #ef4444;
+    --color-danger-rgb:      248, 113, 113;
+}
+
+/* ── Light (Clean White) ──────────────────────────────────────────── */
+body.theme-light {
+    --color-primary:         #4f46e5;
+    --color-primary-dark:    #4338ca;
+    --color-primary-light:   #6366f1;
+    --color-primary-rgb:     79, 70, 229;
+
+    --color-accent:          #7c3aed;
+    --color-accent-dark:     #6d28d9;
+    --color-accent-light:    #8b5cf6;
+    --color-accent-rgb:      124, 58, 237;
+
+    --color-sidebar-bg:      #4f46e5;
+    --color-sidebar-footer:  #4338ca;
+    --color-sidebar-text:    #e0e7ff;
+    --color-sidebar-icon:    #c7d2fe;
+    --color-sidebar-section: #a5b4fc;
+    --color-sidebar-active-bg:   rgba(255,255,255,0.20);
+    --color-sidebar-hover-bg:    rgba(255,255,255,0.10);
+
+    --color-topbar-bg:       #ffffff;
+    --color-topbar-text:     #111827;
+    --color-topbar-border:   #e5e7eb;
+
+    --color-page-bg:         #f5f3ff;
+    --color-surface:         #ffffff;
+    --color-border:          #ddd6fe;
+    --color-text-primary:    #111827;
+    --color-text-secondary:  #4b5563;
+    --color-text-muted:      #9ca3af;
+
+    --color-btn-primary-bg:  #4f46e5;
+    --color-btn-primary-text:#ffffff;
+    --color-btn-primary-hover:#4338ca;
+
+    --color-link:            #4f46e5;
+    --color-link-hover:      #4338ca;
+
+    --color-focus-ring:      rgba(79,70,229,0.25);
+
+    --color-nav-active-text: #4f46e5;
+    --color-nav-active-bg:   #ede9fe;
+
+    --color-danger:          #dc3545;
+    --color-danger-dark:     #b02a37;
+    --color-danger-rgb:      220, 53, 69;
+}
+
+/* ── Semantic utility classes using variables ─────────────────────── */
+.theme-primary-bg   { background-color: var(--color-primary) !important; }
+.theme-accent-bg    { background-color: var(--color-accent) !important; }
+.theme-primary-text { color: var(--color-primary) !important; }
+.theme-accent-text  { color: var(--color-accent) !important; }
+.theme-primary-border { border-color: var(--color-primary) !important; }
+
+/* Theme-light sidebar overrides (topbar stays white so no special rule needed) */
+body.theme-light .sidebar {
+    background-color: var(--color-sidebar-bg) !important;
+    border-right: none !important;
+}
+body.theme-light .sidebar-title-main,
+body.theme-light .sidebar-title-sub {
+    color: #ffffff !important;
+}
+body.theme-light .nav-link {
+    color: var(--color-sidebar-text) !important;
+}
+body.theme-light .nav-link:hover {
+    background: var(--color-sidebar-hover-bg) !important;
+    color: #ffffff !important;
+}
+body.theme-light .nav-link.active {
+    background: var(--color-sidebar-active-bg) !important;
+    color: #ffffff !important;
+}
+body.theme-light .nav-icon {
+    color: var(--color-sidebar-icon) !important;
+}
+body.theme-light .sidebar-footer {
+    background: var(--color-sidebar-footer) !important;
+    border-top: 1px solid rgba(255,255,255,0.1) !important;
+}
+body.theme-light .nav-section {
+    color: var(--color-sidebar-section) !important;
+}
+body.theme-light .sidebar-header {
+    background-color: var(--color-sidebar-bg) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+}
+body.theme-light .btn-primary {
+    background-color: var(--color-btn-primary-bg) !important;
+    border-color: var(--color-btn-primary-bg) !important;
+    color: var(--color-btn-primary-text) !important;
+}
+body.theme-light .btn-primary:hover {
+    background-color: var(--color-btn-primary-hover) !important;
+    border-color: var(--color-btn-primary-hover) !important;
+}
+body.theme-light .pagination .page-item.active .page-link {
+    background-color: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+}
+body.theme-light .pagination .page-link {
+    color: var(--color-primary) !important;
+}

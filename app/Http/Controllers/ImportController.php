@@ -20,12 +20,12 @@ class ImportController extends Controller
     {
         return [
             // Optional position fields
-            'organizational_unit' => ['label' => 'Organizational Unit', 'required' => false],
-            'item' => ['label' => 'Item (Position Code)', 'required' => false],
+            'office_department' => ['label' => 'Organizational Unit', 'required' => false],
+            'item_no_new' => ['label' => 'Item (Position Code)', 'required' => false],
             'position_title' => ['label' => 'Position Title', 'required' => false],
             'salary_grade' => ['label' => 'Salary Grade', 'required' => false],
             'authorized_annual_salary' => ['label' => 'Authorized Annual Salary', 'required' => false],
-            'actual_annual_salary' => ['label' => 'Actual Annual Salary', 'required' => false],
+            'base_salary_amount' => ['label' => 'Actual Annual Salary', 'required' => false],
             'step' => ['label' => 'Step', 'required' => false],
             'area_code' => ['label' => 'Area Code', 'required' => false],
             'area_type' => ['label' => 'Area Type', 'required' => false],
@@ -36,13 +36,13 @@ class ImportController extends Controller
             'middle_name' => ['label' => 'Middle Name', 'required' => false],
             'sex' => ['label' => 'Sex (M/F)', 'required' => false],
             'religion' => ['label' => 'Religion', 'required' => false],
-            'date_of_birth' => ['label' => 'Date of Birth', 'required' => false],
+            'date_of_birth' => ['label' => 'Birthday', 'required' => false],
             'tin' => ['label' => 'TIN', 'required' => false],
             'date_original_appointment' => ['label' => 'Date of Original Appointment', 'required' => false],
             'date_last_promotion' => ['label' => 'Date of Last Promotion', 'required' => false],
             'employment_status' => ['label' => 'Employment Status', 'required' => false],
             'civil_service_eligibility' => ['label' => 'Civil Service Eligibility', 'required' => false],
-            'comment_annotation' => ['label' => 'Comment / Annotation', 'required' => false],
+            'remarks_annotation' => ['label' => 'Comment / Annotation', 'required' => false],
             'is_pwd' => ['label' => 'PWD (Y=Yes)', 'required' => false],
             'indigenous_people' => ['label' => 'Indigenous People', 'required' => false],
             'solo_parent' => ['label' => 'Solo Parent (ID Number)', 'required' => false],
@@ -51,6 +51,30 @@ class ImportController extends Controller
             'gsis_bp_number' => ['label' => 'GSIS BP Number', 'required' => false],
             'position_classification' => ['label' => 'Position Classification', 'required' => false],
             'umid' => ['label' => 'UMID', 'required' => false],
+            // Job Order & Casual fields
+            'office_department' => ['label' => 'Charges', 'required' => false],
+            'name_extension' => ['label' => 'Name Extension (Suffix)', 'required' => false],
+            'nature_of_work_detail' => ['label' => 'Nature of Work Detail', 'required' => false],
+            'rate_per_day' => ['label' => 'Rate Per Day', 'required' => false],
+            'first_day_of_service' => ['label' => 'First Day of Service', 'required' => false],
+            'civil_status' => ['label' => 'Civil Status', 'required' => false],
+            'address' => ['label' => 'Address', 'required' => false],
+            'first_level_eligibility' => ['label' => 'First Level Eligibility', 'required' => false],
+            'second_level_eligibility' => ['label' => 'Second Level Eligibility', 'required' => false],
+            'reemployment' => ['label' => 'Reemployment', 'required' => false],
+            'remarks' => ['label' => 'Remarks', 'required' => false],
+            'item_no_old' => ['label' => 'Item No Old', 'required' => false],
+            'legislative_district' => ['label' => 'Legislative District', 'required' => false],
+            'sg_proposed' => ['label' => 'SG Proposed', 'required' => false],
+            'step_proposed' => ['label' => 'Step Proposed', 'required' => false],
+            'salary_proposed' => ['label' => 'Salary Proposed', 'required' => false],
+            'increase_decrease' => ['label' => 'Increase/Decrease', 'required' => false],
+            'previous_rate' => ['label' => 'Previous Rate', 'required' => false],
+            'current_rate' => ['label' => 'Current Rate', 'required' => false],
+            // Separation / appointment history
+            'nature_of_separation' => ['label' => 'Nature of Separation', 'required' => false],
+            'date_separated'       => ['label' => 'Date Separated', 'required' => false],
+            'employee_code'        => ['label' => 'Employee No.', 'required' => false],
         ];
     }
 
@@ -58,12 +82,12 @@ class ImportController extends Controller
     private static function legacyHeaderMap(): array
     {
         return [
-            'ORGANIZATIONAL UNIT' => 'organizational_unit',
-            'ITEM' => 'item',
+            'ORGANIZATIONAL UNIT' => 'office_department',
+            'ITEM' => 'item_no_new',
             'POSITION TITLE' => 'position_title',
             'SALARY GRADE' => 'salary_grade',
             'AUTHORIZED ANNUAL SALARY' => 'authorized_annual_salary',
-            'ACTUAL ANNUAL SALARY' => 'actual_annual_salary',
+            'ACTUAL ANNUAL SALARY' => 'base_salary_amount',
             'STEP' => 'step',
             'AREA CODE' => 'area_code',
             'AREA TYPE' => 'area_type',
@@ -79,7 +103,7 @@ class ImportController extends Controller
             'DATE OF LAST PROMOTION-APPOINTMENT' => 'date_last_promotion',
             'STATUS' => 'employment_status',
             'CIVIL SERVICE ELIGIBILITY' => 'civil_service_eligibility',
-            'COMMENT/ ANNOTATION' => 'comment_annotation',
+            'COMMENT/ ANNOTATION' => 'remarks_annotation',
             'PWD' => 'is_pwd',
             'INDIGENOUS PEOPLE (Y)' => 'indigenous_people',
             'SOLO PARENT (ID_NUMBER)' => 'solo_parent',
@@ -88,6 +112,35 @@ class ImportController extends Controller
             'GSIS BP NUMBER' => 'gsis_bp_number',
             'POSITION CLASSIFICATION' => 'position_classification',
             'UMID' => 'umid',
+            // Job Order & Casual headers
+            'CHARGES' => 'office_department',
+            'NAME EXTENSION' => 'name_extension',
+            'NATURE OF WORK DETAIL' => 'nature_of_work_detail',
+            'RATE PER DAY' => 'rate_per_day',
+            'FIRST DAY OF SERVICE' => 'first_day_of_service',
+            'CIVIL STATUS' => 'civil_status',
+            'ADDRESS' => 'address',
+            'FIRST LEVEL ELIGIBILITY' => 'first_level_eligibility',
+            'SECOND LEVEL ELIGIBILITY' => 'second_level_eligibility',
+            'REEMPLOYMENT' => 'reemployment',
+            'REMARKS' => 'remarks',
+            'ITEM NO OLD' => 'item_no_old',
+            'LEGISLATIVE DISTRICT' => 'legislative_district',
+            'SG PROPOSED' => 'sg_proposed',
+            'STEP PROPOSED' => 'step_proposed',
+            'SALARY PROPOSED' => 'salary_proposed',
+            'INCREASE DECREASE' => 'increase_decrease',
+            'PREVIOUS RATE' => 'previous_rate',
+            'CURRENT RATE' => 'current_rate',
+            // Full-database-export column headers (so that file re-imports cleanly)
+            'OFFICE'        => 'office_department',
+            'TERMINATION'   => 'nature_of_separation',
+            'EMPLOYEE NO.'  => 'employee_code',
+            'INDIGENOUS PEOPLE' => 'indigenous_people',
+            'SOLO PARENT'   => 'solo_parent',
+            // Aliases to catch typical CSV headers from older systems
+            'SUFFIX'    => 'name_extension',
+            'EXTENSION' => 'name_extension',
         ];
     }
 
@@ -136,6 +189,25 @@ class ImportController extends Controller
             'GSIS BP NUMBER',
             'POSITION CLASSIFICATION',
             'UMID',
+            'NAME EXTENSION',
+            'CHARGES',
+            'NATURE OF WORK DETAIL',
+            'RATE PER DAY',
+            'FIRST DAY OF SERVICE',
+            'CIVIL STATUS',
+            'ADDRESS',
+            'FIRST LEVEL ELIGIBILITY',
+            'SECOND LEVEL ELIGIBILITY',
+            'REEMPLOYMENT',
+            'REMARKS',
+            'ITEM NO OLD',
+            'LEGISLATIVE DISTRICT',
+            'SG PROPOSED',
+            'STEP PROPOSED',
+            'SALARY PROPOSED',
+            'INCREASE DECREASE',
+            'PREVIOUS RATE',
+            'CURRENT RATE',
         ];
 
         $spreadsheet = new Spreadsheet();
@@ -367,6 +439,8 @@ class ImportController extends Controller
         $originalFileName = session("import_filename_{$tmpKey}", '');
         $replaceAll   = (bool) $request->input('replace_all', false);
         $dryRun       = (bool) $request->input('dry_run', false);
+        $routingMode  = session("import_routing_mode_{$tmpKey}", 'global');
+        $granularStatus = session("import_granular_status_{$tmpKey}", '');
         $systemFields = self::systemFields();
 
         // Use the previously selected mapping as the pre-selected auto-mapping
@@ -381,7 +455,9 @@ class ImportController extends Controller
             'dryRun',
             'systemFields',
             'autoMapping',
-            'originalFileName'
+            'originalFileName',
+            'routingMode',
+            'granularStatus'
         ));
     }
 
@@ -423,6 +499,8 @@ class ImportController extends Controller
             $totalRows = count($data) - $headerRowIndex - 1;
             $replaceAll = $request->boolean('replace_all');
             $dryRun = $request->boolean('dry_run');
+            $routingMode = $request->input('routing_mode', 'global');
+            $granularStatus = $request->input('granular_status', '');
             $systemFields = self::systemFields();
             $legacyMap = self::legacyHeaderMap();
             $originalFileName = $file->getClientOriginalName();
@@ -444,6 +522,8 @@ class ImportController extends Controller
                 "import_headers_{$tmpKey}"   => $headers,
                 "import_totalrows_{$tmpKey}" => $totalRows,
                 "import_filename_{$tmpKey}"  => $originalFileName,
+                "import_routing_mode_{$tmpKey}" => $routingMode,
+                "import_granular_status_{$tmpKey}" => $granularStatus,
             ]);
 
             return view('imports.map', compact(
@@ -455,7 +535,9 @@ class ImportController extends Controller
                 'dryRun',
                 'systemFields',
                 'autoMapping',
-                'originalFileName'
+                'originalFileName',
+                'routingMode',
+                'granularStatus'
             ));
 
         } catch (\Exception $e) {
@@ -481,9 +563,11 @@ class ImportController extends Controller
         // FIX #2 — Resolve tmp_path from session instead of trusting the hidden input
         $tmpKey  = $request->input('tmp_key');
         $tmpPath = session("import_tmp_{$tmpKey}");
-        $mapping = $request->input('mapping'); // ['organizational_unit' => 'Dept', ...]
+        $mapping = $request->input('mapping'); // ['office_department' => 'Dept', ...]
         $replaceAll = $request->boolean('replace_all');
         $dryRun = $request->boolean('dry_run');
+        $routingMode = $request->input('routing_mode', 'global');
+        $granularStatus = $request->input('granular_status', '');
         $originalFileName = $request->input('original_filename', '');
 
         if (!$tmpPath || !Storage::exists($tmpPath)) {
@@ -513,7 +597,7 @@ class ImportController extends Controller
             $vacantCount = 0;
             $rowNum = 2;
 
-            $existingItems = PlantillaRecord::pluck('item')
+            $existingItems = PlantillaRecord::pluck('item_no_new')
                 ->filter(fn($v) => is_string($v) || is_int($v))
                 ->mapWithKeys(fn($item) => [$item => true])
                 ->toArray();
@@ -532,7 +616,7 @@ class ImportController extends Controller
                     if (count($mapped) < 20) {
                         $mapped[] = $result['data'];
                     }
-                    $itemCode = $result['data']['item'] ?? '';
+                    $itemCode = $result['data']['item_no_new'] ?? '';
                     if ($itemCode && isset($existingItems[$itemCode])) {
                         $duplicates[] = $itemCode;
                     }
@@ -551,15 +635,15 @@ class ImportController extends Controller
 
             // Build change-comparison for UPDATE rows in the preview (first 10 dupes only, for performance)
             $changeComparisons = [];
-            $dupeItemsInPreview = array_filter($mapped, fn($r) => isset($existingItems[$r['item'] ?? '']));
+            $dupeItemsInPreview = array_filter($mapped, fn($r) => isset($existingItems[$r['item_no_new'] ?? '']));
             $dupeItemsInPreview = array_slice(array_values($dupeItemsInPreview), 0, 10);
             if (!empty($dupeItemsInPreview)) {
-                $itemCodesToFetch = array_column($dupeItemsInPreview, 'item');
-                $existingRecords  = PlantillaRecord::whereIn('item', $itemCodesToFetch)->get()->keyBy('item');
+                $itemCodesToFetch = array_column($dupeItemsInPreview, 'item_no_new');
+                $existingRecords  = PlantillaRecord::whereIn('item_no_new', $itemCodesToFetch)->get()->keyBy('item_no_new');
                 $compareFields = ['position_title', 'salary_grade', 'step', 'employment_status',
-                                  'first_name', 'last_name', 'organizational_unit'];
+                                  'first_name', 'last_name', 'office_department'];
                 foreach ($dupeItemsInPreview as $row) {
-                    $item = $row['item'] ?? null;
+                    $item = $row['item_no_new'] ?? null;
                     if (!$item || !isset($existingRecords[$item])) continue;
                     $existing = $existingRecords[$item];
                     $changes = [];
@@ -614,6 +698,8 @@ class ImportController extends Controller
                 'totalRows',
                 'replaceAll',
                 'dryRun',
+                'routingMode',
+                'granularStatus',
                 'duplicates',
                 'mappingJson',
                 'tmpKey',
@@ -666,7 +752,7 @@ class ImportController extends Controller
             $mapped = [];
             $rowNum = $headerRowIndex + 2; // Excel row number accounts for skipped rows
 
-            $existingItems = PlantillaRecord::pluck('item')
+            $existingItems = PlantillaRecord::pluck('item_no_new')
                 ->filter(fn($v) => is_string($v) || is_int($v))
                 ->mapWithKeys(fn($item) => [$item => true])
                 ->toArray();
@@ -680,7 +766,7 @@ class ImportController extends Controller
                     if (count($mapped) < 20) {
                         $mapped[] = $result['data'];
                     }
-                    $itemCode = $result['data']['item'] ?? '';
+                    $itemCode = $result['data']['item_no_new'] ?? '';
                     if ($itemCode && isset($existingItems[$itemCode])) {
                         $duplicates[] = $itemCode;
                     }
@@ -690,6 +776,8 @@ class ImportController extends Controller
 
             $replaceAll = $request->boolean('replace_all');
             $dryRun = $request->boolean('dry_run');
+            $routingMode = $request->input('routing_mode', 'global');
+            $granularStatus = $request->input('granular_status', '');
             $mappingJson = null;
             $tmpKey = null;
             $tmpPath = null;
@@ -755,6 +843,9 @@ class ImportController extends Controller
         try {
             $replaceAll = $request->boolean('replace_all');
             $dryRun = $request->boolean('dry_run');
+            $routingMode = $request->input('routing_mode', 'global');
+            $granularStatus = $request->input('granular_status');
+            
             $rows = Excel::toArray(new class implements \Maatwebsite\Excel\Concerns\ToArray {
                 public function array(array $array): void
                 {
@@ -812,21 +903,54 @@ class ImportController extends Controller
 
                     $mappedRow = $result['data'];
                     unset($mappedRow['row_number']);
+                    
+                    // Granular routing mode validation
+                    if ($routingMode === 'granular' && $granularStatus) {
+                        $rowStatus = $mappedRow['employment_status'] ?? '';
+                        if (!empty($rowStatus) && strcasecmp(trim($rowStatus), trim($granularStatus)) !== 0) {
+                            $stats['skipped']++;
+                            $stats['errors'][] = "Row {$rowNum}: Status mismatch (expected {$granularStatus}, got {$rowStatus})";
+                            continue;
+                        }
+                        // Default to the granular status if missing
+                        if (empty($rowStatus) && !$mappedRow['is_vacant']) {
+                            $mappedRow['employment_status'] = $granularStatus;
+                        }
+                    }
 
-                    // Match record by item code, or fallback to first and last name if item is missing
+                    // Conditional Processing: Upsert Match Logic
                     $existing = null;
                     if (!$replaceAll) {
-                        $itemCode = $mappedRow['item'] ?? null;
+                        $itemCode = $mappedRow['item_no_new'] ?? null;
+                        $tin = $mappedRow['tin'] ?? null;
 
-                        if ($itemCode) {
-                            $existing = PlantillaRecord::withTrashed()->where('item', $itemCode)->first();
+                        // Priority 1: Match by Item No + TIN
+                        if ($itemCode && $tin) {
+                            $existing = PlantillaRecord::withTrashed()
+                                ->where('item_no_new', $itemCode)
+                                ->where('tin', $tin)
+                                ->first();
+                        }
+                        
+                        // Priority 2: Fallback to Item No alone if no TIN provided
+                        if (!$existing && $itemCode) {
+                            $existing = PlantillaRecord::withTrashed()->where('item_no_new', $itemCode)->first();
                         }
 
+                        // Priority 3: Fallback to Name + Suffix
                         if (!$existing && !empty($mappedRow['first_name']) && !empty($mappedRow['last_name'])) {
-                            $existing = PlantillaRecord::withTrashed()
+                            $query = PlantillaRecord::withTrashed()
                                 ->where('first_name', $mappedRow['first_name'])
-                                ->where('last_name', $mappedRow['last_name'])
-                                ->first();
+                                ->where('last_name', $mappedRow['last_name']);
+                                
+                            if (!empty($mappedRow['middle_name'])) {
+                                $query->where('middle_name', $mappedRow['middle_name']);
+                            }
+                            if (!empty($mappedRow['name_extension'])) {
+                                $query->where('name_extension', $mappedRow['name_extension']);
+                            }
+                            
+                            $existing = $query->first();
                         }
                     }
 
@@ -836,19 +960,13 @@ class ImportController extends Controller
                             $existing->restore();
                         }
                         
-                        // Clear separation if we are importing them again as active
-                        if (!empty($mappedRow['first_name'])) {
-                            $mappedRow['nature_of_separation'] = null;
-                            $mappedRow['date_separated'] = null;
-                        }
-
                         // Only update with fields that are not null, protecting existing data from being wiped by partial imports
                         $updateData = array_filter($mappedRow, fn($value) => $value !== null);
                         $existing->update($updateData);
                         $stats['updated']++;
                         // FIX #6 — Cap detail arrays at 100 to avoid memory/rendering issues on large imports
                         if (count($stats['updated_records']) < 100) {
-                            $itemName = $existing->item ?: 'No Item';
+                            $itemName = $existing->item_no_new ?: 'No Item';
                             $stats['updated_records'][] = trim($existing->first_name . ' ' . $existing->last_name) . " ({$itemName})";
                         }
                     } else {
@@ -856,7 +974,7 @@ class ImportController extends Controller
                         $stats['created']++;
                         // FIX #6 — Cap detail arrays at 100
                         if (count($stats['created_records']) < 100) {
-                            $itemName = $newRecord->item ?: 'No Item';
+                            $itemName = $newRecord->item_no_new ?: 'No Item';
                             $stats['created_records'][] = trim($newRecord->first_name . ' ' . $newRecord->last_name) . " ({$itemName})";
                         }
                     }
@@ -1086,12 +1204,12 @@ class ImportController extends Controller
         return [
             'data' => [
                 'row_number' => $rowNum,
-                'organizational_unit' => trim((string) ($get('organizational_unit') ?? '')) ?: null,
-                'item' => trim((string) ($get('item') ?? '')) ?: null,
+                'office_department' => trim((string) ($get('office_department') ?? '')) ?: null,
+                'item_no_new' => trim((string) ($get('item_no_new') ?? '')) ?: null,
                 'position_title' => trim((string) ($get('position_title') ?? '')) ?: null,
                 'salary_grade' => ($val = preg_replace('/[^\d]/', '', (string) $get('salary_grade'))) !== '' ? (int) $val : null,
                 'authorized_annual_salary' => ($val = preg_replace('/[^\d.]/', '', (string) $get('authorized_annual_salary'))) !== '' ? (float) $val : null,
-                'actual_annual_salary' => ($val = preg_replace('/[^\d.]/', '', (string) $get('actual_annual_salary'))) !== '' ? (float) $val : null,
+                'base_salary_amount' => ($val = preg_replace('/[^\d.]/', '', (string) $get('base_salary_amount'))) !== '' ? (float) $val : null,
                 'step' => ($val = preg_replace('/[^\d]/', '', (string) $get('step'))) !== '' ? max(1, (int) $val) : null,
                 'area_code' => trim((string) ($get('area_code') ?? '')) ?: null,
                 'area_type' => trim((string) ($get('area_type') ?? '')) ?: null,
@@ -1107,7 +1225,7 @@ class ImportController extends Controller
                 'date_last_promotion' => $this->parseDate($get('date_last_promotion')),
                 'employment_status' => trim((string) ($get('employment_status') ?? '')) ?: null,
                 'civil_service_eligibility' => trim((string) ($get('civil_service_eligibility') ?? '')) ?: null,
-                'comment_annotation' => trim((string) ($get('comment_annotation') ?? '')) ?: null,
+                'remarks_annotation' => trim((string) ($get('remarks_annotation') ?? '')) ?: null,
                 'is_pwd' => strtoupper(trim((string) ($get('is_pwd') ?? ''))) === 'Y',
                 'indigenous_people' => strtoupper(trim((string) ($get('indigenous_people') ?? ''))) === 'Y' ? 'Y' : null,
                 'solo_parent' => trim((string) ($get('solo_parent') ?? '')) ?: null,
@@ -1116,6 +1234,25 @@ class ImportController extends Controller
                 'gsis_bp_number' => trim((string) ($get('gsis_bp_number') ?? '')) ?: null,
                 'position_classification' => trim((string) ($get('position_classification') ?? '')) ?: null,
                 'umid' => trim((string) ($get('umid') ?? '')) ?: null,
+                'office_department' => trim((string) ($get('office_department') ?? '')) ?: null,
+                'name_extension' => trim((string) ($get('name_extension') ?? '')) ?: null,
+                'nature_of_work_detail' => trim((string) ($get('nature_of_work_detail') ?? '')) ?: null,
+                'rate_per_day' => ($val = preg_replace('/[^\d.]/', '', (string) $get('rate_per_day'))) !== '' ? (float) $val : null,
+                'first_day_of_service' => $this->parseDate($get('first_day_of_service')),
+                'civil_status' => trim((string) ($get('civil_status') ?? '')) ?: null,
+                'address' => trim((string) ($get('address') ?? '')) ?: null,
+                'first_level_eligibility' => strtoupper(trim((string) ($get('first_level_eligibility') ?? ''))) === 'Y',
+                'second_level_eligibility' => strtoupper(trim((string) ($get('second_level_eligibility') ?? ''))) === 'Y',
+                'reemployment' => strtoupper(trim((string) ($get('reemployment') ?? ''))) === 'Y',
+                'remarks' => trim((string) ($get('remarks') ?? '')) ?: null,
+                'item_no_old' => trim((string) ($get('item_no_old') ?? '')) ?: null,
+                'legislative_district' => trim((string) ($get('legislative_district') ?? '')) ?: null,
+                'sg_proposed' => ($val = preg_replace('/[^\d]/', '', (string) $get('sg_proposed'))) !== '' ? (int) $val : null,
+                'step_proposed' => ($val = preg_replace('/[^\d]/', '', (string) $get('step_proposed'))) !== '' ? (int) $val : null,
+                'salary_proposed' => ($val = preg_replace('/[^\d.]/', '', (string) $get('salary_proposed'))) !== '' ? (float) $val : null,
+                'increase_decrease' => ($val = preg_replace('/[^\d.]/', '', (string) $get('increase_decrease'))) !== '' ? (float) $val : null,
+                'previous_rate' => ($val = preg_replace('/[^\d.]/', '', (string) $get('previous_rate'))) !== '' ? (float) $val : null,
+                'current_rate' => ($val = preg_replace('/[^\d.]/', '', (string) $get('current_rate'))) !== '' ? (float) $val : null,
                 'is_vacant' => $isVacant,
             ],
             'errors' => [],

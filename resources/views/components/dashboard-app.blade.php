@@ -9,10 +9,21 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="{{ asset('css/theme-variables.css') }}">
     <link rel="stylesheet" href="{{ asset('css/theme-default.css') }}">
     <link rel="stylesheet" href="{{ asset('css/emerald-night.css') }}">
     <link rel="stylesheet" href="{{ asset('css/theme-financial.css') }}">
     <link rel="stylesheet" href="{{ asset('css/theme-corona.css') }}">
+    {{-- Anti-FOUC: apply theme class to <html> immediately, body picks it up via JS after DOMContentLoaded --}}
+    <script>
+        (function(){
+            var t=localStorage.getItem('app-theme');
+            if(t&&t!=='default'){
+                // html element trick: body not ready yet, but we tag html and move it on DOMContentLoaded
+                document.documentElement.setAttribute('data-pending-theme', t);
+            }
+        })();
+    </script>
     <style>
         /* â”€â”€ Flatpickr Premium Overrides â”€â”€ */
         .flatpickr-calendar {
@@ -177,39 +188,56 @@
             box-sizing: border-box;
         }
 
+        html {
+            font-size: 112%; /* Scales up all Bootstrap components globally */
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8fafc;
+            font-size: 1rem;
         }
 
 
+        /* ── Module 0.2: persistent horizontal top header ─────────────
+           Replaces the left slide drawer. Below 1024px, .sidebar-nav
+           collapses into a hamburger-triggered dropdown panel instead
+           of a left drawer (see the @media block near .nav-hamburger). */
         .sidebar {
-            background-color: #ffffff;
-            min-height: 100vh;
+            background: linear-gradient(135deg, #052c65 0%, #1e3a8a 55%, #1e40af 100%);
+            min-height: unset;
             padding: 0;
             position: fixed;
             left: 0;
+            right: 0;
             top: 0;
-            width: 280px;
-            box-shadow: 2px 0 8px rgba(0, 0, 0, .05);
+            width: 100%;
+            height: 68px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .15);
             display: flex;
-            flex-direction: column;
-            border-right: 1px solid #e5e7eb;
+            flex-direction: row;
+            align-items: center;
+            border-right: none;
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            z-index: 1000;
         }
 
         .sidebar-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid #e5e7eb;
+            padding: 10px 20px;
+            border-bottom: none;
+            border-right: 1px solid rgba(255, 255, 255, .15);
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
+            height: 100%;
+            flex-shrink: 0;
         }
 
         .sidebar-logo {
-            width: 54px;
-            height: 54px;
+            width: 42px;
+            height: 42px;
             object-fit: contain;
-            border-radius: 12px;
+            border-radius: 10px;
             flex-shrink: 0;
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
             background: #ffffff;
@@ -229,31 +257,41 @@
 
         .sidebar-title-main {
             font-family: 'Inter', 'Segoe UI', sans-serif;
-            color: #1e293b;
-            font-size: 17px;
+            color: #ffffff;
+            font-size: 15px;
             font-weight: 700;
             letter-spacing: -0.2px;
-            line-height: 1.25;
+            line-height: 1.2;
         }
 
         .sidebar-title-sub {
             font-family: 'Inter', 'Segoe UI', sans-serif;
-            color: #2563eb;
-            font-size: 11px;
+            color: #fbbf24;
+            font-size: 10.5px;
             font-weight: 600;
             letter-spacing: 1px;
             text-transform: uppercase;
-            margin-top: 3px;
+            margin-top: 1px;
         }
 
         .sidebar-nav {
             flex: 1;
-            padding: 14px 0;
-            overflow-y: auto;
+            padding: 0 8px;
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            /* No overflow-x/y here on purpose: setting either axis to a
+               non-visible value (e.g. overflow-x:auto) forces the browser
+               to clip the other axis too, which hides the absolutely
+               positioned dropdown submenus below this 68px-tall bar. */
         }
 
+        .nav-group-wrap { position: relative; }
+
         .nav-item {
-            margin: 6px 10px;
+            margin: 0 4px;
+            flex-shrink: 0;
         }
 
         .nav-link {
@@ -261,27 +299,45 @@
             align-items: center;
             gap: 12px;
             padding: 11px 14px;
-            color: #4b5563;
+            color: rgba(255, 255, 255, .8);
             text-decoration: none;
             border-radius: 8px;
             transition: all .25s;
-            font-size: 14px;
+            font-size: 16.5px;
             font-weight: 500;
         }
 
         .nav-link:hover {
-            color: #111827;
-            background-color: #f3f4f6;
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, .1);
         }
 
         .nav-link.active {
-            background-color: #eff6ff;
-            color: #2563eb;
-            font-weight: 600;
+            /* Solid, opaque fill instead of a translucent overlay — a
+               low-alpha highlight reads as a blurry/soft edge and fails
+               contrast for low-vision users. */
+            background-color: #fbbf24;
+            color: #052c65;
+            font-weight: 700;
+        }
+
+        /* Dropdown-panel links sit on a white panel, not the navy bar —
+           keep them dark-on-white with a blue accent instead of gold. */
+        .nav-submenu .nav-link {
+            color: #374151;
+        }
+        .nav-submenu .nav-link:hover {
+            color: #111827;
+            background-color: #f3f4f6;
+        }
+        .nav-submenu .nav-link.active {
+            background-color: #2563eb;
+            color: #ffffff;
+            font-weight: 700;
         }
 
         .nav-icon {
-            font-size: 18px;
+            font-size: 20px;
             display: flex;
             align-items: center;
             flex-shrink: 0;
@@ -289,21 +345,225 @@
 
         .nav-section {
             padding: 8px 24px 4px;
-            font-size: 10px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: #9ca3af;
             font-weight: 600;
         }
 
-        .sidebar-footer {
-            padding: 14px 10px;
-            border-top: 1px solid #e5e7eb;
+        /* ── Group trigger (desktop: opens a dropdown below it) ────── */
+        .nav-group-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            margin: 0;
+            color: rgba(255, 255, 255, .8);
+            border-radius: 8px;
+            font-size: 15.5px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+        .nav-group-header:hover { background: rgba(255, 255, 255, .1); color: #ffffff; }
+        .nav-group-header.open  { color: #052c65; background: #fbbf24; font-weight: 700; }
+
+        .nav-group-header .group-icon  { font-size: 18px; flex-shrink: 0; }
+        .nav-group-header .group-label { flex: 1; }
+        .nav-group-header .group-arrow {
+            font-size: 13px;
+            transition: transform .25s;
+            opacity: .55;
+        }
+        .nav-group-header.open .group-arrow { transform: rotate(90deg); opacity: 1; }
+
+        /* ── Submenu: dropdown panel anchored under the trigger ────── */
+        .nav-submenu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            min-width: 240px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, .12);
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            pointer-events: none;
+            padding: 0;
+            transition: max-height .2s ease, opacity .2s ease;
+            z-index: 1001;
+        }
+        .nav-submenu.open { max-height: 600px; opacity: 1; pointer-events: auto; padding: 6px; }
+
+        .nav-submenu .nav-item { margin: 1px 0; }
+
+        .nav-submenu .nav-link {
+            padding: 9px 12px;
+            font-size: 16px;
+            border-radius: 7px;
+        }
+        .nav-submenu .nav-link .nav-icon { font-size: 18px; }
+
+        /* Active group (dropdown closed, but the current page is inside
+           it): a solid underline is a clearer, higher-contrast "you are
+           here" marker than a text-color-only change. */
+        .nav-group-wrap.has-active > .nav-group-header {
+            color: #fbbf24;
+            font-weight: 700;
+            box-shadow: inset 0 -3px 0 #fbbf24;
+        }
+        .nav-group-wrap.has-active > .nav-group-header.open {
+            box-shadow: none;
         }
 
+        /* Divider between groups (vertical rule in the horizontal bar) */
+        .nav-group-divider {
+            width: 1px;
+            align-self: stretch;
+            margin: 10px 6px;
+            background: rgba(255, 255, 255, .18);
+            flex-shrink: 0;
+        }
+
+        .sidebar-footer {
+            padding: 0 14px;
+            border-top: none;
+            border-left: 1px solid #e5e7eb;
+            margin-left: auto;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        /* The footer's My Profile dropdown is the rightmost item in the bar
+           — anchor it to the right edge instead of the default left:0, or
+           a 240px-wide panel would overflow off-screen. */
+        .sidebar-footer .nav-submenu { left: auto; right: 0; }
+
+        .nav-hamburger {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, .25);
+            background: rgba(255, 255, 255, .08);
+            font-size: 20px;
+            color: #ffffff;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-right: 8px;
+        }
+        .nav-hamburger:hover { background: rgba(255, 255, 255, .18); }
+
         .main-content {
-            margin-left: 280px;
+            margin-left: 0;
+            margin-top: 68px;
             min-height: 100vh;
+        }
+
+        /* ── Below 1024px: hamburger expands a horizontal-bar dropdown
+               panel (never a left drawer), per Module 0.2's spec ────── */
+        @media (max-width: 1024px) {
+            .sidebar-title-sub { display: none; }
+            .nav-hamburger { display: flex; }
+
+            .sidebar-nav {
+                position: fixed;
+                top: 68px;
+                left: 0;
+                right: 0;
+                flex-direction: column;
+                align-items: stretch;
+                background: #ffffff;
+                max-height: 0;
+                overflow-y: auto;
+                overflow-x: hidden;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, .1);
+                border-bottom: 1px solid #e5e7eb;
+                transition: max-height .25s ease;
+                padding: 0;
+            }
+            .sidebar-nav.mobile-open { max-height: calc(100vh - 68px); padding: 10px 0; }
+
+            .nav-item { margin: 4px 10px; }
+
+            /* The mobile panel is a white dropdown (not the navy bar), so
+               top-level links/group triggers need dark-on-white colors —
+               the desktop rules above assume a navy background. */
+            .sidebar-nav .nav-link {
+                color: #374151;
+            }
+            .sidebar-nav .nav-link:hover {
+                color: #111827;
+                background-color: #f3f4f6;
+            }
+            .sidebar-nav .nav-link.active {
+                background-color: #2563eb;
+                color: #ffffff;
+                font-weight: 700;
+            }
+            .sidebar-nav .nav-group-header {
+                color: #4b5563;
+            }
+            .sidebar-nav .nav-group-header:hover {
+                background: #f3f4f6;
+                color: #111827;
+            }
+            .sidebar-nav .nav-group-header.open {
+                color: #ffffff;
+                background: #2563eb;
+                font-weight: 700;
+            }
+            .nav-group-wrap.has-active > .nav-group-header {
+                color: #2563eb;
+                font-weight: 700;
+                box-shadow: inset 3px 0 0 #2563eb;
+            }
+            .nav-group-wrap.has-active > .nav-group-header.open {
+                box-shadow: none;
+            }
+
+            .nav-group-divider { width: auto; height: 1px; align-self: auto; margin: 6px 16px; background: #e5e7eb; }
+
+            .nav-submenu {
+                position: static;
+                min-width: 0;
+                max-height: 0;
+                opacity: 1;
+                pointer-events: auto;
+                box-shadow: none;
+                border: none;
+                border-radius: 0;
+                margin: 0 6px;
+            }
+            .nav-submenu.open { max-height: 600px; padding: 0; }
+
+            /* .sidebar-footer stays in the 68px navy bar on mobile too
+               (it's a flex sibling of .sidebar-nav, not nested inside the
+               white dropdown panel) — the desktop rule above already fits,
+               just drop the text label so it doesn't crowd the hamburger. */
+            .sidebar-footer .nav-link span { display: none; }
+
+            /* The generic .nav-submenu{position:static} rule above assumes
+               every submenu lives inside the mobile accordion panel — the
+               footer's My Profile dropdown doesn't (see comment above), so
+               it must stay a floating dropdown here too, anchored right. */
+            .sidebar-footer .nav-submenu {
+                position: absolute;
+                left: auto;
+                right: 14px;
+                top: calc(100% + 6px);
+                max-height: 0;
+            }
+            .sidebar-footer .nav-submenu.open { max-height: 600px; padding: 6px; }
         }
 
         .topbar {
@@ -1548,156 +1808,541 @@
             <img src="{{ asset('img/phrmologo.png') }}" alt="PHRMO Logo" class="sidebar-logo"
                 onerror="this.style.display='none'">
             <div class="sidebar-title-container">
-                <span class="sidebar-title-main" style="line-height: 1.3; font-size: 14.5px; padding-top: 2px;">Human Resource<br>Data Management<br>System</span>
+                <span class="sidebar-title-main">HRDMS</span>
+                <span class="sidebar-title-sub">PHRMO Bukidnon</span>
             </div>
         </div>
 
-        <nav class="sidebar-nav">
-            <div class="nav-item">
-                <a href="{{ route('dashboard') }}"
-                    class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                    <i class="nav-icon bi bi-house-door"></i>
-                    <span>Dashboard</span>
-                </a>
+        <button type="button" class="nav-hamburger" id="navHamburger" aria-label="Toggle navigation menu" onclick="toggleMobileNav()">
+            <i class="bi bi-list"></i>
+        </button>
+
+        <nav class="sidebar-nav" id="sidebarNav">
+
+            @php
+                $user   = auth()->user();
+                $isSA   = $user && $user->isSuperAdmin();
+                $isIA   = $user && $user->isInventoryAdmin();
+                $isSalA = $user && $user->isSalaryAdmin();
+                $isAppt = $user && $user->isAppointmentAdmin();
+                $isPerf = $user && $user->isPerformanceAdmin();
+                $isV    = $user && $user->isViewer();
+
+                // Pre-compute active states for auto-open logic
+                $personnelActive   = request()->routeIs('all-data.*','plantilla.*','job-orders.*','casual.*','permanent.*','archives.*');
+                $recruitActive     = request()->routeIs('recruitment.*','contract-status.*','batch-renewal.*');
+                $performActive     = request()->routeIs('performance.*');
+                $payrollActive     = request()->routeIs('step-increment.*','salary-grades.*','salary-schedules.*','retirement.*');
+                $systemActive      = request()->routeIs('imports.*','rollback.*','backup.*','users.*','audit-logs.*','activity-logs.*');
+
+                $retCount = \App\Models\PlantillaRecord::retirementDue()->count();
+            @endphp
+
+            {{-- ══ DASHBOARD & GAD ANALYTICS ══════════════════════════════════════ --}}
+            <div class="nav-group-wrap {{ request()->routeIs('dashboard', 'gad.*') ? 'has-active' : '' }}">
+                <div class="nav-group-header" onclick="toggleGroup(this)">
+                    <i class="group-icon bi bi-speedometer2"></i>
+                    <span class="group-label">Dashboard & GAD Analytics</span>
+                    <i class="group-arrow bi bi-chevron-right"></i>
+                </div>
+                <div class="nav-submenu">
+                    <div class="nav-item">
+                        <a href="{{ route('dashboard') }}"
+                            class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-house-door-fill"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </div>
+                    @if($isSA || $isIA || $isV)
+                    <div class="nav-item">
+                        <a href="{{ route('gad.index') }}"
+                            class="nav-link {{ request()->routeIs('gad.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-gender-ambiguous"></i>
+                            <span>GAD Analytics</span>
+                        </a>
+                    </div>
+                    @endif
+                </div>
             </div>
 
-            @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin()))
-                <div class="nav-item">
-                    <a href="{{ route('all-data.index') }}"
-                        class="nav-link {{ request()->routeIs('all-data.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-table"></i>
-                        <span>All Data</span>
-                    </a>
+            <div class="nav-group-divider"></div>
+
+            {{-- ══ GROUP 1: APPOINTMENT ══════════════════════════════════════ --}}
+            @if($isSA || $isIA || $isAppt || auth()->user()->isAppointmentEncoder())
+            <div class="nav-group-wrap {{ $recruitActive ? 'has-active' : '' }}">
+                <div class="nav-group-header"
+                     onclick="toggleGroup(this)">
+                    <i class="group-icon bi bi-person-plus-fill"></i>
+                    <span class="group-label">Appointment</span>
+                    <i class="group-arrow bi bi-chevron-right"></i>
                 </div>
+                <div class="nav-submenu">
+                    @if($isSA || $isIA || $isAppt || auth()->user()->isAppointmentEncoder())
+                    <div class="nav-item">
+                        <a href="{{ route('recruitment.index') }}"
+                            class="nav-link {{ request()->routeIs('recruitment.index', 'recruitment.create', 'recruitment.show') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-clipboard-plus"></i>
+                            <span>Recruitment</span>
+                        </a>
+                    </div>
+                    @endif
+                    {{-- Module 4.1 — Appointment Encoder sessions never see Contract
+                         Status or Batch Renewal (both are also route-excluded). --}}
+                    @if($isSA || $isIA || $isAppt)
+                    <div class="nav-item">
+                        <a href="{{ route('contract-status.index') }}"
+                            class="nav-link {{ request()->routeIs('contract-status.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-bar-chart-steps"></i>
+                            <span>Contract Status</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('batch-renewal.index') }}"
+                            class="nav-link {{ request()->routeIs('batch-renewal.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-arrow-repeat"></i>
+                            <span>Batch Renewal</span>
+                        </a>
+                    </div>
+                    @endif
+
+                    {{-- Module 4.1 — TWG Detailed Scoring Matrix and the HRMPSB
+                         Deliberation interface are hidden from Appointment Encoder
+                         sessions (also route-excluded). --}}
+                    @if($isSA || $isIA || $isAppt)
+                    <div class="nav-item">
+                        <a href="{{ route('recruitment.hrmpsb.interview.create') }}"
+                            class="nav-link {{ request()->routeIs('recruitment.hrmpsb.interview.create') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-person-video3"></i>
+                            <span>Interview Evaluation</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('recruitment.hrmpsb.twg.create') }}"
+                            class="nav-link {{ request()->routeIs('recruitment.hrmpsb.twg.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-star-fill"></i>
+                            <span>Score HRMPSB (TWG)</span>
+                        </a>
+                    </div>
+                    @endif
+                    @if($isSA || $isIA)
+                    <div class="nav-item">
+                        <a href="{{ route('recruitment.hrmpsb.interview.index') }}"
+                            class="nav-link {{ request()->routeIs('recruitment.hrmpsb.interview.index') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-grid-3x3-gap-fill"></i>
+                            <span>Scoring Matrix</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('panel-members.index') }}"
+                            class="nav-link {{ request()->routeIs('panel-members.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-person-badge"></i>
+                            <span>Panel Accounts</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('recruitment.hrmpsb.settings') }}"
+                            class="nav-link {{ request()->routeIs('recruitment.hrmpsb.settings') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-gear-fill"></i>
+                            <span>HRMPSB Settings</span>
+                        </a>
+                    </div>
+                    @endif
+                </div>
+            </div>
             @endif
 
-            @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin()))
-                <div class="nav-item">
-                    <a href="{{ route('plantilla.index') }}"
-                        class="nav-link {{ request()->routeIs('plantilla.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-person-badge"></i>
-                        <span>Inventory of Personnel</span>
-                    </a>
-                </div>
+            <div class="nav-group-divider"></div>
 
-                <div class="nav-item">
-                    <a href="{{ route('job-orders.index') }}"
-                        class="nav-link {{ request()->routeIs('job-orders.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-file-earmark-person"></i>
-                        <span>Job Orders</span>
-                    </a>
+            {{-- ══ GROUP 2: PERSONNEL RECORDS ═══════════════════════════════ --}}
+            @if($isSA || $isIA || $isV)
+            <div class="nav-group-wrap {{ $personnelActive ? 'has-active' : '' }}">
+                <div class="nav-group-header"
+                     onclick="toggleGroup(this)">
+                    <i class="group-icon bi bi-people-fill"></i>
+                    <span class="group-label">Personnel Records</span>
+                    <i class="group-arrow bi bi-chevron-right"></i>
                 </div>
-
-                <div class="nav-item">
-                    <a href="{{ route('casual.index') }}"
-                        class="nav-link {{ request()->routeIs('casual.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-person-lines-fill"></i>
-                        <span>Casual</span>
-                    </a>
-                </div>
-
-                @if(Route::has('permanent.index'))
+                <div class="nav-submenu">
+                    <div class="nav-item">
+                        <a href="{{ route('all-data.index') }}"
+                            class="nav-link {{ request()->routeIs('all-data.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-table"></i>
+                            <span>All Data</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('plantilla.index') }}"
+                            class="nav-link {{ request()->routeIs('plantilla.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-person-badge"></i>
+                            <span>Inventory of Personnel</span>
+                        </a>
+                    </div>
+                    @if(Route::has('permanent.index'))
                     <div class="nav-item">
                         <a href="{{ route('permanent.index') }}"
                             class="nav-link {{ request()->routeIs('permanent.*') ? 'active' : '' }}">
                             <i class="nav-icon bi bi-person-badge-fill"></i>
-                            <span>Permanent</span>
+                            <span>Regular / Permanent</span>
                         </a>
                     </div>
-                @endif
+                    @endif
+                    <div class="nav-item">
+                        <a href="{{ route('casual.index') }}"
+                            class="nav-link {{ request()->routeIs('casual.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-person-lines-fill"></i>
+                            <span>Casual Employees</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('job-orders.index') }}"
+                            class="nav-link {{ request()->routeIs('job-orders.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-file-earmark-person"></i>
+                            <span>Job Orders</span>
+                        </a>
+                    </div>
+                    @if($isSA || $isIA)
+                    <div class="nav-item">
+                        <a href="{{ route('archives.index') }}"
+                            class="nav-link {{ request()->routeIs('archives.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-archive"></i>
+                            <span>Archives / Recycle Bin</span>
+                        </a>
+                    </div>
+                    @endif
+                </div>
+            </div>
             @endif
 
-            @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin() || auth()->user()->isSalaryAdmin()))
-                <div class="nav-item">
-                    <a href="{{ route('retirement.index') }}"
-                        class="nav-link {{ request()->routeIs('retirement.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-clock-history"></i>
-                        <span>Retirement</span>
-                        @php
-                            $retCount = \App\Models\PlantillaRecord::retirementDue()->count();
-                        @endphp
-                        @if($retCount > 0)
-                            <span
-                                style="margin-left:auto; background:#dc3545; color:white; font-size:10px; font-weight:bold; padding:2px 8px; border-radius:99px;">
-                                {{ $retCount }}
-                            </span>
-                        @endif
-                    </a>
-                </div>
-            @endif
+            <div class="nav-group-divider"></div>
 
-            @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->isSalaryAdmin()))
-                <div class="nav-item">
-                    <a href="{{ route('step-increment.hub') }}"
-                        class="nav-link {{ request()->routeIs('step-increment.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-building-fill-gear"></i>
-                        <span>Plantilla of Personnel</span>
-                    </a>
+            {{-- ══ GROUP 3: PAYROLL & BENEFITS ════════════════════════════════ --}}
+            @if($isSA || $isSalA || $isIA || $isV)
+            <div class="nav-group-wrap {{ $payrollActive ? 'has-active' : '' }}">
+                <div class="nav-group-header"
+                     onclick="toggleGroup(this)">
+                    <i class="group-icon bi bi-cash-stack"></i>
+                    <span class="group-label">Welfare & Benefits</span>
+                    <i class="group-arrow bi bi-chevron-right"></i>
                 </div>
-
-                <div class="nav-item">
-                    <a href="{{ route('salary-grades.index') }}"
-                        class="nav-link {{ request()->routeIs('salary-grades.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-cash-coin"></i>
-                        <span>Salary Grades</span>
-                    </a>
+                <div class="nav-submenu">
+                    @if($isSA || $isSalA)
+                    <div class="nav-item">
+                        <a href="{{ route('step-increment.hub') }}"
+                            class="nav-link {{ (request()->routeIs('step-increment.*') && !request()->routeIs('step-increment.salary-table')) ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-building-fill-gear"></i>
+                            <span>Plantilla of Personnel</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('salary-grades.index') }}"
+                            class="nav-link {{ request()->routeIs('salary-grades.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-cash-coin"></i>
+                            <span>Salary Grades</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('step-increment.salary-table') }}"
+                            class="nav-link {{ request()->routeIs('step-increment.salary-table') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-table"></i>
+                            <span>Salary Grade Table</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('salary-schedules.index') }}"
+                            class="nav-link {{ request()->routeIs('salary-schedules.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-layers"></i>
+                            <span>SSL Schedules</span>
+                        </a>
+                    </div>
+                    @endif
+                    <div class="nav-item">
+                        <a href="{{ route('retirement.index') }}"
+                            class="nav-link {{ request()->routeIs('retirement.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-clock-history"></i>
+                            <span>Retirement</span>
+                            @if($retCount > 0)
+                                <span style="margin-left:auto;background:#dc3545;color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;">{{ $retCount }}</span>
+                            @endif
+                        </a>
+                    </div>
                 </div>
-                <div class="nav-item">
-                    <a href="{{ route('salary-schedules.index') }}"
-                        class="nav-link {{ request()->routeIs('salary-schedules.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-layers"></i>
-                        <span>SSL Schedules</span>
-                    </a>
-                </div>
-            @endif
-
-            @if(auth()->check() && auth()->user()->isSuperAdmin())
-                <div class="nav-item">
-                    <a href="{{ route('imports.index') }}"
-                        class="nav-link {{ request()->routeIs('imports.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-file-earmark-spreadsheet"></i>
-                        <span>Import Data</span>
-                    </a>
-                </div>
-            @endif
-
-            <div class="nav-item">
-                <a href="{{ route('profile.edit') }}"
-                    class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-                    <i class="nav-icon bi bi-person-circle"></i>
-                    <span>Profile</span>
-                </a>
             </div>
 
-            @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin()))
-                @if(Route::has('users.index'))
+            <div class="nav-group-divider"></div>
+            @endif
+
+            {{-- ══ GROUP 4: LEAVE ADMINISTRATION ═══════════════════════════════ --}}
+            @php
+                $leaveActive = request()->routeIs('leave.*', 'leave-violations.*');
+                $canViewLeave = $isSA || (auth()->check() && (auth()->user()->can('view Leave Application') || auth()->user()->can('view Leave Violations')));
+            @endphp
+            @if($canViewLeave)
+            <div class="nav-group-wrap {{ $leaveActive ? 'has-active' : '' }}">
+                <div class="nav-group-header"
+                     onclick="toggleGroup(this)">
+                    <i class="group-icon bi bi-calendar2-range"></i>
+                    <span class="group-label">Leave Administration</span>
+                    <i class="group-arrow bi bi-chevron-right"></i>
+                </div>
+                <div class="nav-submenu">
+                    @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->can('view Leave Application')))
+                    <div class="nav-item">
+                        <a href="{{ route('leave.index') }}"
+                            class="nav-link {{ request()->routeIs('leave.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-calendar-check"></i>
+                            <span>Leave Ledger</span>
+                        </a>
+                    </div>
+                    @endif
+                    @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->can('view Leave Violations')))
+                    <div class="nav-item">
+                        <a href="{{ route('leave-violations.recorded-entries') }}"
+                            class="nav-link {{ request()->routeIs('leave-violations.recorded-entries') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-list-columns"></i>
+                            <span>Recorded Entries</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('leave-violations.generated-letters') }}"
+                            class="nav-link {{ request()->routeIs('leave-violations.generated-letters') || request()->routeIs('leave-violations.create-*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-envelope-paper"></i>
+                            <span>Generated Letters</span>
+                        </a>
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="nav-group-divider"></div>
+            @endif
+
+            {{-- ══ GROUP 5: EMPLOYEE DEVELOPMENT ══════════════════════════ --}}
+            @php
+                $empDevActive = $performActive || request()->routeIs('training.*');
+                $canViewEmpDev = $isSA || $isIA || $isPerf || $isV || (auth()->check() && auth()->user()->can('view Training & Certificates'));
+            @endphp
+            @if($canViewEmpDev)
+            <div class="nav-group-wrap {{ $empDevActive ? 'has-active' : '' }}">
+                <div class="nav-group-header"
+                     onclick="toggleGroup(this)">
+                    <i class="group-icon bi bi-graph-up-arrow"></i>
+                    <span class="group-label">Employee Development</span>
+                    <i class="group-arrow bi bi-chevron-right"></i>
+                </div>
+                <div class="nav-submenu">
+                    @if($isSA || $isIA || $isPerf || $isV)
+                    <div class="nav-item">
+                        <a href="{{ route('performance.index') }}"
+                            class="nav-link {{ request()->routeIs('performance.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-clipboard2-data"></i>
+                            <span>Performance (IPCR)</span>
+                        </a>
+                    </div>
+                    @endif
+                    @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->can('view Training & Certificates')))
+                    <div class="nav-item">
+                        <a href="{{ route('training.index') }}"
+                            class="nav-link {{ request()->routeIs('training.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-mortarboard"></i>
+                            <span>Learning &amp; Development</span>
+                        </a>
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="nav-group-divider"></div>
+            @endif
+
+            {{-- ══ GROUP 6: DOCUMENT FILING ═══════════════════════════════════ --}}
+            @php
+                $docsActive = request()->routeIs('idcc.*', 'retention-schedule.*', 'lgu.*');
+                $canViewDocs = $isSA || $isIA || (auth()->check() && (auth()->user()->can('view Document Ingestion & Capture') || auth()->user()->can('view LGU Documents')));
+            @endphp
+            @if($canViewDocs)
+            <div class="nav-group-wrap {{ $docsActive ? 'has-active' : '' }}">
+                <div class="nav-group-header"
+                     onclick="toggleGroup(this)">
+                    <i class="group-icon bi bi-folder2-open"></i>
+                    <span class="group-label">Document Filing</span>
+                    <i class="group-arrow bi bi-chevron-right"></i>
+                </div>
+                <div class="nav-submenu">
+                    @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->can('view Document Ingestion & Capture')))
+                    <div class="nav-item">
+                        <a href="{{ route('idcc.index') }}"
+                            class="nav-link {{ request()->routeIs('idcc.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-file-earmark-lock2"></i>
+                            <span>IDCC / Records</span>
+                        </a>
+                    </div>
+                    @endif
+                    @if($isSA || $isIA)
+                    <div class="nav-item">
+                        <a href="{{ route('retention-schedule.index') }}"
+                            class="nav-link {{ request()->routeIs('retention-schedule.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-archive"></i>
+                            <span>Retention Schedule</span>
+                        </a>
+                    </div>
+                    @endif
+                    @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->can('view LGU Documents')))
+                    <div class="nav-item">
+                        <a href="{{ route('lgu.index') }}"
+                            class="nav-link {{ request()->routeIs('lgu.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-bank"></i>
+                            <span>LGU Documents</span>
+                        </a>
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="nav-group-divider"></div>
+            @endif
+
+            {{-- ══ GROUP 7: DISCIPLINE ═════════════════════════════════════════ --}}
+            @php
+                $disciplineActive = request()->routeIs('incidents.*', 'disciplinary.*');
+                $canViewDiscipline = auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->can('view Incident Reports') || auth()->user()->hasRole('Discipline Committee'));
+            @endphp
+            @if($canViewDiscipline)
+            <div class="nav-group-wrap {{ $disciplineActive ? 'has-active' : '' }}">
+                <div class="nav-group-header" onclick="toggleGroup(this)">
+                    <i class="group-icon bi bi-shield-exclamation"></i>
+                    <span class="group-label">Discipline</span>
+                    <i class="group-arrow bi bi-chevron-right"></i>
+                </div>
+                <div class="nav-submenu">
+                    @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->can('view Incident Reports')))
+                    <div class="nav-item">
+                        <a href="{{ route('incidents.index') }}"
+                            class="nav-link {{ request()->routeIs('incidents.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-exclamation-diamond"></i>
+                            <span>Incident Reports</span>
+                        </a>
+                    </div>
+                    @endif
+                    @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->hasRole('Discipline Committee')))
+                    <div class="nav-item">
+                        <a href="{{ route('disciplinary.index') }}"
+                            class="nav-link {{ request()->routeIs('disciplinary.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-shield-lock"></i>
+                            <span>RACCS Disciplinary</span>
+                        </a>
+                    </div>
+                    @endif
+                </div>
+            </div>
+            <div class="nav-group-divider"></div>
+            @endif
+
+            {{-- ══ GROUP 8: SYSTEM & ADMINISTRATION ════════════════════════════ --}}
+            @if($isSA || $isIA)
+            <div class="nav-group-wrap {{ $systemActive ? 'has-active' : '' }}">
+                <div class="nav-group-header"
+                     onclick="toggleGroup(this)">
+                    <i class="group-icon bi bi-gear-wide-connected"></i>
+                    <span class="group-label">System & Administration</span>
+                    <i class="group-arrow bi bi-chevron-right"></i>
+                </div>
+                <div class="nav-submenu">
+
+                    {{-- Administration items (SA + IA) --}}
+                    @if(Route::has('users.index'))
                     <div class="nav-item">
                         <a href="{{ route('users.index') }}"
-                            class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
-                            <i class="nav-icon bi bi-people-fill"></i>
+                            class="nav-link {{ request()->routeIs('users.index','users.create','users.edit','users.store','users.update','users.destroy','users.approve','users.reject') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-person-gear"></i>
                             <span>User Management</span>
                         </a>
                     </div>
-                @endif
-                <div class="nav-item">
-                    <a href="{{ route('audit-logs.index') }}"
-                        class="nav-link {{ request()->routeIs('audit-logs.*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-shield-lock"></i>
-                        <span>Audit Trail</span>
-                    </a>
+                    @endif
+
+                    <div class="nav-item">
+                        <a href="{{ route('audit-logs.index') }}"
+                            class="nav-link {{ request()->routeIs('audit-logs.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-shield-lock"></i>
+                            <span>Audit Trail</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('activity-logs.index') }}"
+                            class="nav-link {{ request()->routeIs('activity-logs.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-journal-check"></i>
+                            <span>Activity Logs</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('users.role-matrix') }}"
+                            class="nav-link {{ request()->routeIs('users.role-matrix') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-table"></i>
+                            <span>Role-Permission Matrix</span>
+                        </a>
+                    </div>
+
+                    {{-- System tools (SA only) --}}
+                    @if($isSA)
+                    <div class="nav-item">
+                        <a href="{{ route('imports.index') }}"
+                            class="nav-link {{ request()->routeIs('imports.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-file-earmark-spreadsheet"></i>
+                            <span>Import Data</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('rollback.index') }}"
+                            class="nav-link {{ request()->routeIs('rollback.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-arrow-counterclockwise"></i>
+                            <span>Database Rollback</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('backup.index') }}"
+                            class="nav-link {{ request()->routeIs('backup.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-cloud-arrow-up-fill"></i>
+                            <span>Backup & Recovery</span>
+                        </a>
+                    </div>
+                    @endif
+
                 </div>
+            </div>
+
+            <div class="nav-group-divider"></div>
             @endif
+
         </nav>
 
         <div class="sidebar-footer">
             <form id="logout-form" method="POST" action="{{ route('logout') }}" style="display: none;">
                 @csrf
             </form>
-            <button onclick="openLogoutModal()" class="nav-link"
-                style="width:100%;border:none;background:none;cursor:pointer;text-align:left;">
-                <i class="nav-icon bi bi-box-arrow-right"></i>
-                <span>Log Out</span>
-            </button>
+
+            {{-- ══ ACCOUNT (always visible) — Log Out nested under My Profile ══ --}}
+            <div class="nav-group-wrap {{ request()->routeIs('profile.*') ? 'has-active' : '' }}">
+                <div class="nav-group-header" onclick="toggleGroup(this)">
+                    <i class="group-icon bi bi-person-circle"></i>
+                    <span class="group-label">My Profile</span>
+                    <i class="group-arrow bi bi-chevron-right"></i>
+                </div>
+                <div class="nav-submenu">
+                    <div class="nav-item">
+                        <a href="{{ route('profile.edit') }}"
+                            class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-person-gear"></i>
+                            <span>Profile Settings</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <button onclick="openLogoutModal()" class="nav-link"
+                            style="width:100%;border:none;background:none;cursor:pointer;text-align:left;">
+                            <i class="nav-icon bi bi-box-arrow-right"></i>
+                            <span>Log Out</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1764,12 +2409,17 @@
                         <li class="p-3 border-bottom bg-light fw-bold text-dark" style="font-size: 14px;">Recent
                             Activity</li>
                         @forelse($recentActivity ?? [] as $log)
-                            @php $isVacated = $log->action === 'Vacated Position'; @endphp
+                            @php
+                                $isVacated = $log->action === 'Vacated Position';
+                                $isPendingApproval = $log->action === 'Pending User Approval';
+                                $notifHref = $isPendingApproval && $isSA ? route('users.index') : route('audit-logs.index');
+                            @endphp
                             <li>
-                                <a class="dropdown-item py-2 border-bottom" href="{{ route('audit-logs.index') }}"
-                                    style="white-space: normal; line-height: 1.4; {{ $isVacated ? 'border-left: 3px solid #f97316; padding-left: 10px;' : '' }}">
-                                    <div class="fw-bold" style="font-size: 13px; {{ $isVacated ? 'color:#c2410c;' : '' }}">
+                                <a class="dropdown-item py-2 border-bottom" href="{{ $notifHref }}"
+                                    style="white-space: normal; line-height: 1.4; {{ $isVacated ? 'border-left: 3px solid #f97316; padding-left: 10px;' : ($isPendingApproval ? 'border-left: 3px solid #f59e0b; padding-left: 10px;' : '') }}">
+                                    <div class="fw-bold" style="font-size: 13px; {{ $isVacated ? 'color:#c2410c;' : ($isPendingApproval ? 'color:#b45309;' : '') }}">
                                         @if($isVacated)<i class="bi bi-person-dash me-1"></i>@endif
+                                        @if($isPendingApproval)<i class="bi bi-person-plus-fill me-1"></i>@endif
                                         {{ $log->user ? $log->user->name : 'System' }}
                                         <span style="font-size:11px;font-weight:400;margin-left:4px;">&mdash;
                                             {{ $log->action }}</span>
@@ -1813,6 +2463,9 @@
                         <li><a class="dropdown-item d-flex align-items-center" href="#"
                                 onclick="setTheme('theme-corona'); return false;"><i class="bi bi-moon me-2"></i> Corona
                                 (Dark)</a></li>
+                        <li><a class="dropdown-item d-flex align-items-center" href="#"
+                                onclick="setTheme('theme-light'); return false;"><i class="bi bi-stars me-2"></i> Indigo
+                                Light</a></li>
                     </ul>
                 </div>
             </div>
@@ -1848,6 +2501,51 @@
         });
     </script>
     <script>
+        // ── Nav group dropdown toggle (desktop: dropdown panel; mobile: accordion) ──
+        function toggleGroup(header) {
+            var submenu = header.nextElementSibling;
+            var isOpen  = header.classList.contains('open');
+
+            // Only one dropdown open at a time on desktop (width > 1024px)
+            if (!isOpen && window.innerWidth > 1024) {
+                document.querySelectorAll('.nav-group-header.open').forEach(function(other) {
+                    if (other !== header) {
+                        other.classList.remove('open');
+                        other.nextElementSibling.classList.remove('open');
+                    }
+                });
+            }
+
+            header.classList.toggle('open', !isOpen);
+            submenu.classList.toggle('open', !isOpen);
+        }
+
+        // ── Mobile hamburger toggle ──────────────────────────────────────────
+        function toggleMobileNav() {
+            document.getElementById('sidebarNav').classList.toggle('mobile-open');
+        }
+
+        // Close any open dropdown when clicking outside it (desktop only)
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 1024) return;
+            if (e.target.closest('.nav-group-wrap')) return;
+            document.querySelectorAll('.nav-group-header.open').forEach(function(header) {
+                header.classList.remove('open');
+                header.nextElementSibling.classList.remove('open');
+            });
+        });
+
+        // Dropdowns always start closed on page load (this is a hover/click
+        // dropdown menu now, not the old vertical accordion, so there's
+        // nothing to restore). Clean up any leftover open-state keys from
+        // before this menu became a dropdown, so they can't reappear.
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.nav-group-header').forEach(function(header) {
+                var key = 'sg_' + header.querySelector('.group-label').textContent.trim();
+                try { localStorage.removeItem(key); } catch(e) {}
+            });
+        });
+
         function openLogoutModal() {
             document.getElementById('logoutModal').classList.add('active');
         }
@@ -1860,31 +2558,32 @@
                 if (e.target === overlay) closeLogoutModal();
             });
         });
+        var ALL_THEMES = ['emerald-night','theme-financial','theme-corona','theme-light'];
+
         function setTheme(theme) {
-            document.body.classList.remove('emerald-night', 'theme-financial', 'theme-corona');
+            ALL_THEMES.forEach(function(cls){ document.body.classList.remove(cls); });
             if (theme !== 'default') {
                 document.body.classList.add(theme);
             }
             localStorage.setItem('app-theme', theme);
             updateThemeToggleText(theme);
+            // Lets any page-specific script (e.g. Dashboard's Chart.js
+            // instances) re-theme itself without duplicating this function.
+            var isDark = theme === 'emerald-night' || theme === 'theme-corona';
+            window.dispatchEvent(new CustomEvent('theme-toggled', { detail: { isDark: isDark, themeName: theme } }));
         }
 
         function updateThemeToggleText(theme) {
-            const toggles = document.querySelectorAll('.theme-toggle span');
-            toggles.forEach(t => {
-                if (theme === 'emerald-night') t.innerText = ' Emerald Night';
-                else if (theme === 'theme-financial') t.innerText = ' Financial';
-                else if (theme === 'theme-corona') t.innerText = ' Corona Dark';
-                else t.innerText = ' Default Light';
-            });
-            const toggleIcons = document.querySelectorAll('.theme-toggle i');
-            toggleIcons.forEach(i => {
-                i.className = '';
-                if (theme === 'emerald-night') i.className = 'bi bi-moon-stars';
-                else if (theme === 'theme-financial') i.className = 'bi bi-graph-up-arrow';
-                else if (theme === 'theme-corona') i.className = 'bi bi-moon';
-                else i.className = 'bi bi-sun';
-            });
+            var labels = {
+                'emerald-night':   ['bi bi-moon-stars', 'Emerald Night'],
+                'theme-financial': ['bi bi-graph-up-arrow', 'Financial'],
+                'theme-corona':    ['bi bi-moon', 'Corona Dark'],
+                'theme-light':     ['bi bi-stars', 'Indigo Light'],
+                'default':         ['bi bi-sun', 'Navy (Default)'],
+            };
+            var pair = labels[theme] || labels['default'];
+            document.querySelectorAll('.theme-toggle span').forEach(function(el){ el.innerText = ' ' + pair[1]; });
+            document.querySelectorAll('.theme-toggle i').forEach(function(el){ el.className = pair[0]; });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1895,6 +2594,8 @@
                 localStorage.setItem('app-theme', 'emerald-night');
                 localStorage.removeItem('emerald-night');
             }
+            // Apply theme (also clears the pending-theme attribute set in <head>)
+            document.documentElement.removeAttribute('data-pending-theme');
             if (savedTheme) {
                 setTheme(savedTheme);
             } else {
@@ -2061,6 +2762,67 @@
                 }
             });
         });
+    </script>
+
+    {{-- ── Global Philippine Peso Input Formatter ─────────────────────────── --}}
+    <script>
+    /**
+     * peso-input: attach to any <input class="peso-input"> to get:
+     *   - Formatted display with commas and 2 decimal places (1,234,567.89)
+     *   - Automatic reformatting while typing
+     *   - Comma-stripping before form submit so the server receives a plain number
+     */
+    (function () {
+        function pesoFormat(raw) {
+            if (raw === '' || raw === null || raw === undefined) return '';
+            const n = parseFloat(String(raw).replace(/,/g, ''));
+            if (isNaN(n)) return raw;
+            return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function pesoRaw(formatted) {
+            return String(formatted).replace(/,/g, '');
+        }
+
+        function attachPesoInput(input) {
+            // Format on page load
+            if (input.value !== '') input.value = pesoFormat(input.value);
+
+            // Reformat on blur (after user finishes typing)
+            input.addEventListener('blur', function () {
+                const raw = pesoRaw(this.value);
+                if (raw !== '' && !isNaN(parseFloat(raw))) {
+                    this.value = pesoFormat(raw);
+                }
+            });
+
+            // Allow only digits, dot, comma, minus, backspace, arrows, tab, delete
+            input.addEventListener('keydown', function (e) {
+                const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'];
+                if (allowed.includes(e.key)) return;
+                if ((e.ctrlKey || e.metaKey) && ['a','c','v','x','z'].includes(e.key.toLowerCase())) return;
+                if (!/[\d.,\-]/.test(e.key)) e.preventDefault();
+            });
+        }
+
+        // Expose globally so auto-fill JS can use it
+        window.pesoFormat = pesoFormat;
+        window.pesoRaw    = pesoRaw;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Format all peso-input fields on load
+            document.querySelectorAll('.peso-input').forEach(attachPesoInput);
+
+            // Strip commas before any form submit so the server gets a plain number
+            document.querySelectorAll('form').forEach(function (form) {
+                form.addEventListener('submit', function () {
+                    form.querySelectorAll('.peso-input').forEach(function (inp) {
+                        inp.value = pesoRaw(inp.value);
+                    });
+                });
+            });
+        });
+    })();
     </script>
 </body>
 

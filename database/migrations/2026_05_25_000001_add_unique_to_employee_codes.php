@@ -49,9 +49,11 @@ return new class extends Migration
     /** Check whether a named index already exists on a table. */
     private function indexExists(string $table, string $indexName): bool
     {
-        $sm = Schema::getConnection()->getDoctrineSchemaManager();
-        $indexesFound = $sm->listTableIndexes($table);
-        return array_key_exists($indexName, $indexesFound);
+        // Doctrine DBAL (getDoctrineSchemaManager) was removed in Laravel 11+;
+        // use the native schema introspection added as its replacement.
+        return collect(Schema::getIndexes($table))
+            ->pluck('name')
+            ->contains($indexName);
     }
 
     /**

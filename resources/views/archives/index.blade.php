@@ -179,9 +179,9 @@
                 <tr>
                     {{-- Dynamic rows per type --}}
                     @if($type === 'plantilla')
-                        <td style="font-family:monospace;font-size:11px;color:#1e40af;font-weight:700;">{{ $row->item }}</td>
+                        <td style="font-family:monospace;font-size:11px;color:#1e40af;font-weight:700;">{{ $row->item_no_new }}</td>
                         <td style="font-weight:600;">{{ $row->position_title }}</td>
-                        <td style="color:#6b7280;max-width:160px;overflow:hidden;text-overflow:ellipsis;" title="{{ $row->organizational_unit }}">{{ Str::limit($row->organizational_unit, 35) }}</td>
+                        <td style="color:#6b7280;max-width:160px;overflow:hidden;text-overflow:ellipsis;" title="{{ $row->office_department }}">{{ Str::limit($row->office_department, 35) }}</td>
                         <td>
                             @if($row->is_vacant)
                                 <span style="color:#dc2626;font-style:italic;font-size:10px;">VACANT</span>

@@ -151,7 +151,7 @@
 @php
     $totalSlots   = $records->count();
     $totalSalary  = $records->sum('authorized_annual_salary');
-    $officeCount  = $records->pluck('organizational_unit')->filter()->unique()->count();
+    $officeCount  = $records->pluck('office_department')->filter()->unique()->count();
     $avgSalary    = $totalSlots ? $totalSalary / $totalSlots : 0;
     $sgList       = $records->pluck('salary_grade')->filter()->unique()->sort()->values();
 @endphp
@@ -197,7 +197,7 @@
                 <tr>
                     <th style="width:42px;">#</th>
                     <th>Item No.</th>
-                    <th>Organizational Unit</th>
+                    <th>OFFICE</th>
                     <th>SG</th>
                     <th>Step</th>
                     <th>Auth. Annual Salary</th>
@@ -210,9 +210,9 @@
                 @forelse($records as $i => $r)
                     <tr>
                         <td style="color:#9ca3af;font-size:10px;font-weight:600;">{{ $i + 1 }}</td>
-                        <td><span class="item-code">{{ $r->item }}</span></td>
-                        <td class="office-cell" title="{{ $r->organizational_unit }}">
-                            {{ $r->organizational_unit ?: '—' }}
+                        <td><span class="item-code">{{ $r->item_no_new }}</span></td>
+                        <td class="office-cell" title="{{ $r->office_department }}">
+                            {{ $r->office_department ?: '—' }}
                         </td>
                         <td><span class="sg-badge">SG-{{ $r->salary_grade }}</span></td>
                         <td style="text-align:center;font-weight:600;">{{ $r->step ?: '—' }}</td>

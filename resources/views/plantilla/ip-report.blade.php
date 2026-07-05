@@ -110,7 +110,7 @@
                     <th style="width: 50px;">#</th>
                     <th>Name</th>
                     <th>IP Group</th>
-                    <th>Office</th>
+                    <th>OFFICE</th>
                     <th>Position</th>
                     <th>Appointment Status</th>
                     <th style="text-align:center;">Actions</th>
@@ -134,11 +134,11 @@
                         @endif
                     </td>
                     <td>
-                        <div class="emp-office">{{ $rec->organizational_unit }}</div>
+                        <div class="emp-office">{{ $rec->office_department }}</div>
                     </td>
                     <td>
                         <div class="emp-pos">{{ $rec->position_title }}</div>
-                        <div class="item-code">Item No. {{ $rec->item }}</div>
+                        <div class="item-code">Item No. {{ $rec->item_no_new }}</div>
                     </td>
                     <td>
                         <span class="status-label">{{ strtoupper($rec->employment_status) ?: '—' }}</span>

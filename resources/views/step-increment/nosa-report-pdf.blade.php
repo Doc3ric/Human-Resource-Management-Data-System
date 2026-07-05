@@ -197,7 +197,7 @@
                     @php
                         $sg = $rec->salary_grade;
                         $step = $rec->step ?: 1;
-                        $extractedNum = preg_replace('/[^0-9]/', '', $rec->item ?? '');
+                        $extractedNum = preg_replace('/[^0-9]/', '', $rec->item_no_new ?? '');
                         $itemNum = $extractedNum !== '' ? $extractedNum : ($index + 1);
 
                         if ($rec->is_vacant) {
@@ -208,7 +208,7 @@
                                 $prevMonthly = \App\Models\SalaryGrade::getRateForSchedule($previousSchedule->id, $sg, $step);
                                 $prevAnnual = $prevMonthly * 12;
                             } else {
-                                $prevAnnual = (float) ($rec->actual_annual_salary ?: 0);
+                                $prevAnnual = (float) ($rec->base_salary_amount ?: 0);
                             }
                             $newMonthly = \App\Models\SalaryGrade::getRateForSchedule($activeSchedule->id, $sg, $step);
                             $newAnnual = $newMonthly * 12;

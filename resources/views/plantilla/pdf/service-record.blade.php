@@ -68,7 +68,7 @@
             <td width="45%" style="border-bottom: 1px solid #000;">
                 {{ strtoupper($employee->last_name) }}, {{ strtoupper($employee->first_name) }} {{ strtoupper($employee->middle_name) }}
             </td>
-            <td width="15%" style="text-align: right;"><strong>BIRTH DATE:</strong></td>
+            <td width="15%" style="text-align: right;"><strong>DATE OF BIRTH:</strong></td>
             <td width="25%" style="border-bottom: 1px solid #000;">
                 {{ $employee->date_of_birth ? $employee->date_of_birth->format('m/d/Y') : 'N/A' }}
             </td>
@@ -118,9 +118,9 @@
                 <!-- Status -->
                 <td>{{ $employee->employment_status }}</td>
                 <!-- Salary -->
-                <td>{{ number_format($employee->actual_annual_salary, 2) }}/A</td>
+                <td>{{ number_format($employee->base_salary_amount, 2) }}/A</td>
                 <!-- Station -->
-                <td>{{ $employee->organizational_unit }}</td>
+                <td>{{ $employee->office_department }}</td>
                 <!-- Branch -->
                 <td>Local</td>
                 <!-- Leave W/O Pay -->

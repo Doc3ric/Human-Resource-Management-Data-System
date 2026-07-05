@@ -123,7 +123,7 @@
                         $mi = $rec->middle_name ? strtoupper(substr($rec->middle_name, 0, 1)) . '.' : '';
                         $incumbent = trim("$first $mi $last");
                     }
-                    $extractedNum = preg_replace('/[^0-9]/', '', $rec->item ?? '');
+                    $extractedNum = preg_replace('/[^0-9]/', '', $rec->item_no_new ?? '');
                     $itemNum = $extractedNum !== '' ? $extractedNum : ($index + 1);
                 @endphp
                 <tr>

@@ -39,7 +39,7 @@ class PositionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'organizational_unit_id' => 'required|exists:organizational_units,id',
+            'office_department_id' => 'required|exists:office_departments,id',
             'title' => 'required|string|max:255',
             'code' => 'required|string|max:255|unique:positions',
             'salary_grade' => 'nullable|string|max:255',
@@ -77,7 +77,7 @@ class PositionController extends Controller
     public function update(Request $request, Position $position)
     {
         $validated = $request->validate([
-            'organizational_unit_id' => 'required|exists:organizational_units,id',
+            'office_department_id' => 'required|exists:office_departments,id',
             'title' => 'required|string|max:255',
             'code' => 'required|string|max:255|unique:positions,code,' . $position->id,
             'salary_grade' => 'nullable|string|max:255',

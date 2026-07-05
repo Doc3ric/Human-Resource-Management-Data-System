@@ -26,6 +26,7 @@
         <form method="POST" action="{{ isset($plantilla) ? route('plantilla.update', $plantilla) : route('plantilla.store') }}" class="space-y-6">
             @csrf
             @if(isset($plantilla)) @method('PUT') @endif
+            <input type="hidden" name="return_url" value="{{ request('return_url') }}">
 
             {{-- Position Information --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -33,9 +34,9 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
                     <div class="lg:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Organizational Unit <span class="text-red-500">*</span></label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">OFFICE<span class="text-red-500">*</span></label>
                         <div class="flex flex-col gap-2">
-                            @php $oldOrg = old('organizational_unit', $plantilla->organizational_unit ?? ''); @endphp
+                            @php $oldOrg = old('office_department', $plantilla->office_department ?? ''); @endphp
                             <select id="org_unit_select" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white outline-none">
                                 <option value="">Select an office...</option>
                                 @foreach($offices as $office)
@@ -43,9 +44,9 @@
                                 @endforeach
                                 <option value="Others" {{ $oldOrg && !$offices->contains($oldOrg) ? 'selected' : '' }}>Others (Please specify)</option>
                             </select>
-                            <input type="text" name="organizational_unit" id="org_unit_input" 
+                            <input type="text" name="office_department" id="org_unit_input" 
                                 value="{{ $oldOrg }}"
-                                placeholder="Type organizational unit manually..."
+                                placeholder="Type OFFICE manually..."
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none {{ $oldOrg && !$offices->contains($oldOrg) ? '' : 'hidden' }}" required>
                         </div>
                     </div>
@@ -54,7 +55,7 @@
                         <label class="block text-xs font-medium text-gray-600 mb-1">Item (Position Code) <span class="text-red-500">*</span></label>
                         <div class="flex flex-col gap-2">
                             @php
-                                $oldItem = old('item', $plantilla->item ?? '');
+                                $oldItem = old('item_no_new', $plantilla->item_no_new ?? '');
                                 $existingItems = $existingItems ?? collect();
                                 $itemInList = $existingItems->contains($oldItem);
                             @endphp
@@ -66,7 +67,7 @@
                                 @endforeach
                                 <option value="__others__" {{ ($oldItem && !$itemInList) ? 'selected' : '' }}>Others (Please Specify)</option>
                             </select>
-                            <input type="text" name="item" id="item_input"
+                            <input type="text" name="item_no_new" id="item_input"
                                 value="{{ $oldItem }}"
                                 placeholder="Enter new position code..."
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono {{ (isset($plantilla) || ($oldItem && !$itemInList)) ? '' : 'hidden' }}"
@@ -77,8 +78,16 @@
 
                     <div class="lg:col-span-2">
                         <label class="block text-xs font-medium text-gray-600 mb-1">Position Title <span class="text-red-500">*</span></label>
-                        <input type="text" name="position_title" value="{{ old('position_title', $plantilla->position_title ?? '') }}"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" required>
+                        <select name="position_title" class="tom-select-tags w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" required>
+                            <option value="">Select or Type Position...</option>
+                            @php $oldPos = old('position_title', $plantilla->position_title ?? ''); @endphp
+                            @foreach($positions as $p)
+                                <option value="{{ $p }}" {{ $oldPos === $p ? 'selected' : '' }}>{{ $p }}</option>
+                            @endforeach
+                            @if($oldPos && !$positions->contains($oldPos))
+                                <option value="{{ $oldPos }}" selected>{{ $oldPos }}</option>
+                            @endif
+                        </select>
                     </div>
 
                     <div>
@@ -108,14 +117,14 @@
 
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Authorized Annual Salary</label>
-                        <input type="number" step="0.01" name="authorized_annual_salary" value="{{ old('authorized_annual_salary', $plantilla->authorized_annual_salary ?? '') }}"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                        <input type="text" inputmode="decimal" name="authorized_annual_salary" value="{{ old('authorized_annual_salary', $plantilla->authorized_annual_salary ?? '') }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none peso-input">
                     </div>
 
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Actual Annual Salary</label>
-                        <input type="number" step="0.01" name="actual_annual_salary" value="{{ old('actual_annual_salary', $plantilla->actual_annual_salary ?? '') }}"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                        <input type="text" inputmode="decimal" name="base_salary_amount" value="{{ old('base_salary_amount', $plantilla->base_salary_amount ?? '') }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none peso-input">
                     </div>
 
                     <div>
@@ -124,7 +133,7 @@
                             <option value="">Select...</option>
                             <option value="E"      {{ old('employment_status', $plantilla->employment_status ?? '') === 'E'      ? 'selected':'' }}>Elected</option>
                             <option value="CT"     {{ old('employment_status', $plantilla->employment_status ?? '') === 'CT'     ? 'selected':'' }}>Co-Terminous</option>
-                            <option value="P"      {{ old('employment_status', $plantilla->employment_status ?? '') === 'P'      ? 'selected':'' }}>Permanent</option>
+                            <option value="P"      {{ old('employment_status', $plantilla->employment_status ?? '') === 'P'      ? 'selected':'' }}>REGULAR</option>
                             <option value="Casual" {{ old('employment_status', $plantilla->employment_status ?? '') === 'Casual' ? 'selected':'' }}>Casual</option>
                             <option value="JO"     {{ old('employment_status', $plantilla->employment_status ?? '') === 'JO'     ? 'selected':'' }}>Job Order</option>
                         </select>
@@ -154,7 +163,7 @@
                 <p class="text-xs text-gray-400 mb-4">Leave blank if this is a vacant position.</p>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Last Name</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">LAST NAME</label>
                         <input type="text" name="last_name" value="{{ old('last_name', $plantilla->last_name ?? '') }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                     </div>
@@ -164,12 +173,18 @@
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Middle Name</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">MIDDLE NAME</label>
                         <input type="text" name="middle_name" value="{{ old('middle_name', $plantilla->middle_name ?? '') }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Sex</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">SUFFIX</label>
+                        <input type="text" name="name_extension" value="{{ old('name_extension', $plantilla->name_extension ?? '') }}"
+                            placeholder="Jr. / Sr. / III"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">SEX</label>
                         <select name="sex" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
                             <option value="">Not specified</option>
                             <option value="M" {{ old('sex', $plantilla->sex ?? '') === 'M' ? 'selected':'' }}>Male (M)</option>
@@ -177,7 +192,16 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Date of Birth</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">CIVIL STATUS</label>
+                        <select name="civil_status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+                            <option value="">— Select —</option>
+                            @foreach(['SINGLE','MARRIED','WIDOW','WIDOWER','SEPARATED','ANNULLED'] as $cs)
+                                <option value="{{ $cs }}" {{ old('civil_status', $plantilla->civil_status ?? '') === $cs ? 'selected' : '' }}>{{ $cs }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">DATE OF BIRTH</label>
                         <input type="date" name="date_of_birth" value="{{ old('date_of_birth', isset($plantilla) && $plantilla->date_of_birth ? $plantilla->date_of_birth->format('Y-m-d') : '') }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                     </div>
@@ -238,7 +262,7 @@
                                 placeholder="e.g. 23042004A"
                                 maxlength="20"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono uppercase tracking-wider">
-                            <button type="button" id="btn_autofill_code" title="Auto-generate from Last Name + Date of Birth"
+                            <button type="button" id="btn_autofill_code" title="Auto-generate from Last Name + Birthday"
                                 class="flex-shrink-0 px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-300 text-blue-600 rounded-lg text-xs font-medium transition flex items-center gap-1">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                 Auto-fill
@@ -286,8 +310,8 @@
 
                 <div class="mt-4">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Comment / Annotation</label>
-                    <textarea name="comment_annotation" rows="2"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">{{ old('comment_annotation', $plantilla->comment_annotation ?? '') }}</textarea>
+                    <textarea name="remarks_annotation" rows="2"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">{{ old('remarks_annotation', $plantilla->remarks_annotation ?? '') }}</textarea>
                 </div>
             </div>
 
@@ -341,7 +365,7 @@
 
             {{-- Actions --}}
             <div class="flex gap-3 justify-end">
-                <a href="{{ route('plantilla.index') }}" class="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
+                <a href="{{ request('return_url', route('plantilla.index')) }}" class="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
                     Cancel
                 </a>
                 <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition">
@@ -380,7 +404,7 @@
                                         'salary_grade': data.salary_grade,
                                         'step': data.step,
                                         'authorized_annual_salary': data.authorized_annual_salary,
-                                        'actual_annual_salary': data.actual_annual_salary,
+                                        'base_salary_amount': data.base_salary_amount,
                                         'employment_status': data.employment_status,
                                         'area_code': data.area_code,
                                         'area_type': data.area_type,
@@ -402,7 +426,7 @@
                 });
             }
 
-            // Organizational Unit Toggle
+            // OFFICE Toggle
             const orgSelect = document.getElementById('org_unit_select');
             const orgInput = document.getElementById('org_unit_input');
             if (orgSelect && orgInput) {

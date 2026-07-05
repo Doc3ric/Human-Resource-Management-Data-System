@@ -20,7 +20,7 @@ class GlobalSearchController extends Controller
         $plantilla = PlantillaRecord::where(function ($q) use ($query) {
                 $q->where('first_name', 'like', "%{$query}%")
                   ->orWhere('last_name', 'like', "%{$query}%")
-                  ->orWhere('item', 'like', "%{$query}%");
+                  ->orWhere('item_no_new', 'like', "%{$query}%");
             })
             // Exclude synced copies from JO/Casual imports — they show via their own table
             ->whereNotIn('employment_status', ['JO', 'Casual'])

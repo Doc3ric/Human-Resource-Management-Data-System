@@ -10,7 +10,7 @@
                     Editing: <strong>{{ $casual->is_vacant ? 'VACANT — ' . $casual->position_title : $casual->full_name }}</strong>
                 </p>
             </div>
-            <a href="{{ route('casual.index') }}"
+            <a href="{{ session('last_index_url', route('casual.index')) }}"
                style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;">
                 <i class="bi bi-arrow-left"></i> Back to List
             </a>

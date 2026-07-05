@@ -17,7 +17,7 @@
             <td>{{ $idx + 1 }}</td>
             <td>{{ strtoupper($r->last_name ?? '') }}, {{ $r->first_name ?? '' }}</td>
             <td>{{ $r->position_title }}</td>
-            <td>{{ $r->organizational_unit }}</td>
+            <td>{{ $r->office_department }}</td>
             <td>{{ $r->date_separated ? \Carbon\Carbon::parse($r->date_separated)->format('m/d/Y') : '—' }}</td>
             <td>{{ $item['years_in_service'] !== null ? $item['years_in_service'] . ' yrs' : '—' }}</td>
         </tr>

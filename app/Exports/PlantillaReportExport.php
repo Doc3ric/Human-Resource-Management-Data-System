@@ -3,13 +3,18 @@
 namespace App\Exports;
 
 use App\Models\SalaryGrade;
+use Maatwebsite\Excel\Concerns\WithDrawings;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Illuminate\Contracts\View\View;
 
-class PlantillaReportExport implements FromView, WithTitle, ShouldAutoSize
+class PlantillaReportExport implements FromView, WithTitle, ShouldAutoSize, WithDrawings, WithEvents, WithCustomStartCell
 {
+    use \App\Exports\Traits\HasPhrmoHeader;
+
     protected array $grouped;
     protected ?string $officeName;
 

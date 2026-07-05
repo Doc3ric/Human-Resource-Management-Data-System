@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use App\Models\ActivityLog;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +23,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // System & Administration (super admin) bypasses every Spatie
+        // permission/Gate check, consistent with the isSuperAdmin() bypass
+        // already used throughout this app's custom role helpers.
+        Gate::before(function ($user, $ability) {
+            return $user->isSuperAdmin() ? true : null;
+        });
+
         // Share recent activity logs globally for notifications
         View::composer('*', function ($view) {
             if (Auth::check()) {

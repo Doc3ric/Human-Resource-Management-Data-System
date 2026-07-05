@@ -3,6 +3,9 @@
 namespace App\Exports\Reports;
 
 use Illuminate\Contracts\View\View;
+use Maatwebsite\Excel\Concerns\WithDrawings;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -12,8 +15,10 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class Report2Export implements FromView, WithTitle, ShouldAutoSize, WithStyles, WithEvents
+class Report2Export implements FromView, WithTitle, ShouldAutoSize, WithStyles, WithEvents, WithDrawings, WithCustomStartCell
 {
+    use \App\Exports\Traits\HasPhrmoHeader;
+
     protected array $data;
 
     public function __construct(array $data)

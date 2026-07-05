@@ -19,7 +19,7 @@ class Employee extends Model
         'last_name',
         'employee_number',
         'date_of_birth',
-        'gender',
+        'sex',
         'email',
         'phone',
         'address',

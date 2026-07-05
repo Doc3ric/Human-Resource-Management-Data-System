@@ -3,13 +3,18 @@
 namespace App\Exports;
 
 use Illuminate\Contracts\View\View;
+use Maatwebsite\Excel\Concerns\WithDrawings;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ScheduleExport implements FromView, ShouldAutoSize, WithStyles
+class ScheduleExport implements FromView, ShouldAutoSize, WithStyles, WithDrawings, WithEvents, WithCustomStartCell
 {
+    use \App\Exports\Traits\HasPhrmoHeader;
+
     protected $grouped;
 
     public function __construct($grouped)

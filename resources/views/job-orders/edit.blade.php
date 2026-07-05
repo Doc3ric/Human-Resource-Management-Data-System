@@ -1,7 +1,7 @@
 <x-dashboard-app>
     <div style="max-width:900px;margin:0 auto;">
         <div style="margin-bottom:20px;display:flex;align-items:center;gap:10px;">
-            <a href="{{ route('job-orders.index') }}"
+            <a href="{{ session('last_index_url', route('job-orders.index')) }}"
                style="display:inline-flex;align-items:center;gap:6px;color:#64748b;font-size:13px;font-weight:600;text-decoration:none;padding:6px 12px;border:1.5px solid #e2e8f0;border-radius:8px;background:#f8fafc;transition:all .15s;"
                onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
                 <i class="bi bi-arrow-left"></i> Back to JO Inventory

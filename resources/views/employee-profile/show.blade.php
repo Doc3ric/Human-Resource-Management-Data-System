@@ -268,13 +268,13 @@
                 </div>
                 <div class="info-grid">
                     <div>
-                        <div class="info-item-label">Gender</div>
-                        <div class="info-item-value">{{ $employee->gender ?? 'N/A' }}</div>
+                        <div class="info-item-label">SEX</div>
+                        <div class="info-item-value">{{ $employee->sex ?? 'N/A' }}</div>
                     </div>
                     <div>
-                        <div class="info-item-label">Date of Birth</div>
+                        <div class="info-item-label">Birthday</div>
                         <div class="info-item-value">
-                            {{ $employee->date_of_birth ? \Carbon\Carbon::parse($employee->date_of_birth)->format('M d, Y') : ($employee->birthdate ? \Carbon\Carbon::parse($employee->birthdate)->format('M d, Y') : 'N/A') }}
+                            {{ $employee->date_of_birth ? \Carbon\Carbon::parse($employee->date_of_birth)->format('M d, Y') : ($employee->date_of_birth ? \Carbon\Carbon::parse($employee->date_of_birth)->format('M d, Y') : 'N/A') }}
                         </div>
                     </div>
                     <div>
@@ -303,15 +303,15 @@
                 </div>
                 <div class="info-grid" style="grid-template-columns: 1fr;">
                     <div>
-                        <div class="info-item-label">Organizational Unit / Office</div>
+                        <div class="info-item-label">OFFICE / Office</div>
                         <div class="info-item-value">
-                            {{ $employee->organizational_unit ?? ($employee->office ?? 'N/A') }}
+                            {{ $employee->office_department ?? ($employee->office ?? 'N/A') }}
                         </div>
                     </div>
                     @if($type == 'plantilla' || $type == 'permanent')
                         <div>
                             <div class="info-item-label">Item Number</div>
-                            <div class="info-item-value">{{ $employee->item ?? 'N/A' }}</div>
+                            <div class="info-item-value">{{ $employee->item_no_new ?? 'N/A' }}</div>
                         </div>
                         <div>
                             <div class="info-item-label">Salary Grade / Step</div>
@@ -327,10 +327,7 @@
                         </div>
                     @endif
                     @if($type == 'job_orders')
-                        <div>
-                            <div class="info-item-label">Nature of Work</div>
-                            <div class="info-item-value">{{ $employee->nature_of_work ?? 'N/A' }}</div>
-                        </div>
+
                     @endif
                 </div>
             </div>

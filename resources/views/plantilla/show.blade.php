@@ -8,7 +8,7 @@
                 </a>
                 <div>
                     <h1 class="text-xl font-bold text-gray-800">{{ $plantilla->position_title }}</h1>
-                    <p class="text-gray-500 text-sm">{{ $plantilla->item }} • {{ $plantilla->organizational_unit }}</p>
+                    <p class="text-gray-500 text-sm">{{ $plantilla->item_no_new }} • {{ $plantilla->office_department }}</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -94,7 +94,7 @@
                 {{-- Salary Card --}}
                 <div class="bg-blue-600 text-white rounded-xl shadow-sm p-5">
                     <h2 class="text-sm font-semibold opacity-80 mb-2">Annual Salary</h2>
-                    <div class="text-2xl font-bold">₱{{ number_format($plantilla->actual_annual_salary, 2) }}</div>
+                    <div class="text-2xl font-bold">₱{{ number_format($plantilla->base_salary_amount, 2) }}</div>
                     <div class="text-sm opacity-70 mt-1">Monthly: ₱{{ number_format($plantilla->monthly_salary, 2) }}</div>
                     <div class="mt-3 pt-3 border-t border-blue-500 text-sm">
                         <div class="flex justify-between opacity-80">
@@ -142,7 +142,7 @@
                             $details = [
                                 'Full Name'                 => $plantilla->full_name,
                                 'Sex'                       => $plantilla->sex ?? 'N/A',
-                                'Date of Birth'             => $plantilla->date_of_birth?->format('F d, Y') ?? 'N/A',
+                                'Birthday'             => $plantilla->date_of_birth?->format('F d, Y') ?? 'N/A',
                                 'TIN'                       => $plantilla->tin ?? 'N/A',
                                 'GSIS BP Number'            => $plantilla->gsis_bp_number ?? 'N/A',
                                 'UMID'                      => $plantilla->umid ?? 'N/A',
@@ -175,10 +175,10 @@
                         <div><span class="text-gray-400 text-xs block">Abolished</span><span class="font-medium">{{ $plantilla->abolished ? 'Yes' : 'No' }}</span></div>
                         <div><span class="text-gray-400 text-xs block">Dissolved</span><span class="font-medium">{{ $plantilla->dissolved ? 'Yes' : 'No' }}</span></div>
                     </div>
-                    @if($plantilla->comment_annotation)
+                    @if($plantilla->remarks_annotation)
                     <div class="mt-4 pt-4 border-t border-gray-100">
                         <span class="text-gray-400 text-xs block mb-1">Comment / Annotation</span>
-                        <p class="text-gray-700 text-sm">{{ $plantilla->comment_annotation }}</p>
+                        <p class="text-gray-700 text-sm">{{ $plantilla->remarks_annotation }}</p>
                     </div>
                     @endif
                 </div>

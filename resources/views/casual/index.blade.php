@@ -269,7 +269,7 @@
         /* ── Excel-style right-quarter horizontal scrollbar ────────── */
         .cas-hscroll-bar {
             display: flex;
-            justify-content: flex-end;
+            justify-content: flex-start;
             background: #f3f4f6;
             border-top: 1px solid #e5e7eb;
         }
@@ -553,6 +553,25 @@
             word-break: break-word;
         }
 
+        .cas-btn.filter:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .gender-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 26px; height: 26px; font-size: 11px; font-weight: 800;
+            border-radius: 50%;
+        }
+        .gender-m {
+            background: #eff6ff; color: #2563eb;
+            border: 1px solid #bfdbfe;
+        }
+        .gender-f {
+            background: #fdf2f8; color: #db2777;
+            border: 1px solid #fbcfe8;
+        }
+
         .import-drop:hover {
             border-color: #3b82f6;
             background: #e0f2fe;
@@ -584,7 +603,7 @@
             display: flex;
             gap: 12px;
             margin-top: 24px;
-            justify-content: flex-end;
+            justify-content: flex-start;
         }
 
         .btn-import-submit {
@@ -641,96 +660,81 @@
     @endif
 
     {{-- Stats bar --}}
-    <div class="cas-stats">
-        <div class="cas-stat">
-            <div class="cas-stat-top">
-                <div>
-                    <div class="cas-stat-label">Total Records</div>
-                    <div class="cas-stat-value">{{ number_format($total) }}</div>
-                </div>
-                <div class="cas-stat-icon indigo"><i class="bi bi-people-fill"></i></div>
-            </div>
-            <div class="cas-stat-sub">All casual employees</div>
-        </div>
-        <div class="cas-stat">
-            <div class="cas-stat-top">
-                <div>
-                    <div class="cas-stat-label">Male</div>
-                    <div class="cas-stat-value">{{ number_format($maleCount) }}</div>
-                </div>
-                <div class="cas-stat-icon blue"><i class="bi bi-gender-male"></i></div>
-            </div>
-            <div class="cas-stat-sub">Male employees</div>
-        </div>
-        <div class="cas-stat">
-            <div class="cas-stat-top">
-                <div>
-                    <div class="cas-stat-label">Female</div>
-                    <div class="cas-stat-value">{{ number_format($femaleCount) }}</div>
-                </div>
-                <div class="cas-stat-icon purple"><i class="bi bi-gender-female"></i></div>
-            </div>
-            <div class="cas-stat-sub">Female employees</div>
-        </div>
+    @php
+        $casGadTotal = $maleCount + $femaleCount;
+        $casFemalePct = $casGadTotal > 0 ? round($femaleCount / $casGadTotal * 100, 1) : 0;
+        $casGadOk = $casFemalePct >= 40 && $casFemalePct <= 60;
+    @endphp
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;">
+        <x-stat-card icon="bi-person-lines-fill" color="indigo" label="Total Casual" :value="$total"
+            sub="Active casual employees"
+            compliance="CSC / RA 6656"
+            analysis="Casual employees are governed by RA 6656 and CSC MC 40, s.1998. Employment is project-based or seasonal in nature." />
+
+        <x-stat-card icon="bi-gender-male" color="blue" label="Male" :value="$maleCount"
+            :pct="$casGadTotal > 0 ? round($maleCount/$casGadTotal*100,1) : 0"
+            sub="of sex-tagged casuals"
+            compliance="RA 9710 GAD"
+            analysis="Male casual employees. GAD monitoring per RA 9710 applies to all employment categories including casual staff." />
+
+        <x-stat-card icon="bi-gender-female" color="pink" label="Female" :value="$femaleCount"
+            :pct="$casFemalePct"
+            sub="of sex-tagged casuals"
+            compliance="RA 9710 GAD"
+            :alert="!$casGadOk"
+            analysis="{{ $casGadOk ? 'GAD compliant: '.$casFemalePct.'% female ratio among casual staff meets the 40–60% target (RA 9710).' : 'ATTENTION: '.$casFemalePct.'% female ratio is outside the 40–60% GAD target (RA 9710 §12).' }}" />
+
+        <x-stat-card icon="bi-calendar-x" color="orange" label="Vacant Slots" :value="$vacantCount ?? 0"
+            sub="Unfilled casual positions"
+            compliance="CSC Rules"
+            analysis="Casual vacancies should be filled promptly to ensure continuity of service. Renewal of existing contracts requires office endorsement each month." />
     </div>
 
     {{-- Filter bar --}}
     <form method="GET" action="{{ route('casual.index') }}" id="cas-search-form">
-        <div class="cas-filter">
-            <input type="text" name="search" value="{{ request('search') }}" class="cas-input"
-                placeholder="🔍  Search name, position, office…" autocomplete="off">
+        <div class="cas-filter" style="display: flex; flex-direction: column; gap: 12px; align-items: stretch; padding: 14px 18px; margin-bottom: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, .04);">
+            <!-- Top Row: Inputs + Search + Reset -->
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <input type="text" name="search" value="{{ request('search') }}" class="cas-input" placeholder="🔍  Search name, position, office…" autocomplete="off" maxlength="100">
+                <select name="office[]" class="cas-select" id="office-select" multiple="multiple" style="min-width:250px;" title="Charges / Office">
+                    @php $selectedOffices = (array) request('office', []); @endphp
+                    <option value="" disabled>— Charges / Office —</option>
+                    @foreach($offices as $office)
+                        <option value="{{ $office }}" {{ in_array($office, $selectedOffices) ? 'selected' : '' }}>{{ Str::limit($office, 45) }}</option>
+                    @endforeach
+                </select>
+                <select name="detail" class="cas-select" style="min-width:180px;">
+                    <option value="">— Detailed / Reassigned —</option>
+                    @foreach($detailList as $detail)
+                        <option value="{{ $detail }}" {{ request('detail') === $detail ? 'selected' : '' }}>{{ Str::limit($detail, 40) }}</option>
+                    @endforeach
+                </select>
+                <button type="submit" class="cas-btn primary"><i class="bi bi-search"></i> Search</button>
+                <a href="{{ route('casual.index') }}" class="cas-btn reset"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+                <select name="per_page" class="cas-select" style="min-width: 80px;" onchange="this.form.submit()">
+                    <option value="20" {{ request('per_page', 50) == 20 ? 'selected' : '' }}>20</option>
+                    <option value="50" {{ request('per_page', 50) == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                    <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
+                </select>
+            </div>
 
-            <select name="office[]" class="cas-select" id="office-select" multiple="multiple" style="min-width:250px;" title="Charges / Office">
-                @php $selectedOffices = (array) request('office', []); @endphp
-                <option value="" disabled>— Charges / Office —</option>
-                @foreach($offices as $office)
-                    <option value="{{ $office }}" {{ in_array($office, $selectedOffices) ? 'selected' : '' }}>
-                        {{ Str::limit($office, 45) }}
-                    </option>
-                @endforeach
-            </select>
-
-            <select name="detail" class="cas-select" style="min-width:180px;">
-                <option value="">— Detailed / Reassigned —</option>
-                @foreach($detailList as $detail)
-                    <option value="{{ $detail }}" {{ request('detail') === $detail ? 'selected' : '' }}>
-                        {{ Str::limit($detail, 40) }}
-                    </option>
-                @endforeach
-            </select>
-
-            <button type="submit" class="cas-btn primary"><i class="bi bi-search"></i> Search</button>
-            <a href="{{ route('casual.index') }}" class="cas-btn reset"><i class="bi bi-arrow-counterclockwise"></i>
-                Reset</a>
-
-            @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                <a href="{{ route('casual.create') }}" class="cas-btn add"><i class="bi bi-plus-lg"></i> Add Record</a>
-                <button type="button" class="cas-btn import"
-                    onclick="document.getElementById('import-overlay').classList.add('active')">
-                    <i class="bi bi-upload"></i> Import Excel
-                </button>
-            @endif
-
-            @if(auth()->user()->isSuperAdmin())
-                <button type="button" id="delete-all-btn"
-                    style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;background:#ffffff;color:#334155;border:1px solid #cbd5e1;transition:all .15s;"
-                    onclick="document.getElementById('delete-all-overlay').classList.add('active')">
-                    <i class="bi bi-trash3-fill"></i> Delete All Data
-                </button>
-            @endif
-
-            <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
-                <a href="{{ route('casual.import.history') }}" class="cas-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;">
-                    <i class="bi bi-clock-history"></i> Import History
-                </a>
+            <!-- Bottom Row: Actions (Far Left) -->
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-start;">
                 @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                    <button type="button" class="cas-btn" id="toggle-select-multiple" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;cursor:pointer;">
-                        <i class="bi bi-ui-checks-grid"></i> Select Multiple
-                    </button>
+                    <a href="{{ route('casual.create') }}" class="cas-btn add"><i class="bi bi-plus-lg"></i> Add Record</a>
+                    <button type="button" class="cas-btn import" onclick="document.getElementById('import-overlay').classList.add('active')"><i class="bi bi-upload"></i> Import Excel</button>
                 @endif
-                <button type="button" class="cas-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;cursor:pointer;" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()">
-                    <i class="bi bi-file-earmark-arrow-down-fill"></i> Export Settings
-                </button>
+                @unless(auth()->user()->isViewer())
+                <a href="{{ route('casual.import.history') }}" class="cas-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;"><i class="bi bi-clock-history"></i> Import History</a>
+                @endunless
+                <button type="button" class="cas-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;cursor:pointer;" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()"><i class="bi bi-file-earmark-arrow-down-fill"></i> Export Settings</button>
+                @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
+                    <button type="button" class="cas-btn" id="toggle-select-multiple" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;cursor:pointer;"><i class="bi bi-ui-checks-grid"></i> Select Multiple</button>
+                @endif
+                @if(auth()->user()->isSuperAdmin())
+                    <button type="button" id="delete-all-btn" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;background:#ffffff;color:#334155;border:1px solid #cbd5e1;transition:all .15s;" onclick="document.getElementById('delete-all-overlay').classList.add('active')"><i class="bi bi-trash3-fill"></i> Delete All Data</button>
+                @endif
             </div>
         </div>
     </form>
@@ -772,34 +776,25 @@
                 <thead>
                     <tr>
                         @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                            <th class="checkbox-col" style="display:none; text-align:center; padding-left: 16px;">
+                            <th rowspan="2" class="checkbox-col" style="display:none; text-align:center; padding-left: 16px;">
                                 <input type="checkbox" id="selectAll" style="cursor:pointer; width: 14px; height: 14px;">
                             </th>
                         @endif
-                        <th>#</th>
-                        <th>Office / Dept</th>
+                        <th rowspan="2" style="width: 40px; text-align: center;">#</th>
+                        <th rowspan="2">OFFICE</th>
                         <th colspan="4" style="text-align:center;">NAME</th>
-                        <th>Position</th>
-                        <th>Gender</th>
+                        <th rowspan="2">POSITION</th>
+                        <th rowspan="2" style="text-align:center;">DATE OF BIRTH</th>
+                        <th rowspan="2" style="text-align:center;">SEX</th>
                         @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                            <th style="text-align:center;">Actions</th>
+                            <th rowspan="2" style="text-align:center;">ACTIONS</th>
                         @endif
                     </tr>
                     <tr>
-                        @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                            <th class="checkbox-col" style="display:none;"></th>
-                        @endif
-                        <th style="background:#1a337a;"></th>
-                        <th style="background:#1a337a;"></th>
-                        <th style="background:#1a337a;font-size:9px;">LASTNAME</th>
-                        <th style="background:#1a337a;font-size:9px;">FIRSTNAME</th>
+                        <th style="background:#1a337a;font-size:9px;">LAST NAME</th>
+                        <th style="background:#1a337a;font-size:9px;">FIRST NAME</th>
                         <th style="background:#1a337a;font-size:9px;">MIDDLE NAME</th>
-                        <th style="background:#1a337a;font-size:9px;">EXT.</th>
-                        <th style="background:#1a337a;"></th>
-                        <th style="background:#1a337a;"></th>
-                        @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                            <th style="background:#1a337a;"></th>
-                        @endif
+                        <th style="background:#1a337a;font-size:9px;">SUFFIX</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -812,7 +807,7 @@
                             @endif
                             <td style="color:#9ca3af;font-size:10px;font-weight:600;">{{ $i + 1 }}</td>
 
-                            <td title="{{ $r->office }}" style="font-size:11px;color:#64748b;">{{ $r->office }}</td>
+                            <td title="{{ $r->office_department }}" style="font-size:11px;color:#64748b;">{{ $r->office_department }}</td>
 
                             <td style="font-weight:700;color:#0f172a;">
                                 @if($r->is_vacant)
@@ -824,7 +819,7 @@
 
                             <td style="color:#374151;">{{ $r->first_name }}</td>
 
-                            <td style="font-size:11px;color:#64748b;">{{ $r->middle_initial ?: '—' }}</td>
+                            <td style="font-size:11px;color:#64748b;">{{ $r->middle_name ?: '—' }}</td>
 
                             <td style="font-size:11px;color:#64748b;">{{ $r->name_extension ?: '—' }}</td>
 
@@ -832,8 +827,19 @@
                                 {{ $r->position_title }}
                             </td>
 
-                            <td style="text-align:center;font-weight:700;">{{ $r->gender ?: '—' }}</td>
+                            <td style="color:#6b7280;text-align:center;font-size:11px;">
+                                {{ $r->date_of_birth ? \Carbon\Carbon::parse($r->date_of_birth)->format('M d, Y') : '—' }}
+                            </td>
 
+                            <td style="text-align:center;">
+                                @if(strtoupper($r->sex) === 'M')
+                                    <span class="gender-badge gender-m">M</span>
+                                @elseif(strtoupper($r->sex) === 'F')
+                                    <span class="gender-badge gender-f">F</span>
+                                @else
+                                    <span style="color:#94a3b8;font-size:11px;">-</span>
+                                @endif
+                            </td>
                             @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
                                 <td style="text-align:center;white-space:nowrap;">
                                     <a href="{{ route('employees.profile', ['type' => 'casual', 'id' => $r->id]) }}" class="row-btn" style="background: #fce7f3; color: #be185d; border-color: #fbcfe8;" title="201 Profile">
@@ -963,7 +969,7 @@
                     @foreach((array)request('office', []) as $off)
                         <input type="hidden" name="office[]" value="{{ $off }}">
                     @endforeach
-                    <input type="hidden" name="gender" value="{{ request('gender') }}">
+                    <input type="hidden" name="sex" value="{{ request('sex') }}">
                     <input type="hidden" name="vacant" value="{{ request('vacant') }}">
 
                     <div class="modal-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; border-radius: 12px 12px 0 0;">
@@ -971,8 +977,27 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" style="padding: 24px;">
+                        {{-- Record Status Filter --}}
+                        <div style="margin-bottom:16px;padding:12px 16px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+                            <p style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:8px;"><i class="bi bi-person-check-fill"></i> Record Status</p>
+                            <div class="d-flex gap-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="status_filter" value="active" id="sf_cas_active" checked>
+                                    <label class="form-check-label" for="sf_cas_active" style="font-size:13px;font-weight:600;color:#16a34a;">Active Only</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="status_filter" value="inactive" id="sf_cas_inactive">
+                                    <label class="form-check-label" for="sf_cas_inactive" style="font-size:13px;font-weight:600;color:#dc2626;">Inactive Only</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="status_filter" value="both" id="sf_cas_both">
+                                    <label class="form-check-label" for="sf_cas_both" style="font-size:13px;font-weight:600;color:#2563eb;">Both</label>
+                                </div>
+                            </div>
+                        </div>
+
                         <p style="font-size: 14px; color: #475569; margin-bottom: 16px;">Select the columns you want to include in your export:</p>
-                        
+
                         <div style="margin-bottom: 12px;">
                             <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelectorAll('.export-cb').forEach(cb => cb.checked = true)" style="font-size: 11px; font-weight: 600;">Select All</button>
                             <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelectorAll('.export-cb').forEach(cb => cb.checked = false)" style="font-size: 11px; font-weight: 600;">Deselect All</button>
@@ -981,19 +1006,34 @@
                         <div class="row">
                             @php
                                 $exportColumns = [
-                                    'office' => 'Office',
-                                    'item_old' => 'Item Old',
-                                    'item_new' => 'Item New',
-                                    'position_title' => 'Position Title',
-                                    'name' => 'Name',
-                                    'legislative_district' => 'Legislative District',
-                                    'gender' => 'Gender',
-                                    'sg_step_current' => 'SG/Step (Cur)',
-                                    'annual_salary_current' => 'Annual Salary (Cur)',
-                                    'sg_step_proposed' => 'SG/Step (Prop)',
-                                    'annual_salary_proposed' => 'Annual Salary (Prop)',
-                                    'increase_decrease' => 'Increase/Decrease',
-                                    'monthly_rate' => 'Monthly Rate'
+                                    'office' => 'OFFICE',
+                                    'item_no_old' => 'ITEM NO. (OLD)',
+                                    'item_no_new' => 'ITEM NO. (NEW)',
+                                    'position_title' => 'POSITION TITLE',
+                                    'is_vacant' => 'VACANT?',
+                                    'last_name' => 'LAST NAME',
+                                    'first_name' => 'FIRST NAME',
+                                    'middle_initial' => 'MIDDLE NAME',
+                                    'name_extension' => 'SUFFIX',
+                                    'legislative_district' => 'LEGISLATIVE DISTRICT',
+                                    'sg_current' => 'SALARY GRADE (CURRENT)',
+                                    'step_current' => 'STEP (CURRENT)',
+                                    'salary_current' => 'ANNUAL SALARY (CURRENT)',
+                                    'sg_proposed' => 'SALARY GRADE (PROPOSED)',
+                                    'step_proposed' => 'STEP (PROPOSED)',
+                                    'salary_proposed' => 'ANNUAL SALARY (PROPOSED)',
+                                    'increase_decrease' => 'INCREASE / DECREASE',
+                                    'previous_rate' => 'PREVIOUS RATE',
+                                    'current_rate' => 'CURRENT RATE (MONTHLY)',
+                                    'sex' => 'SEX',
+                                    'date_of_birth' => 'DATE OF BIRTH',
+                                    'first_day_of_service' => 'FIRST DAY OF SERVICE',
+                                    'eligibility' => 'ELIGIBILITY',
+                                    'annotation' => 'ANNOTATION',
+                                    'employee_code' => 'EMPLOYEE CODE',
+                                    'address' => 'ADDRESS',
+                                    'solo_parent' => 'SOLO PARENT',
+                                    'ip_community_membership' => 'IP COMMUNITY MEMBERSHIP'
                                 ];
                             @endphp
                             @foreach($exportColumns as $key => $label)

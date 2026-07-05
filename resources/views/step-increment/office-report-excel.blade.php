@@ -71,7 +71,7 @@
                     <td style="border: 1px solid #000; text-align: center;">{{ $effectivityFrom }}</td>
                     <td style="border: 1px solid #000; text-align: center;">-</td>
                     <td style="border: 1px solid #000;">{{ $name }}</td>
-                    <td style="border: 1px solid #000; text-align: center;">{{ $rec->item }}</td>
+                    <td style="border: 1px solid #000; text-align: center;">{{ $rec->item_no_new }}</td>
                     <td style="border: 1px solid #000;">{{ $rec->position_title }}</td>
                     <td style="border: 1px solid #000; text-align: center;">{{ $sg }}/{{ $curStep }}</td>
                     <td style="border: 1px solid #000; text-align: center;">{{ $stepIncrease }}</td>

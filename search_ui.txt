@@ -1,0 +1,206 @@
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\all-data\create.blade.php:126 -> <label class="block text-xs font-medium text-gray-600 mb-1">Organizational Unit <span
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\all-data\create.blade.php:140 -> placeholder="Type organizational unit manually..."
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\all-data\create.blade.php:253 -> <option value="P" {{ old('employment_status') === 'P' ? 'selected' : '' }}>Permanent</option>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\all-data\create.blade.php:624 -> // Organizational Unit Toggle
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\all-data\edit.blade.php:49 -> <label class="block text-xs font-medium text-gray-600 mb-1">Organizational Unit <span
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\all-data\edit.blade.php:64 -> placeholder="Type organizational unit manually..."
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\all-data\edit.blade.php:185 -> <option value="P" {{ $empStatus === 'P' ? 'selected' : '' }}>Permanent</option>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\all-data\edit.blade.php:764 -> // Organizational Unit Toggle
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\all-data\index.blade.php:699 -> <option value="P" {{ request('status') === 'P' ? 'selected' : '' }}>Permanent</option>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\all-data\index.blade.php:856 -> {{-- Organizational Unit --}}
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\all-data\index.blade.php:901 -> in_array($s, ['P', 'Permanent']) => ['status-P', 'Permanent'],
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\all-data\index.blade.php:1058 -> 'organizational_unit' => 'Organizational Unit',
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\archives\index.blade.php:261 -> {{-- Permanent Delete --}}
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\casual\form.blade.php:142 -> <label>Gender</label>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\casual\form.blade.php:143 -> <select name="gender" id="f-gender">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\casual\form.blade.php:145 -> <option value="M" {{ old('gender', $casual->gender ?? '') === 'M' ? 'selected' : '' }}>Male (M)</option>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\casual\form.blade.php:146 -> <option value="F" {{ old('gender', $casual->gender ?? '') === 'F' ? 'selected' : '' }}>Female (F)</option>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\casual\form.blade.php:150 -> <label>Birthdate</label>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\casual\form.blade.php:151 -> <input type="date" name="birthdate" id="f-birthdate"
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\casual\form.blade.php:152 -> value="{{ old('birthdate', isset($casual->birthdate) ? $casual->birthdate->format('Y-m-d') : '') }}">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\casual\form.blade.php:166 -> title="Auto-generate from Last Name + Birthdate">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\casual\form.blade.php:406 -> const dobEl      = document.getElementById('f-birthdate');
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\casual\index.blade.php:661 -> <div class="cas-stat-icon blue"><i class="bi bi-gender-male"></i></div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\casual\index.blade.php:671 -> <div class="cas-stat-icon purple"><i class="bi bi-gender-female"></i></div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\casual\index.blade.php:853 -> <td style="text-align:center;font-weight:700;">{{ $r->gender ?: '—' }}</td>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\casual\index.blade.php:984 -> <input type="hidden" name="gender" value="{{ request('gender') }}">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\casual\index.blade.php:1008 -> 'gender' => 'Gender',
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\components\dashboard-app.blade.php:1599 -> @if(Route::has('permanent.index'))
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\components\dashboard-app.blade.php:1601 -> <a href="{{ route('permanent.index') }}"
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\components\dashboard-app.blade.php:1602 -> class="nav-link {{ request()->routeIs('permanent.*') ? 'active' : '' }}">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\components\dashboard-app.blade.php:1604 -> <span>Permanent</span>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:579 -> <a href="{{ route('permanent.index') }}"
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:580 -> class="nav-link {{ request()->routeIs('permanent.*') ? 'active' : '' }}">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:582 -> <span>Permanent</span>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:825 -> <p class="dash-card-subtext" style="font-size:10px;">Elected, Coterminus, Permanent...</p>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:841 -> <i class="bi bi-gender-male" style="font-size: 24px; color: #3b82f6;"></i>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:846 -> <i class="bi bi-gender-female" style="font-size: 24px; color: #ec4899;"></i>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:881 -> <i class="bi bi-gender-male" style="font-size: 24px; color: #3b82f6;"></i>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:886 -> <i class="bi bi-gender-female" style="font-size: 24px; color: #ec4899;"></i>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:931 -> <i class="bi bi-gender-male" style="font-size: 24px; color: #3b82f6;"></i>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:936 -> <i class="bi bi-gender-female" style="font-size: 24px; color: #ec4899;"></i>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:993 -> Organizational Unit</h3>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:1994 -> // Initialize Pie Chart - Workforce Distribution (Permanent vs Casual vs Job Order)
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:1998 -> permanent: {{ $permanentEmployeesCount ?? 0 }},
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:2006 -> labels: ['Plantilla (Permanent)', 'Casual', 'Job Order'],
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:2008 -> data: [distData.permanent, distData.casual, distData.jobOrder],
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:2023 -> text: distData.permanent + distData.casual + distData.jobOrder,
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:2052 -> permanent: {{ $plantillaPermCount ?? 0 }},
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:2058 -> const ppTotal = ppData.permanent + ppData.elected + ppData.coter + ppData.temporary + ppData.parttime;
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:2062 -> labels: ['Permanent', 'Elected', 'Co-Terminous', 'Temporary', 'Part-Time'],
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\dashboard.blade.php:2064 -> data: [ppData.permanent, ppData.elected, ppData.coter, ppData.temporary, ppData.parttime],
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\employee-profile\show.blade.php:242 -> {{ $type == 'plantilla' ? 'Permanent' : ($type == 'casual' ? 'Casual' : 'Job Order') }}
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\employee-profile\show.blade.php:271 -> <div class="info-item-label">Gender</div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\employee-profile\show.blade.php:272 -> <div class="info-item-value">{{ $employee->gender ?? 'N/A' }}</div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\employee-profile\show.blade.php:277 -> {{ $employee->date_of_birth ? \Carbon\Carbon::parse($employee->date_of_birth)->format('M d, Y') : ($employee->birthdate ? \Carbon\Carbon::parse($employee->birthdate)->format('M d, Y') : 'N/A') }}
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\employee-profile\show.blade.php:306 -> <div class="info-item-label">Organizational Unit / Office</div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\employee-profile\show.blade.php:311 -> @if($type == 'plantilla' || $type == 'permanent')
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\employee-profile\show.blade.php:415 -> if ($type === 'plantilla' || $type === 'permanent') {
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\employees\index.blade.php:234 -> <select name="gender" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\employees\index.blade.php:236 -> <option value="Male" @selected(request('gender') === 'Male')>Male</option>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\employees\index.blade.php:237 -> <option value="Female" @selected(request('gender') === 'Female')>Female</option>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\all-data-excel.blade.php:14 -> @if(empty($columns) || in_array('organizational_unit', $columns))<th>ORGANIZATIONAL UNIT</th>@endif
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\all-data-pdf.blade.php:224 -> <th class="col-unit">Organizational Unit</th>@endif
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\all-data-pdf.blade.php:274 -> in_array($s, ['P', 'Permanent']) => ['P', 's-p'],
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\job-orders-pdf.blade.php:70 -> + (empty($columns) || in_array('birthdate', $columns) ? 1 : 0)
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\job-orders-pdf.blade.php:90 -> @if(empty($columns) || in_array('birthdate', $columns))<th rowspan="2">BIRTHDATE</th>@endif
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\job-orders-pdf.blade.php:93 -> @if($genderCols > 0)<th colspan="{{ $genderCols }}">GENDER</th>@endif
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\job-orders-pdf.blade.php:127 -> @if(empty($columns) || in_array('birthdate', $columns))<td>{{ $jo->birthdate ? $jo->birthdate->format('Y-m-d') : '' }}</td>@endif
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\job-orders-pdf.blade.php:130 -> @if(empty($columns) || in_array('gender_m', $columns))<td>{{ $jo->gender === 'M' ? '✓' : '' }}</td>@endif
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\job-orders-pdf.blade.php:131 -> @if(empty($columns) || in_array('gender_f', $columns))<td>{{ $jo->gender === 'F' ? '✓' : '' }}</td>@endif
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\permanent-pdf.blade.php:63 -> <h1>HDMS- Human Resource Data Management System &mdash; Permanent Employees Report</h1>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\permanent-pdf.blade.php:64 -> <p>Permanent / Co-Terminous / Elected &mdash; {{ now()->format('F d, Y') }}</p>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\permanent-pdf.blade.php:89 -> @if(empty($columns) || in_array('date_of_birth', $columns))<th class="col-dob">BIRTHDATE</th>@endif
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\permanent-pdf.blade.php:103 -> in_array($s, ['P','Permanent'])                   => 'Permanent',
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\position-report-pdf.blade.php:115 -> <th class="th-sub" style="width:9%;">Permanent<br><small>(4.1)</small></th>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\position-report-pdf.blade.php:123 -> $isPermanent = in_array(strtolower(trim($r->employment_status ?? '')), ['p', 'permanent']);
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\position-report-pdf.blade.php:183 -> <div class="instr-col">State the official designation as stipulated the contract of service (COS), or the position stated in the plantilla of personnel, if permanent</div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\position-report-pdf.blade.php:187 -> <div class="instr-col">Indicate the TOR if COS/duties and responsibilities if permanent</div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\position-report-pdf.blade.php:191 -> <div class="instr-col">Put a check on the status of appointment whether COS in (4.1) or for Permanent (4.2) and the date of appointment</div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\reports\report1-excel.blade.php:6 -> <th>Permanent</th>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\reports\report1-excel.blade.php:18 -> <td>{{ $counts['Permanent'] ?: 0 }}</td>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\reports\report1-excel.blade.php:29 -> <td>{{ array_sum(array_column($report1, 'Permanent')) }}</td>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\reports\report1-pdf.blade.php:37 -> <th>Permanent</th>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\reports\report1-pdf.blade.php:49 -> <td class="tc">{{ $counts['Permanent']    ?: '—' }}</td>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\reports\report1-pdf.blade.php:61 -> $totPerm = array_sum(array_column($report1,'Permanent'));
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\reports\report2-excel.blade.php:1 -> {{-- Report 2 Excel View: Inventory by Appointment Status with Gender & Age --}}
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\reports\report2-excel.blade.php:9 -> <th>Gender</th>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\reports\report2-pdf.blade.php:25 -> <p>Gender &amp; Age Profile — Period: {{ \Carbon\Carbon::createFromDate($year, $month, 1)->format('F Y') }}</p>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\reports\report2-pdf.blade.php:38 -> <th class="tc">Gender</th>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\reports\report6-excel.blade.php:9 -> <th>Gender</th>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\reports\report6-pdf.blade.php:39 -> <th class="tc">Gender</th>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\vacant-funded-position-pdf.blade.php:43 -> <th>Organizational Unit</th>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\exports\vacant-unfunded-position-pdf.blade.php:43 -> <th>Organizational Unit</th>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\imports\index.blade.php:61 -> @foreach(['ORGANIZATIONAL UNIT','ITEM','POSITION TITLE','SALARY GRADE','AUTHORIZED ANNUAL SALARY','ACTUAL ANNUAL SALARY','STEP','AREA CODE','AREA TYPE','LEVEL','LAST NAME','FIRST NAME','MIDDLE NAME','SEX','RELIGION','DATE OF BIRTH','TIN','DATE OF ORIGINAL APPOINTMENT','DATE OF LAST PROMOTION-APPOINTMENT','STATUS','CIVIL SERVICE ELIGIBILITY','COMMENT/ ANNOTATION','PWD','INDIGENOUS PEOPLE (Y)','SOLO PARENT (ID_NUMBER)','ABOLISHED','DISSOLVED','GSIS BP NUMBER','POSITION CLASSIFICATION','UMID'] as $col)
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\form.blade.php:125 -> <label>Gender</label>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\form.blade.php:126 -> <select name="gender" id="f-gender">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\form.blade.php:128 -> <option value="M" {{ old('gender', $jo->gender ?? '') === 'M' ? 'selected' : '' }}>Male (M)</option>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\form.blade.php:129 -> <option value="F" {{ old('gender', $jo->gender ?? '') === 'F' ? 'selected' : '' }}>Female (F)</option>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\form.blade.php:131 -> @error('gender')<span class="field-error">{{ $message }}</span>@enderror
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\form.blade.php:144 -> <label>Birthdate</label>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\form.blade.php:145 -> <input type="date" name="birthdate" id="f-birthdate"
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\form.blade.php:146 -> value="{{ old('birthdate', isset($jo->birthdate) ? $jo->birthdate->format('Y-m-d') : '') }}">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\form.blade.php:147 -> @error('birthdate')<span class="field-error">{{ $message }}</span>@enderror
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\form.blade.php:161 -> title="Auto-generate from Last Name + Birthdate">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\form.blade.php:354 -> const dobEl      = document.getElementById('f-birthdate');
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\index.blade.php:313 -> .gender-badge {
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\index.blade.php:324 -> .gender-m {
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\index.blade.php:329 -> .gender-f {
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\index.blade.php:755 -> <td>{{ $jo->birthdate ? \Carbon\Carbon::parse($jo->birthdate)->format('M d, Y') : '-' }}</td>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\index.blade.php:758 -> @if(strtoupper($jo->gender) === 'M')
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\index.blade.php:760 -> @elseif(strtoupper($jo->gender) === 'F')
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\index.blade.php:763 -> {{ $jo->gender }}
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\index.blade.php:922 -> ['N', 'BIRTHDATE', 'YYYY-MM-DD'],
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\index.blade.php:925 -> ['Q', 'GENDER (M)', 'Enter / or x if Male'],
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\index.blade.php:926 -> ['R', 'GENDER (F)', 'Enter / or x if Female'],
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\index.blade.php:956 -> <input type="hidden" name="gender" value="{{ request('gender') }}">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\index.blade.php:974 -> 'family_name' => 'FAMILY NAME',
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\index.blade.php:985 -> 'birthdate' => 'BIRTHDATE',
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\index.blade.php:988 -> 'gender_m' => 'GENDER (M)',
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\job-orders\index.blade.php:989 -> 'gender_f' => 'GENDER (F)',
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\layouts\dashboard-app.blade.php:443 -> @if(Route::has('permanent.index'))
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\layouts\dashboard-app.blade.php:444 -> <a href="{{ route('permanent.index') }}"
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\layouts\dashboard-app.blade.php:445 -> class="sidebar-link {{ request()->routeIs('permanent.*') ? 'active' : '' }}">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\layouts\dashboard-app.blade.php:447 -> <span>Permanent</span>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\organizational-units\create.blade.php:6 -> <title>Create Organizational Unit</title>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\organizational-units\create.blade.php:320 -> <h1>Create Organizational Unit</h1>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\organizational-units\create.blade.php:354 -> <div class="form-help-text">A unique name for the organizational unit</div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\organizational-units\edit.blade.php:6 -> <title>Edit Organizational Unit</title>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\organizational-units\edit.blade.php:330 -> <h1>Edit Organizational Unit</h1>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\organizational-units\edit.blade.php:370 -> <div class="form-help-text">A unique name for the organizational unit</div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\organizational-units\index.blade.php:427 -> <p>Get started by creating your first organizational unit</p>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\organizational-units\show.blade.php:6 -> <title>View Organizational Unit</title>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\organizational-units\show.blade.php:453 -> title: 'Delete Organizational Unit?',
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\organizational-units\show.blade.php:454 -> text: "Are you sure you want to delete this organizational unit? This cannot be undone.",
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:229 -> <h1><i class="bi bi-person-badge-fill me-2"></i>Permanent Employees</h1>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:230 -> <p>Permanent, Co-Terminous & Elected personnel — all {{ number_format($total) }} entries</p>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:254 -> <div class="perm-stat-sub">All permanent employees</div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:262 -> <div class="perm-stat-icon blue"><i class="bi bi-gender-male"></i></div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:272 -> <div class="perm-stat-icon pink"><i class="bi bi-gender-female"></i></div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:280 -> <form method="GET" action="{{ route('permanent.index') }}" id="perm-search-form">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:296 -> <option value="P"  {{ request('status') === 'P'  ? 'selected' : '' }}>Permanent</option>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:329 -> <a href="{{ route('permanent.index') }}" class="perm-btn reset"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:366 -> <form id="bulk-archive-form" method="POST" action="{{ route('permanent.bulk-archive') }}" style="margin: 0;">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:368 -> <input type="hidden" name="type" value="permanent">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:375 -> <form id="bulk-force-delete-form" method="POST" action="{{ route('permanent.bulk-force-delete') }}" style="margin: 0;">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:377 -> <input type="hidden" name="type" value="permanent">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:466 -> <a href="{{ route('employees.profile', ['type' => 'permanent', 'id' => $r->id]) }}" class="row-btn" style="background: #e0e7ff; color: #4338ca; border-color: #c7d2fe;" title="201 Profile">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:472 -> <form method="POST" action="{{ route('permanent.archive', $r) }}"
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:489 -> No permanent employee records found.
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:521 -> // ── Excel-style right-quarter horizontal scrollbar sync (Permanent) ──
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:557 -> html: 'This permanent employee record will be moved to the <b>Archives</b>.<br>You can restore it later.',
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:713 -> 'organizational_unit'       => 'Organizational Unit',
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:745 -> <button type="button" onclick="handleExport('{{ route('permanent.export.excel') }}', 'excel')" class="btn btn-success" style="font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 6px; background: #16a34a; border: none;">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:748 -> <button type="button" onclick="handleExport('{{ route('permanent.export.pdf') }}', 'pdf')" class="btn btn-danger" style="font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 6px; background: #dc2626; border: none;">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:779 -> let filename = type === 'pdf' ? 'permanent-export.pdf' : 'permanent-export.xlsx';
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:863 -> <i class="bi bi-exclamation-triangle-fill"></i> Delete ALL Permanent Data
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:867 -> <strong>permanently delete EVERY</strong> Permanent, Co-Terminous and Elected employee record.
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\permanent\index.blade.php:871 -> <form method="POST" action="{{ route('permanent.delete-all') }}">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\form.blade.php:37 -> <label class="block text-xs font-medium text-gray-600 mb-1">Organizational Unit <span class="text-red-500">*</span></label>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\form.blade.php:49 -> placeholder="Type organizational unit manually..."
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\form.blade.php:128 -> <option value="P"      {{ old('employment_status', $plantilla->employment_status ?? '') === 'P'      ? 'selected':'' }}>Permanent</option>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\form.blade.php:406 -> // Organizational Unit Toggle
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\index.blade.php:331 -> /* Gender */
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\index.blade.php:332 -> .gender-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\index.blade.php:477 -> .status-permanent { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\index.blade.php:550 -> ['cat' => 'Permanent',       'label' => 'Permanent',       'icon' => 'bi-shield-check',    'bg' => '#dcfce7', 'text' => '#15803d', 'border' => '#4ade80'],
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\index.blade.php:611 -> {{-- ▌▌ AGE + GENDER ▌▌ --}}
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\index.blade.php:670 -> {{-- Gender --}}
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\index.blade.php:673 -> <div style="font-size:14px;font-weight:700;color:#1f2937;">Gender Breakdown</div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\index.blade.php:685 -> class="gender-card" style="text-decoration:none; flex: 1; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 20px; transition: all 0.2s; {{ $activeSex === 'M' ? 'box-shadow:0 0 0 2px #fff,0 0 0 4px #1d4ed8; border-color:transparent;' : 'background: #fff;' }}">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\index.blade.php:688 -> <i class="bi bi-gender-male"></i>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\index.blade.php:704 -> class="gender-card" style="text-decoration:none; flex: 1; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 20px; transition: all 0.2s; {{ $activeSex === 'F' ? 'box-shadow:0 0 0 2px #fff,0 0 0 4px #ec4899; border-color:transparent;' : 'background: #fff;' }}">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\index.blade.php:707 -> <i class="bi bi-gender-female"></i>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\index.blade.php:914 -> 'Permanent' => ['color' => '#047857', 'bg' => '#ecfdf5', 'pill' => '#d1fae5', 'pillText' => '#047857'],
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\index.blade.php:1022 -> } elseif (str_contains(strtolower($cat), 'permanent')) {
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\index.blade.php:1023 -> $pillClass = 'status-permanent';
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\pdf\service-record.blade.php:71 -> <td width="15%" style="text-align: right;"><strong>BIRTH DATE:</strong></td>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\position-report.blade.php:415 -> <th class="th-sub" style="width:9%;">Permanent<br><span
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\position-report.blade.php:426 -> $isPermanent = in_array(strtolower(trim($r->employment_status ?? '')), ['p', 'permanent']);
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\position-report.blade.php:498 -> the position stated in the plantilla of personnel, if permanent</span>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\position-report.blade.php:502 -> <span class="instr-text">Indicate the TOR if COS/duties and responsibilities if permanent</span>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\position-report.blade.php:506 -> <span class="instr-text">Put a check on the status of appointment whether COS in (4.1) or for Permanent
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\quick-add.blade.php:26 -> <label for="organizational_unit" style="display:block; font-weight: 600; color: #334155; margin-bottom: 8px;">Office / Organizational Unit <span style="color:#ef4444;">*</span></label>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\reports.blade.php:169 -> .status-permanent { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\reports.blade.php:242 -> if(stripos($cat, 'permanent') !== false) return 'status-permanent';
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\reports.blade.php:285 -> <th class="tc">Permanent</th>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\reports.blade.php:297 -> <td class="tc">{{ $counts['Permanent']    ?: '—' }}</td>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\reports.blade.php:313 -> $totPerm = array_sum(array_column($report1, 'Permanent'));
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\reports.blade.php:335 -> REPORT 2: Inventory by Status + Employee + Gender + Age
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\reports.blade.php:345 -> <div class="off-sub">With Gender & Age profiles for active filled positions</div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\reports.blade.php:370 -> <th class="tc">Gender</th>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\reports.blade.php:630 -> <th class="tc">Gender</th>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\vacant-funded-detail.blade.php:200 -> <th>Organizational Unit</th>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\plantilla\vacant-unfunded-detail.blade.php:200 -> <th>Organizational Unit</th>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\search\results.blade.php:227 -> <p>Search across all employee modules (Permanent, Casual, Job Orders) instantly.</p>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\step-increment\hub.blade.php:335 -> <a href="{{ route('step-increment.office-report', ['type' => 'permanent']) }}" style="flex:1; padding: 14px 10px; text-align:center; color:#1d4ed8; text-decoration:none; border-right: 1px solid #f1f5f9; transition: background .2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\step-increment\hub.blade.php:336 -> Permanent <i class="bi bi-arrow-right"></i>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\step-increment\hub.blade.php:355 -> Process <strong>Notice of Step Increment (NOSI)</strong> for permanent employees every 3 years,
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\step-increment\hub.blade.php:401 -> Generate NOSA reports and individual NOSA letters for Permanent and Casual employees.
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\step-increment\hub.blade.php:414 -> <a href="{{ route('step-increment.nosa', ['type' => 'permanent']) }}"
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\step-increment\hub.blade.php:417 -> Permanent <i class="bi bi-arrow-right"></i>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\step-increment\index.blade.php:412 -> <a href="{{ route('step-increment.office-report', ['type' => 'permanent', 'mode' => 'nosi']) }}" class="si-tab"
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\step-increment\nosa-report-pdf.blade.php:131 -> <div class="title-2">Province of Bukidnon — {{ strtoupper($type ?? 'Permanent') }}</div>
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\step-increment\nosa-report.blade.php:76 -> @php $suffix = request('type') === 'casual' ? ' (Casual)' : ' (Permanent)'; @endphp
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\step-increment\office-report.blade.php:95 -> $titleSuffix = request('type') === 'casual' ? ' (Casual)' : (request('type') === 'permanent' ? ' (Permanent)' : '');
+c:/laragon/www/Human-Resource-Management-Data-System/resources/views\step-increment\office-report.blade.php:175 -> @foreach(['Permanent' => $permanentRecords, 'Casual' => $casualRecords] as $type => $typeRecords)

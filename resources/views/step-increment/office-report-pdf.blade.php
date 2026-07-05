@@ -92,7 +92,7 @@
                     <td class="tc">{{ $effectivityFrom }}</td>
                     <td class="tc">—</td>
                     <td class="tl">{{ $name }}</td>
-                    <td class="tc">{{ $rec->item }}</td>
+                    <td class="tc">{{ $rec->item_no_new }}</td>
                     <td class="tl">{{ $rec->position_title }}</td>
                     <td class="tc">{{ $sg }}/{{ $curStep }}</td>
                     <td class="tc">{{ $stepIncrease }}</td>

@@ -6,7 +6,7 @@
             <th>Employment Status</th>
             <th>Employee Name</th>
             <th>Position Title</th>
-            <th>Gender</th>
+            <th>SEX</th>
         </tr>
     </thead>
     <tbody>
