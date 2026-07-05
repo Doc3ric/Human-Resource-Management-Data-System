@@ -108,7 +108,10 @@ class DeliberationExportController extends Controller
         $level = 1;
         $sg = 1;
         if ($applicant->item_no) {
-            $plantilla = \App\Models\PlantillaRecord::where('item_no', $applicant->item_no)->first();
+            // PlantillaRecord's item-number column is item_no_new (renamed from
+            // "item" — see 2026_06_23_105416_normalize_plantilla_records_schema.php),
+            // not item_no. Querying item_no throws a SQL error on real MySQL.
+            $plantilla = \App\Models\PlantillaRecord::where('item_no_new', $applicant->item_no)->first();
             if ($plantilla) {
                 $sg = (int) $plantilla->salary_grade;
                 $level = $plantilla->level ?: ($sg >= 10 ? 2 : 1);

@@ -32,6 +32,7 @@ class MetricRegistry
             'workforce_headcount_by_sex' => self::workforceHeadcountBySex(),
             'workforce_pwd_count' => self::workforcePwdCount(),
             'workforce_solo_parent_count' => self::workforceSoloParentCount(),
+            'recruitment_pipeline_stats' => self::recruitmentPipelineStats(),
             default => null,
         };
     }
@@ -171,6 +172,21 @@ class MetricRegistry
             'context' => $count > 0 ? "{$count} employee(s) with a solo-parent ID on file" : 'None on file for the active workforce.',
             'owner' => 'GAD & Workforce / Analytics',
             'owner_route' => 'gad.index',
+        ];
+    }
+
+    private static function recruitmentPipelineStats(): array
+    {
+        $activeVacancies = \App\Models\PlantillaRecord::vacant()->count();
+        $pendingApplicants = \App\Models\Applicant::where('is_filled', false)->count();
+
+        return [
+            'key' => 'recruitment_pipeline_stats',
+            'label' => 'Recruitment Pipeline',
+            'value' => $pendingApplicants,
+            'context' => "{$pendingApplicants} active applicant(s) for {$activeVacancies} vacancy(s)",
+            'owner' => 'Recruitment & Appointments (M4)',
+            'owner_route' => 'deliberation.index', // Route from Track B
         ];
     }
 }

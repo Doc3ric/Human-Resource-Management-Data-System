@@ -5,12 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Applicant;
 use App\Models\DeliberationAgenda;
 use App\Models\Position;
+use App\Support\ExamRoutingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class DeliberationAgendaController extends Controller
 {
+    public function __construct(private readonly ExamRoutingService $examRouting)
+    {
+    }
+
     /**
      * Show the form for creating a new Agenda.
      */
@@ -48,14 +53,16 @@ class DeliberationAgendaController extends Controller
                 $matrix[$office][$pos] = [];
             }
 
-            // Tagging logic: Job Order/External/Exempted
-            $tag = 'External';
-            if (strtolower($app->employer) === 'pgb' || strtolower($app->employer) === 'provincial government of bukidnon') {
-                $tag = 'Job Order'; // Assume JO/Casual if internal but applying. Real logic might check employment_status
-            }
-            if ($app->is_exam_exempt) {
-                $tag = 'Exempted';
-            }
+            // Tagging logic: Job Order/External/Exempted — reuses Module 5.4's
+            // ExamRoutingService::classify() (the single, tested source for this
+            // classification) rather than a second implementation. The original
+            // code here checked a nonexistent `employer` field, so it silently
+            // classified every applicant as External regardless of actual status.
+            $tag = match ($this->examRouting->classify($app)) {
+                'pgb_jo' => 'Job Order',
+                'exempt' => 'Exempted',
+                default => 'External',
+            };
 
             $matrix[$office][$pos][] = [
                 'id' => $app->id,

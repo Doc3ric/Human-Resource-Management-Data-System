@@ -178,10 +178,10 @@
             const thead = document.getElementById('monitoringTableHead');
             const tbody = document.getElementById('monitoringTableBody');
             
-            // Render Header: Applicants
+            // Render Header: Applicants — masked ID only (Module 6A.5: never raw names).
             let headHtml = '<tr><th style="width: 25%;">Panel Member</th>';
             data.applicants.forEach(app => {
-                headHtml += `<th>${app.name} <br><small class="text-muted">${app.masked_id}</small></th>`;
+                headHtml += `<th>${app.masked_id}</th>`;
             });
             headHtml += '</tr>';
             thead.innerHTML = headHtml;

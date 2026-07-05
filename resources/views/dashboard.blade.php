@@ -1151,7 +1151,7 @@
                 Cross-System Reference (Module 12)
             </h6>
             <div style="display:flex;gap:12px;flex-wrap:wrap;">
-                @foreach(['renewal_active_not_renewed', 'leave_violation_counts', 'incident_counts_by_track', 'training_hours_delivered', 'lgu_service_requests_overdue', 'workforce_headcount_by_sex', 'workforce_pwd_count', 'workforce_solo_parent_count'] as $metricKey)
+                @foreach(['renewal_active_not_renewed', 'leave_violation_counts', 'incident_counts_by_track', 'training_hours_delivered', 'lgu_service_requests_overdue', 'recruitment_pipeline_stats', 'workforce_headcount_by_sex', 'workforce_pwd_count', 'workforce_solo_parent_count'] as $metricKey)
                     <x-scoreboard-tile :metric-key="$metricKey" :compact="true" />
                 @endforeach
             </div>
