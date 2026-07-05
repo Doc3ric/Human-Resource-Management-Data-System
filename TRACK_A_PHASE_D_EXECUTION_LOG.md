@@ -18,6 +18,12 @@ Phase A/B initially read Module 2's `is_filled`/`date_filled` fields as belongin
 
 This is a genuine conflict, not a routine adaptation: building Module 2 correctly means adding columns to and reading/writing a table this file's own coordination protocol reserves to Track B. An empty migration stub was created and then deleted without being filled in, once this became clear — no code was written against the wrong table. Flagging this for a decision rather than guessing further, per the operating protocol's one carved-out case for pausing.
 
+**Resolution:** asked the user directly. Answer: no separate Track B coder is actually running concurrently right now, so build it properly against `applicants`. Proceeded:
+
+Added `is_filled`/`date_filled`/`lifecycle_stage` to `applicants` (additive). `RecruitmentLifecycleService::computeStage()` implements the exact three-stage rule (Active 0-1yr since `applied_at`; Archived 1-2yr; Valueless Holding Queue once `is_filled` and 730+ days since `date_filled`, per R.A. 9470's "keep 2 years after filling"); `advanceAll()` re-stages every record without ever deleting one. A new `recruitment:advance-lifecycle` command is scheduled daily (`routes/console.php`), matching the existing `retirement:process`/`step-increments:process` convention. A new read-side `RecruitmentLifecycleController` + `/recruitment-view` blueprint (Track-A-owned, distinct from Track B's `/recruitment`) shows the three stages and reuses the existing `view Recruitment`/`delete Recruitment` permission bits already granted via the Appointment role, rather than registering a new RBAC matrix row.
+
+**Deliberately incomplete, and said so rather than silently building it:** `Applicant` has no `SoftDeletes` trait, and Track B's TWG/evaluation tables carry foreign keys to `applicants.id`. Actually hard-deleting a Valueless-Queue-eligible applicant row here — with no coordination with whoever builds/owns Track B's scoring tables — risks orphaning that data. So this stops at "compute eligibility, surface it in the Disposal View, require a NAP Form 3 authorization on file" (reusing the same `DisposalAuthorizationService` from Module 1B.4) and does not implement the actual delete step. 9 new tests (stage computation for all 3 stages and the boundary between them, `advanceAll()` re-staging, the view's stage filter, disposal-authorization recording without deletion, rejection on non-queue records, and the permission gate), all passing. Commit `cdb27ae`. **229/229 passing.**
+
 ## Step 4 — Module 10B.5 (certificate template customization) — deferred per Phase B/C
 
 Not built this pass. Core certificate issuance (individual + batch + resource-speaker, correctly populated, retained via IDCC) already works; the no-code visual template editor is a substantial standalone UI feature layered on top of something already functional, not a fix to something broken. Recorded as a deliberate scope cut in `TRACK_A_IMPLEMENTATION_PLAN.md`, not silently dropped.
@@ -26,8 +32,8 @@ Not built this pass. Core certificate issuance (individual + batch + resource-sp
 
 | Metric | Before this pass | After |
 |---|---|---|
-| Test suite | 210/210 (Phase 0 baseline) | 220/220 |
+| Test suite | 210/210 (Phase 0 baseline) | 229/229 |
 | Renewal Status Widget | Built, unit-tested in isolation, embedded nowhere | Embedded on Plantilla show; Performance/IPCR gets an equivalent signal + badge |
 | Personnel-record disposal | Unconditional hard-delete behind a bare role check — violated this project's own Absolute Rule #4 | Gated behind a recorded NAP Form No. 3 authorization, for every role including super_admin |
-| Module 2 | Not built | Still not built — genuine cross-track table-ownership conflict surfaced for a decision |
+| Module 2 | Not built | Three-stage lifecycle + Recruitment View built on `applicants`, per explicit user sign-off to cross the Track B boundary; actual hard-delete step deliberately left out (FK-orphan risk against Track B's scoring tables) |
 | Module 10B.5 | Not built | Still not built — deliberate scope cut, documented |
