@@ -23,23 +23,34 @@ class OcrManager
         private readonly TesseractOcrDriver $tesseract,
         private readonly NativeTextExtractionDriver $nativeText,
         private readonly PdfTextExtractionDriver $pdfText,
+        private readonly SpiDetector $spiDetector,
+        private readonly VisionLlmDriver $visionLlm
     ) {
     }
 
     public function extract(string $absoluteFilePath, string $mimeType): OcrResult
     {
+        $result = OcrResult::unavailable('TIER_1');
+
         if ($this->nativeText->supports($mimeType)) {
-            return $this->nativeText->extract($absoluteFilePath, $mimeType);
+            $result = $this->nativeText->extract($absoluteFilePath, $mimeType);
+        } elseif ($this->pdfText->supports($mimeType)) {
+            $result = $this->pdfText->extract($absoluteFilePath, $mimeType);
+        } elseif ($this->tesseract->supports($mimeType)) {
+            $result = $this->tesseract->extract($absoluteFilePath, $mimeType);
         }
 
-        if ($this->pdfText->supports($mimeType)) {
-            return $this->pdfText->extract($absoluteFilePath, $mimeType);
+        // If Tier 1 produced text, we run SPI detection.
+        // If clean AND Vision LLM is enabled, we can enhance extraction with Tier 3.
+        if ($result->status === 'completed' && $this->visionLlm->isAvailable() && $this->visionLlm->supports($mimeType)) {
+            if (!$this->spiDetector->containsSpi($result->text)) {
+                $tier3Result = $this->visionLlm->extract($absoluteFilePath, $mimeType);
+                if ($tier3Result->status === 'completed') {
+                    return $tier3Result;
+                }
+            }
         }
 
-        if ($this->tesseract->supports($mimeType)) {
-            return $this->tesseract->extract($absoluteFilePath, $mimeType);
-        }
-
-        return OcrResult::unavailable('TIER_1');
+        return $result;
     }
 }

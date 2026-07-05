@@ -68,7 +68,7 @@ test('Module 5.3: an applicant with no photo shows the silhouette and Photo Requ
     $response = $this->actingAs($this->admin)->get(route('recruitment.deliberation.show', $applicant));
 
     $response->assertOk();
-    $response->assertSee('Photo Required');
+    $response->assertSee('A 2x2 ID photo is required for TWG deliberation');
 });
 
 test('Module 5.3: Demerit Record shows real disciplinary_cases data when the applicant matches an existing PGB employee', function () {

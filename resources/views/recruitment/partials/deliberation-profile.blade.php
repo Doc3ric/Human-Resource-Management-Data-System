@@ -22,9 +22,37 @@
         @endif
 
         @unless($hasPhoto)
-            <div class="mt-2" style="color:#dc2626;font-size:12.5px;font-weight:700;">Photo Required</div>
-            <a href="{{ route('recruitment.edit', $applicant->id) }}" class="btn btn-sm btn-outline-danger mt-1">Upload Photo Now</a>
+            <div class="mt-2" style="color:#dc2626;font-size:12.5px;font-weight:700;">
+                <span class="text-danger">*</span> A 2x2 ID photo is required for TWG deliberation. Upload now or import from the 201-file.
+            </div>
+            <div class="d-flex gap-2 justify-content-center mt-2 flex-wrap">
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="document.getElementById('photoInput').click()">Upload Photo Now</button>
+                @if($mirrorRecord && $mirrorRecord->profile_picture)
+                    <form method="POST" action="{{ route('recruitment.deliberation.photo.import', $applicant) }}" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">Import from 201-File</button>
+                    </form>
+                @endif
+            </div>
+            <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handlePhotoSelect(event)">
         @endunless
+
+        @if($applicant->photo_source === '201_import' && !$applicant->photo_confirmed)
+            <div class="alert alert-warning mt-3 p-2 text-start" style="font-size: 12px;">
+                <strong>Verify Imported Photo</strong><br>
+                Photo imported from 201-file. Verify that this photo matches the applicant before proceeding.
+                <form method="POST" action="{{ route('recruitment.deliberation.photo.confirm', $applicant) }}" class="mt-2">
+                    @csrf
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="confirmation" id="confirmPhotoCheck" value="1" required>
+                        <label class="form-check-label" for="confirmPhotoCheck">
+                            I confirm this photo correctly identifies the applicant
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-warning mt-2 w-100 fw-bold">Confirm & Unlock Scoring</button>
+                </form>
+            </div>
+        @endif
 
         <div class="mt-3" style="font-size:18px;font-weight:800;color:var(--color-primary,#1e3a5f);">{{ $applicant->full_name }}</div>
         <div style="font-size:13px;color:#6b7280;">Age: {{ $age !== null ? $age . ' years old' : '—' }}</div>

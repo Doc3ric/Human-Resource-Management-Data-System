@@ -590,8 +590,24 @@ Route::middleware('auth')->group(function () {
 
             // Module 5 — split-screen deliberation workspace. Same AE exclusion.
             Route::middleware('role:super_admin,inventory_admin,appointment_admin')->group(function () {
+                // Agenda Prep
+                Route::get('/deliberation/agenda/create', [\App\Http\Controllers\DeliberationAgendaController::class, 'create'])->name('deliberation.agenda.create');
+                Route::post('/deliberation/agenda/store', [\App\Http\Controllers\DeliberationAgendaController::class, 'store'])->name('deliberation.agenda.store');
+
                 Route::get('/deliberation/{applicant}', [\App\Http\Controllers\DeliberationController::class, 'show'])->name('deliberation.show');
                 Route::post('/deliberation/{applicant}/phase', [\App\Http\Controllers\DeliberationController::class, 'updatePhase'])->name('deliberation.phase');
+                Route::get('/deliberation/{applicant}/monitoring', [\App\Http\Controllers\DeliberationMonitoringController::class, 'status'])->name('deliberation.monitoring');
+                
+                // Module 8 Exports
+                Route::get('/deliberation/{applicant}/export/layout-a', [\App\Http\Controllers\DeliberationExportController::class, 'layoutA'])->name('deliberation.export.layout-a');
+                Route::get('/deliberation/{applicant}/export/cer', [\App\Http\Controllers\DeliberationExportController::class, 'exportCer'])->name('deliberation.export.cer');
+                Route::get('/deliberation/{applicant}/export/layout-c', [\App\Http\Controllers\DeliberationExportController::class, 'layoutC'])->name('deliberation.export.layout-c');
+                Route::get('/deliberation/export/layout-d/{position}', [\App\Http\Controllers\DeliberationExportController::class, 'layoutD'])->name('deliberation.export.layout-d');
+
+                // Module 7 Photo Management
+                Route::post('/deliberation/{applicant}/photo/upload', [\App\Http\Controllers\ApplicantPhotoController::class, 'upload'])->name('deliberation.photo.upload');
+                Route::post('/deliberation/{applicant}/photo/import', [\App\Http\Controllers\ApplicantPhotoController::class, 'import'])->name('deliberation.photo.import');
+                Route::post('/deliberation/{applicant}/photo/confirm', [\App\Http\Controllers\ApplicantPhotoController::class, 'confirm'])->name('deliberation.photo.confirm');
             });
 
             // Module 5.4 — examination routing engine. Same AE exclusion.

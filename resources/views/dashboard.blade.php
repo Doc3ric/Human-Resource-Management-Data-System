@@ -193,150 +193,72 @@
                     analysis="{{ ($vacantPositions ?? 0) > 0 ? ($vacantPositions).' vacant position(s) require publication per RA 7041 before filling. Prolonged vacancies must be reported to DBM. Failure to publish is a CSC violation.' : 'All positions are filled.' }}" />
             </div>
 
-            <!-- ROW 1: 4 Cards -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;">
+            <!-- Employment Status Overview -->
+            <h5 class="fw-bold mb-3" style="color: #374151;"><i class="bi bi-briefcase-fill me-2"></i>Employment Status & Gender Demographics</h5>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px;">
                 <!-- 1. Total Employees -->
-                <a href="{{ route('all-data.index', ['vacant' => 'filled']) }}" style="text-decoration: none; color: inherit; display: block;">
-                    <div class="dash-card">
-                        <div class="dash-card-content">
-                            <div>
-                                <p class="dash-card-title">Total Employees</p>
-                                <h3 class="dash-card-value">{{ number_format($totalEmployeesUnique ?? 0) }}</h3>
-                                <p class="dash-card-subtext">Active Only, No Duplication</p>
-                            </div>
-                            <div class="dash-card-icon icon-blue">
-                                <i class="bi bi-people"></i>
-                            </div>
-                        </div>
-                    </div>
-                </a>
+                <x-stat-card icon="bi-people" color="indigo" label="Total Employees"
+                    :value="$totalEmployeesUnique ?? 0"
+                    compliance="ACTIVE ONLY"
+                    analysis="Total distinct active workforce across all appointment types without duplication."
+                    :link="route('all-data.index', ['vacant' => 'filled'])" />
 
                 <!-- 2. REGULAR -->
-                <a href="{{ route('all-data.index', ['vacant' => 'filled', 'status' => 'P']) }}" style="text-decoration: none; color: inherit; display: block;">
-                    <div class="dash-card">
-                        <div class="dash-card-content">
-                            <div>
-                                <p class="dash-card-title">Regular</p>
-                                <h3 class="dash-card-value">{{ number_format($regularTotalCount ?? 0) }}</h3>
-                                <p class="dash-card-subtext" style="font-size:10px;">Elected, Coterminus, Permanent...</p>
-                            </div>
-                            <div class="dash-card-icon icon-green">
-                                <i class="bi bi-person-badge"></i>
-                            </div>
-                        </div>
-                    </div>
-                </a>
+                <x-stat-card icon="bi-person-badge" color="green" label="Regular"
+                    :value="$regularTotalCount ?? 0"
+                    :pct="($totalEmployeesUnique ?? 0) > 0 ? round($regularTotalCount / $totalEmployeesUnique * 100, 1) : 0"
+                    compliance="PLANTILLA"
+                    analysis="Elected, Coterminus, Permanent, Part-Time, and Temporary."
+                    :link="route('all-data.index', ['vacant' => 'filled', 'status' => 'P'])" />
 
-                <!-- 3. MALE vs FEMALE (REGULAR) -->
-                <div class="dash-card">
-                    <div class="dash-card-content" style="width: 100%;">
-                        <div style="width: 100%;">
-                            <p class="dash-card-title mb-2">Male vs Female <span style="font-size: 11px; color:#6b7280; text-transform:none;">(Regular)</span></p>
-                            <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 10px;">
-                                <div style="display: flex; flex-direction: column; align-items: center;">
-                                    <i class="bi bi-gender-male" style="font-size: 24px; color: #3b82f6;"></i>
-                                    <h4 style="margin: 0; font-weight: 700; color: #0f172a;">{{ number_format($regularMale ?? 0) }}</h4>
-                                </div>
-                                <div style="width: 1px; height: 30px; background: #e2e8f0;"></div>
-                                <div style="display: flex; flex-direction: column; align-items: center;">
-                                    <i class="bi bi-gender-female" style="font-size: 24px; color: #ec4899;"></i>
-                                    <h4 style="margin: 0; font-weight: 700; color: #0f172a;">{{ number_format($regularFemale ?? 0) }}</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- 3. CASUAL : Total -->
+                <x-stat-card icon="bi-person-lines-fill" color="orange" label="Casual"
+                    :value="$casualOnlyTotal ?? 0"
+                    :pct="($totalEmployeesUnique ?? 0) > 0 ? round($casualOnlyTotal / $totalEmployeesUnique * 100, 1) : 0"
+                    compliance="LGU CASUAL"
+                    analysis="Active Casual Employees."
+                    :link="route('casual.index')" />
 
-                <!-- 4. CASUAL : Total -->
-                <a href="{{ route('casual.index') }}" style="text-decoration: none; color: inherit; display: block;">
-                    <div class="dash-card">
-                        <div class="dash-card-content">
-                            <div>
-                                <p class="dash-card-title">Casual</p>
-                                <h3 class="dash-card-value">{{ number_format($casualOnlyTotal ?? 0) }}</h3>
-                                <p class="dash-card-subtext">Active Employees</p>
-                            </div>
-                            <div class="dash-card-icon icon-orange">
-                                <i class="bi bi-person-lines-fill"></i>
-                            </div>
-                        </div>
-                    </div>
-                </a>
+                <!-- 4. JOB ORDER -->
+                <x-stat-card icon="bi-file-earmark-person" color="purple" label="Job Order"
+                    :value="$joTotalActive ?? 0"
+                    :pct="($totalEmployeesUnique ?? 0) > 0 ? round($joTotalActive / $totalEmployeesUnique * 100, 1) : 0"
+                    compliance="CONTRACTUAL"
+                    analysis="Active Job Order personnel."
+                    :link="route('job-orders.index')" />
             </div>
 
-            <!-- ROW 2: 4 Cards -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
-                
-                <!-- 5. MALE vs FEMALE (CASUAL) -->
-                <div class="dash-card">
-                    <div class="dash-card-content" style="width: 100%;">
-                        <div style="width: 100%;">
-                            <p class="dash-card-title mb-2">Male vs Female <span style="font-size: 11px; color:#6b7280; text-transform:none;">(Casual)</span></p>
-                            <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 10px;">
-                                <div style="display: flex; flex-direction: column; align-items: center;">
-                                    <i class="bi bi-gender-male" style="font-size: 24px; color: #3b82f6;"></i>
-                                    <h4 style="margin: 0; font-weight: 700; color: #0f172a;">{{ number_format($casualMale ?? 0) }}</h4>
-                                </div>
-                                <div style="width: 1px; height: 30px; background: #e2e8f0;"></div>
-                                <div style="display: flex; flex-direction: column; align-items: center;">
-                                    <i class="bi bi-gender-female" style="font-size: 24px; color: #ec4899;"></i>
-                                    <h4 style="margin: 0; font-weight: 700; color: #0f172a;">{{ number_format($casualFemale ?? 0) }}</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <!-- Gender Demographics -->
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; margin-bottom: 30px;">
+                <!-- REGULAR MALE / FEMALE -->
+                <x-stat-card icon="bi-gender-male" color="blue" label="Regular Male"
+                    :value="$regularMale ?? 0"
+                    :pct="($regularTotalCount ?? 0) > 0 ? round($regularMale / $regularTotalCount * 100, 1) : 0"
+                    compliance="RA 9710 GAD" />
+                <x-stat-card icon="bi-gender-female" color="pink" label="Regular Female"
+                    :value="$regularFemale ?? 0"
+                    :pct="($regularTotalCount ?? 0) > 0 ? round($regularFemale / $regularTotalCount * 100, 1) : 0"
+                    compliance="RA 9710 GAD" />
 
-                <!-- 6. JOB ORDER -->
-                <a href="{{ route('job-orders.index') }}" style="text-decoration: none; color: inherit; display: block;">
-                    <div class="dash-card">
-                        <div class="dash-card-content">
-                            <div>
-                                <p class="dash-card-title">Job Order</p>
-                                <h3 class="dash-card-value">{{ number_format($joTotalActive ?? 0) }}</h3>
-                            </div>
-                            <div class="dash-card-icon icon-purple">
-                                <i class="bi bi-file-earmark-person-fill"></i>
-                            </div>
-                        </div>
-                    </div>
-                </a>
+                <!-- CASUAL MALE / FEMALE -->
+                <x-stat-card icon="bi-gender-male" color="blue" label="Casual Male"
+                    :value="$casualMale ?? 0"
+                    :pct="($casualOnlyTotal ?? 0) > 0 ? round($casualMale / $casualOnlyTotal * 100, 1) : 0"
+                    compliance="RA 9710 GAD" />
+                <x-stat-card icon="bi-gender-female" color="pink" label="Casual Female"
+                    :value="$casualFemale ?? 0"
+                    :pct="($casualOnlyTotal ?? 0) > 0 ? round($casualFemale / $casualOnlyTotal * 100, 1) : 0"
+                    compliance="RA 9710 GAD" />
 
-                <!-- 7. VACANT POSITIONS -->
-                <a href="{{ route('all-data.index', ['vacant' => 'vacant']) }}" style="text-decoration: none; color: inherit; display: block;">
-                    <div class="dash-card">
-                        <div class="dash-card-content">
-                            <div>
-                                <p class="dash-card-title">Vacant Positions</p>
-                                <h3 class="dash-card-value">{{ number_format($vacantPositionsTotal ?? 0) }}</h3>
-                            </div>
-                            <div class="dash-card-icon" style="background:#fff1f2; color:#e11d48;">
-                                <i class="bi bi-exclamation-circle"></i>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- 8. MALE vs. FEMALE (JO) -->
-                <div class="dash-card">
-                    <div class="dash-card-content" style="width: 100%;">
-                        <div style="width: 100%;">
-                            <p class="dash-card-title mb-2">Male vs Female <span style="font-size: 11px; color:#6b7280; text-transform:none;">(JO)</span></p>
-                            <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 10px;">
-                                <div style="display: flex; flex-direction: column; align-items: center;">
-                                    <i class="bi bi-gender-male" style="font-size: 24px; color: #3b82f6;"></i>
-                                    <h4 style="margin: 0; font-weight: 700; color: #0f172a;">{{ number_format($joMale ?? 0) }}</h4>
-                                </div>
-                                <div style="width: 1px; height: 30px; background: #e2e8f0;"></div>
-                                <div style="display: flex; flex-direction: column; align-items: center;">
-                                    <i class="bi bi-gender-female" style="font-size: 24px; color: #ec4899;"></i>
-                                    <h4 style="margin: 0; font-weight: 700; color: #0f172a;">{{ number_format($joFemale ?? 0) }}</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+                <!-- JO MALE / FEMALE -->
+                <x-stat-card icon="bi-gender-male" color="blue" label="JO Male"
+                    :value="$joMale ?? 0"
+                    :pct="($joTotalActive ?? 0) > 0 ? round($joMale / $joTotalActive * 100, 1) : 0"
+                    compliance="RA 9710 GAD" />
+                <x-stat-card icon="bi-gender-female" color="pink" label="JO Female"
+                    :value="$joFemale ?? 0"
+                    :pct="($joTotalActive ?? 0) > 0 ? round($joFemale / $joTotalActive * 100, 1) : 0"
+                    compliance="RA 9710 GAD" />
             </div>
 
             <!-- FOURTH ROW: Charts -->

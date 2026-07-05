@@ -29,3 +29,7 @@ Thumbs.db
 
 # Local test scripts
 test-*.php
+
+# AI coding tool local state (not part of the app)
+/.claude/
+/.gemini/

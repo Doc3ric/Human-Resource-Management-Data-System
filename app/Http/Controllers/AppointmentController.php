@@ -82,7 +82,32 @@ class AppointmentController extends Controller
             'status' => 'required|in:Active,Ended',
         ]);
 
+        $employee = Employee::with('education', 'experience', 'training', 'eligibility')->find($validated['employee_id']);
+        $position = Position::find($validated['position_id']);
+
+        $validator = new \App\Support\AppointmentQsValidator();
+        $qsResult = $validator->validate($employee, $position);
+
+        // Department Head validation cross-checks Appendix C-1 of R.A. 7160
+        // Flag QS gaps to the HRMO before CSC forms
+        $qsWarning = null;
+        if (!$qsResult['is_qualified']) {
+            $failedCriteria = [];
+            foreach (['education', 'experience', 'training', 'eligibility'] as $criterion) {
+                if ($qsResult[$criterion]['status'] === 'failed') {
+                    $failedCriteria[] = ucfirst($criterion) . ': ' . $qsResult[$criterion]['message'];
+                }
+            }
+            $qsWarning = "QS GAP DETECTED: This appointment does not fully meet the Qualification Standards. Missing: " . implode(', ', $failedCriteria);
+        }
+
         Appointment::create($validated);
+
+        if ($qsWarning) {
+            return redirect()->route('appointments.index')
+                ->with('success', 'Appointment created successfully.')
+                ->with('warning', $qsWarning);
+        }
 
         return redirect()->route('appointments.index')
             ->with('success', 'Appointment created successfully.');

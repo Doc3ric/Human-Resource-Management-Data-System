@@ -20,6 +20,9 @@
                 <button type="button" class="btn btn-danger fw-bold shadow-sm me-2" data-bs-toggle="modal" data-bs-target="#reportModal">
                     <i class="bi bi-file-pdf-fill me-1"></i> Generate Report
                 </button>
+                <a href="{{ route('recruitment.deliberation.agenda.create') }}" class="btn btn-outline-dark fw-bold shadow-sm me-2">
+                    <i class="bi bi-card-list me-1"></i> Generate Agenda
+                </a>
                 <a href="{{ route('recruitment.import-excel') }}" class="btn btn-success fw-bold shadow-sm me-2">
                     <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Import Excel
                 </a>
