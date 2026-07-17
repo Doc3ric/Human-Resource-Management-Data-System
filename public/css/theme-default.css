@@ -1,7 +1,7 @@
 /* Default Light Theme overrides (Navy Blue) */
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar,
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) aside.sidebar {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar,
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) aside.sidebar {
     background: linear-gradient(160deg, #0b1f38 0%, #16365c 100%) !important;
     border-right: 1px solid rgba(255,255,255,0.05) !important;
     color: #f8fafc !important;
@@ -10,65 +10,65 @@ body:not(.emerald-night):not(.theme-financial):not(.theme-corona) aside.sidebar 
     -moz-osx-font-smoothing: grayscale;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-logo,
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-header {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-logo,
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-header {
     background: transparent !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-header img {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-header img {
     background: transparent !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-logo-icon {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-logo-icon {
     background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
     box-shadow: 0 4px 10px rgba(37,99,235,0.4) !important;
     color: #fff !important;
     border: none !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-logo-text,
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-title,
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-title-main,
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar .sidebar-title {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-logo-text,
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-title,
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-title-main,
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar .sidebar-title {
     color: #ffffff !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-logo-sub {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-logo-sub {
     color: #94a3b8 !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-section-label,
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .nav-section {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-section-label,
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .nav-section {
     color: #8ba3de !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-link,
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .nav-link {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-link,
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .nav-link {
     color: #e2e8f0 !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-link i,
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .nav-link i,
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .nav-icon {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-link i,
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .nav-link i,
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .nav-icon {
     color: #cbd5e1 !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-link:hover,
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .nav-link:hover {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-link:hover,
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .nav-link:hover {
     background: rgba(255, 255, 255, 0.06) !important;
     color: #ffffff !important;
     border-radius: 8px !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-link:hover i,
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .nav-link:hover i,
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .nav-link:hover .nav-icon {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-link:hover i,
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .nav-link:hover i,
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .nav-link:hover .nav-icon {
     color: #ffffff !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-link.active,
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .nav-link.active {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-link.active,
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .nav-link.active {
     background: linear-gradient(90deg, #3b82f6, #2563eb) !important;
     color: #ffffff !important;
     font-weight: 600 !important;
@@ -77,63 +77,63 @@ body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .nav-link.acti
     border-radius: 8px !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-link.active i,
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .nav-link.active .nav-icon {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-link.active i,
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .nav-link.active .nav-icon {
     color: #ffffff !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-footer {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-footer {
     background: rgba(0, 0, 0, 0.15) !important;
     border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-user {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-user {
     background: rgba(255, 255, 255, 0.05) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     color: #ffffff !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-user:hover {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-user:hover {
     background: rgba(255, 255, 255, 0.1) !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-user-name {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-user-name {
     color: #ffffff !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-user-role {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-user-role {
     color: #94a3b8 !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-avatar {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-avatar {
     background: rgba(255, 255, 255, 0.2) !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-logout-btn {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-logout-btn {
     background: transparent !important;
     border: none !important;
     color: #94a3b8 !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .sidebar-logout-btn:hover {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .sidebar-logout-btn:hover {
     color: #ef4444 !important;
     background: rgba(239, 68, 68, 0.15) !important;
 }
 
 /* Base button and active colors globally so it matches */
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .btn-primary {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .btn-primary {
     background-color: #113659 !important;
     border-color: #113659 !important;
     color: #ffffff !important;
 }
 
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .btn-primary:hover {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .btn-primary:hover {
     background-color: #0d2842 !important;
     border-color: #0d2842 !important;
 }
 
 /* Dashboard nav buttons (blue tabs globally in the system) */
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona) .main-content>nav a[style*="background-color: #0d6efd"] {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature) .main-content>nav a[style*="background-color: #0d6efd"] {
     background-color: #113659 !important;
     color: #ffffff !important;
 }

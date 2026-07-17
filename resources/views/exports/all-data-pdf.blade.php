@@ -231,7 +231,7 @@
                 @if(empty($columns) || in_array('authorized_annual_salary', $columns))
                 <th class="col-sal">Auth. Annual Salary</th>@endif
                 @if(empty($columns) || in_array('base_salary_amount', $columns))
-                <th class="col-sal">Actual Annual Salary</th>@endif
+                <th class="col-sal">Actual Monthly Salary</th>@endif
                 @if(empty($columns) || in_array('step', $columns))
                 <th class="col-step">Step</th>@endif
                 @if(empty($columns) || in_array('area_code', $columns))

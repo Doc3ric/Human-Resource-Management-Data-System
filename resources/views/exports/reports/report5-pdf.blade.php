@@ -37,6 +37,7 @@ td.tc { text-align:center; }
             <th>Office / Unit</th>
             <th class="tc">Date Effectivity</th>
             <th>Nature of Separation</th>
+            <th>Basis Reference</th>
         </tr>
     </thead>
     <tbody>
@@ -52,9 +53,10 @@ td.tc { text-align:center; }
                 {{ $r->date_separated ? \Carbon\Carbon::parse($r->date_separated)->format('m/d/Y') : '—' }}
             </td>
             <td style="font-weight:600;color:#92400e;">{{ $r->nature_of_separation ?: 'N/A' }}</td>
+            <td>{{ $r->basis_reference ?: '—' }}</td>
         </tr>
         @empty
-        <tr><td colspan="5" style="text-align:center;padding:12px;color:#666;font-style:italic;">No separation records for {{ $year }}.</td></tr>
+        <tr><td colspan="6" style="text-align:center;padding:12px;color:#666;font-style:italic;">No separation records for {{ $year }}.</td></tr>
         @endforelse
     </tbody>
 </table>

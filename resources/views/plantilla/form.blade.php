@@ -122,7 +122,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Actual Annual Salary</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Actual Monthly Salary</label>
                         <input type="text" inputmode="decimal" name="base_salary_amount" value="{{ old('base_salary_amount', $plantilla->base_salary_amount ?? '') }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none peso-input">
                     </div>
@@ -351,6 +351,27 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Basis Reference</label>
+                        <input type="text" name="basis_reference"
+                            value="{{ old('basis_reference', $plantilla->basis_reference ?? '') }}"
+                            placeholder="e.g. R.A. 8291 (retirement), RACCS (termination)"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Originating Disciplinary Case (if Terminated/Dismissed for cause)</label>
+                        <select name="originating_admin_case_id" id="originating_admin_case_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+                            <option value="">None</option>
+                            @foreach($disciplinaryCases ?? [] as $case)
+                                <option value="{{ $case->id }}" {{ old('originating_admin_case_id', $plantilla->originating_admin_case_id ?? '') == $case->id ? 'selected' : '' }}>
+                                    {{ $case->case_no }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
                 <div class="p-3 bg-purple-50 rounded-lg border border-purple-200">
                     <label class="flex items-center gap-2 text-sm font-semibold text-purple-800 cursor-pointer">
                         <input type="checkbox" name="process_separation" id="process_separation" value="1"
@@ -358,6 +379,13 @@
                     </label>
                     <p class="text-xs text-purple-600 mt-1 pl-6">
                         Checking this box will record the former employee's details in the annotations and <strong>automatically clear the employee's information</strong> to make the position vacant upon saving.
+                    </p>
+                </div>
+
+                {{-- Enhancement Spec Sec. 6 — clearance/terminal-leave checklist reminder for Retirement/Resignation --}}
+                <div id="clearance-reminder" class="hidden mt-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <p class="text-xs font-semibold text-amber-800">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Reminder: process the clearance / terminal-leave checklist for this employee before final release of benefits (COA disallowance risk if processed out of sequence).
                     </p>
                 </div>
             </div>
@@ -377,6 +405,20 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Enhancement Spec Sec. 6 — clearance/terminal-leave checklist reminder
+            const sepTypeSelect = document.querySelector('select[name="nature_of_separation"]');
+            const processSepCheckbox = document.getElementById('process_separation');
+            const clearanceReminder = document.getElementById('clearance-reminder');
+            function updateClearanceReminder() {
+                if (!sepTypeSelect || !processSepCheckbox || !clearanceReminder) return;
+                const sepType = sepTypeSelect.value;
+                const showReminder = processSepCheckbox.checked && (sepType === 'Retired' || sepType === 'Resigned');
+                clearanceReminder.classList.toggle('hidden', !showReminder);
+            }
+            if (sepTypeSelect) sepTypeSelect.addEventListener('change', updateClearanceReminder);
+            if (processSepCheckbox) processSepCheckbox.addEventListener('change', updateClearanceReminder);
+            updateClearanceReminder();
+
             // Item (Position Code) Toggle
             const itemSelect = document.getElementById('item_select');
             const itemInput  = document.getElementById('item_input');

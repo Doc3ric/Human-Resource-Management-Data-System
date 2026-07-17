@@ -14,11 +14,17 @@ class PlantillaSyncValidator
 {
     public const MISMATCH_MESSAGE = 'Plantilla Mismatch Block: The structural specifications for this position have changed in the Master Plantilla database. Recruitment actions are locked until the active record is synchronized with current plantilla attributes.';
 
-    /** Find the current Master Plantilla row this applicant's position maps to. */
     public function findCurrentMasterRecord(Applicant $applicant): ?PlantillaRecord
     {
         if ($applicant->item_no) {
-            $byItem = PlantillaRecord::where('item_no_new', $applicant->item_no)->first();
+            $query = PlantillaRecord::where('item_no_new', $applicant->item_no);
+            
+            // If the applicant explicitly specified an office, ensure the item belongs to it.
+            if ($applicant->office) {
+                $query->where('office_department', $applicant->office);
+            }
+            
+            $byItem = $query->first();
             if ($byItem) {
                 return $byItem;
             }
@@ -49,8 +55,8 @@ class PlantillaSyncValidator
     {
         $current = $this->findCurrentMasterRecord($applicant);
         if ($current) {
-            $applicant->item_no = $current->item_no_new ?: $applicant->item_no;
-            $applicant->office = $current->office_department ?: $applicant->office;
+            // Only snapshot the salary grade for future validation.
+            // Do NOT auto-populate or overwrite the user's explicit office or item_no.
             $applicant->salary_grade_snapshot = $current->salary_grade;
         }
     }

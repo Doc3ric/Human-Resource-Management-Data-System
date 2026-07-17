@@ -7,7 +7,7 @@
 
 /* ── Default (Navy Blue) ───────────────────────────────────────────── */
 :root,
-body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light) {
+body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-light):not(.theme-eyecare):not(.theme-nature):not(.theme-civic-blue) {
     --color-primary:         #113659;
     --color-primary-dark:    #0d2842;
     --color-primary-light:   #1a4a7a;
@@ -24,6 +24,7 @@ body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-lig
     --color-sidebar-icon:    #cbd5e1;
     --color-sidebar-section: #8ba3de;
     --color-sidebar-active-bg:   rgba(255,255,255,0.15);
+    --color-sidebar-active-text: #ffffff;
     --color-sidebar-hover-bg:    rgba(255,255,255,0.08);
 
     --color-topbar-bg:       #ffffff;
@@ -52,6 +53,16 @@ body:not(.emerald-night):not(.theme-financial):not(.theme-corona):not(.theme-lig
     --color-danger:          #dc3545;
     --color-danger-dark:     #b02a37;
     --color-danger-rgb:      220, 53, 69;
+
+    /* Semantic status badges (Approved/Pending/Flagged/Inactive) */
+    --color-status-approved-bg:  #dcfce7;
+    --color-status-approved-text:#15803d;
+    --color-status-pending-bg:   #fffbeb;
+    --color-status-pending-text: #b45309;
+    --color-status-flagged-bg:   #fef2f2;
+    --color-status-flagged-text: #b91c1c;
+    --color-status-inactive-bg:  #f1f5f9;
+    --color-status-inactive-text:#64748b;
 }
 
 /* ── Emerald Night (Dark Green) ───────────────────────────────────── */
@@ -71,7 +82,8 @@ body.emerald-night {
     --color-sidebar-text:    #d1d5db;
     --color-sidebar-icon:    #9ca3af;
     --color-sidebar-section: #6b7280;
-    --color-sidebar-active-bg:   #10b981;
+    --color-sidebar-active-bg:   #047857;
+    --color-sidebar-active-text: #ffffff;
     --color-sidebar-hover-bg:    rgba(255,255,255,0.08);
 
     --color-topbar-bg:       #133D2F;
@@ -100,54 +112,73 @@ body.emerald-night {
     --color-danger:          #f87171;
     --color-danger-dark:     #ef4444;
     --color-danger-rgb:      248, 113, 113;
+
+    --color-status-approved-bg:  rgba(52,211,153,0.15);
+    --color-status-approved-text:#34d399;
+    --color-status-pending-bg:   rgba(251,191,36,0.15);
+    --color-status-pending-text: #fbbf24;
+    --color-status-flagged-bg:   rgba(248,113,113,0.15);
+    --color-status-flagged-text: #f87171;
+    --color-status-inactive-bg:  rgba(156,163,175,0.15);
+    --color-status-inactive-text:#9ca3af;
 }
 
-/* ── Financial (Teal) ─────────────────────────────────────────────── */
+/* ── Modern Mint (Teal) ───────────────────────────────────────────── */
 body.theme-financial {
-    --color-primary:         #055B65;
-    --color-primary-dark:    #03404a;
-    --color-primary-light:   #077a87;
-    --color-primary-rgb:     5, 91, 101;
+    --color-primary:         #00695C;
+    --color-primary-dark:    #004D40;
+    --color-primary-light:   #4DB6AC;
+    --color-primary-rgb:     0, 105, 92;
 
-    --color-accent:          #0891b2;
-    --color-accent-dark:     #0e7490;
-    --color-accent-light:    #22d3ee;
-    --color-accent-rgb:      8, 145, 178;
+    --color-accent:          #FF8A65;
+    --color-accent-dark:     #E8734F;
+    --color-accent-light:    #FFAB91;
+    --color-accent-rgb:      255, 138, 101;
 
-    --color-sidebar-bg:      #055B65;
-    --color-sidebar-footer:  #03404a;
-    --color-sidebar-text:    #e0f2f1;
-    --color-sidebar-icon:    #b2dfdb;
-    --color-sidebar-section: #80cbc4;
+    --color-sidebar-bg:      #00695C;
+    --color-sidebar-footer:  #004D40;
+    --color-sidebar-text:    #E0F2F1;
+    --color-sidebar-icon:    #B2DFDB;
+    --color-sidebar-section: #80CBC4;
     --color-sidebar-active-bg:   rgba(255,255,255,0.18);
+    --color-sidebar-active-text: #ffffff;
     --color-sidebar-hover-bg:    rgba(255,255,255,0.09);
 
-    --color-topbar-bg:       #055B65;
-    --color-topbar-text:     #FBFCFC;
-    --color-topbar-border:   rgba(255,255,255,0.1);
+    --color-topbar-bg:       #ffffff;
+    --color-topbar-text:     #263238;
+    --color-topbar-border:   #DDE6E3;
 
-    --color-page-bg:         #f0fdfb;
+    --color-page-bg:         #F4F7F5;
     --color-surface:         #ffffff;
-    --color-border:          #ccece9;
-    --color-text-primary:    #111827;
-    --color-text-secondary:  #374151;
-    --color-text-muted:      #6b7280;
+    --color-border:          #DDE6E3;
+    --color-text-primary:    #263238;
+    --color-text-secondary:  #45535A;
+    --color-text-muted:      #607D8B;
 
-    --color-btn-primary-bg:  #055B65;
+    --color-btn-primary-bg:  #00695C;
     --color-btn-primary-text:#ffffff;
-    --color-btn-primary-hover:#03404a;
+    --color-btn-primary-hover:#004D40;
 
-    --color-link:            #0891b2;
-    --color-link-hover:      #0e7490;
+    --color-link:            #00695C;
+    --color-link-hover:      #004D40;
 
-    --color-focus-ring:      rgba(8,145,178,0.25);
+    --color-focus-ring:      rgba(255,138,101,0.25);
 
-    --color-nav-active-text: #055B65;
-    --color-nav-active-bg:   #e0f2f1;
+    --color-nav-active-text: #00695C;
+    --color-nav-active-bg:   #E0F2F1;
 
-    --color-danger:          #dc3545;
-    --color-danger-dark:     #b02a37;
-    --color-danger-rgb:      220, 53, 69;
+    --color-danger:          #C62828;
+    --color-danger-dark:     #8E1F1F;
+    --color-danger-rgb:      198, 40, 40;
+
+    --color-status-approved-bg:  #DCF3EF;
+    --color-status-approved-text:#00695C;
+    --color-status-pending-bg:   #FFE8DD;
+    --color-status-pending-text: #C65A32;
+    --color-status-flagged-bg:   #F9DADA;
+    --color-status-flagged-text: #8E1F1F;
+    --color-status-inactive-bg:  #EBEFEE;
+    --color-status-inactive-text:#607D8B;
 }
 
 /* ── Corona (Dark) ────────────────────────────────────────────────── */
@@ -167,8 +198,9 @@ body.theme-corona {
     --color-sidebar-text:    #c9d1d9;
     --color-sidebar-icon:    #8b949e;
     --color-sidebar-section: #6e7681;
-    --color-sidebar-active-bg:   #e94560;
-    --color-sidebar-hover-bg:    rgba(255,255,255,0.06);
+    --color-sidebar-active-bg:   #c73652;
+    --color-sidebar-active-text: #ffffff;
+    --color-sidebar-hover-bg:    rgba(255,255,255,0.10);
 
     --color-topbar-bg:       #1a1a2e;
     --color-topbar-text:     #c9d1d9;
@@ -196,6 +228,15 @@ body.theme-corona {
     --color-danger:          #f87171;
     --color-danger-dark:     #ef4444;
     --color-danger-rgb:      248, 113, 113;
+
+    --color-status-approved-bg:  rgba(52,211,153,0.15);
+    --color-status-approved-text:#34d399;
+    --color-status-pending-bg:   rgba(250,204,21,0.15);
+    --color-status-pending-text: #facc15;
+    --color-status-flagged-bg:   rgba(248,113,113,0.15);
+    --color-status-flagged-text: #f87171;
+    --color-status-inactive-bg:  rgba(139,148,158,0.15);
+    --color-status-inactive-text:#8b949e;
 }
 
 /* ── Light (Clean White) ──────────────────────────────────────────── */
@@ -216,6 +257,7 @@ body.theme-light {
     --color-sidebar-icon:    #c7d2fe;
     --color-sidebar-section: #a5b4fc;
     --color-sidebar-active-bg:   rgba(255,255,255,0.20);
+    --color-sidebar-active-text: #ffffff;
     --color-sidebar-hover-bg:    rgba(255,255,255,0.10);
 
     --color-topbar-bg:       #ffffff;
@@ -244,6 +286,193 @@ body.theme-light {
     --color-danger:          #dc3545;
     --color-danger-dark:     #b02a37;
     --color-danger-rgb:      220, 53, 69;
+
+    --color-status-approved-bg:  #dcfce7;
+    --color-status-approved-text:#15803d;
+    --color-status-pending-bg:   #fef9c3;
+    --color-status-pending-text: #92400e;
+    --color-status-flagged-bg:   #fee2e2;
+    --color-status-flagged-text: #b91c1c;
+    --color-status-inactive-bg:  #f1f5f9;
+    --color-status-inactive-text:#64748b;
+}
+
+/* ── Earth & Olive ────────────────────────────────────────────────── */
+body.theme-eyecare {
+    --color-primary:         #556B2F;
+    --color-primary-dark:    #3E4E22;
+    --color-primary-light:   #A9B18F;
+    --color-primary-rgb:     85, 107, 47;
+
+    --color-accent:          #8A6D1D;
+    --color-accent-dark:     #6B5416;
+    --color-accent-light:    #A98A35;
+    --color-accent-rgb:      138, 109, 29;
+
+    --color-sidebar-bg:      #3E4E22;
+    --color-sidebar-footer:  #2E3A1A;
+    --color-sidebar-text:    #EDE8DC;
+    --color-sidebar-icon:    #C7CBB0;
+    --color-sidebar-section: #A9B18F;
+    --color-sidebar-active-bg:   #8A6D1D;
+    --color-sidebar-active-text: #ffffff;
+    --color-sidebar-hover-bg:    rgba(255,255,255,0.08);
+
+    --color-topbar-bg:       #ffffff;
+    --color-topbar-text:     #2E2A20;
+    --color-topbar-border:   #DBD5C4;
+
+    --color-page-bg:         #EDE8DC;
+    --color-surface:         #ffffff;
+    --color-border:          #DBD5C4;
+    --color-text-primary:    #2E2A20;
+    --color-text-secondary:  #4A4535;
+    --color-text-muted:      #6B6450;
+
+    --color-btn-primary-bg:  #556B2F;
+    --color-btn-primary-text:#ffffff;
+    --color-btn-primary-hover:#3E4E22;
+
+    --color-link:            #556B2F;
+    --color-link-hover:      #3E4E22;
+
+    --color-focus-ring:      rgba(138,109,29,0.3);
+
+    --color-nav-active-text: #556B2F;
+    --color-nav-active-bg:   #EFEEE0;
+
+    --color-danger:          #B3261E;
+    --color-danger-dark:     #8C1D16;
+    --color-danger-rgb:      179, 38, 30;
+
+    --color-status-approved-bg:  #E4EAD9;
+    --color-status-approved-text:#556B2F;
+    --color-status-pending-bg:   #F3E9C9;
+    --color-status-pending-text: #8A6D1D;
+    --color-status-flagged-bg:   #F8E2E0;
+    --color-status-flagged-text: #8C1D16;
+    --color-status-inactive-bg:  #EDE8DC;
+    --color-status-inactive-text:#6B6450;
+}
+
+/* ── Forest & Cream ───────────────────────────────────────────────── */
+body.theme-nature {
+    --color-primary:         #1B5E20;
+    --color-primary-dark:    #123F15;
+    --color-primary-light:   #2E7D32;
+    --color-primary-rgb:     27, 94, 32;
+
+    --color-accent:          #C9A227;
+    --color-accent-dark:     #9C7B15;
+    --color-accent-light:    #DAB94D;
+    --color-accent-rgb:      201, 162, 39;
+
+    --color-sidebar-bg:      #1B5E20;
+    --color-sidebar-footer:  #123F15;
+    --color-sidebar-text:    #F5F1E8;
+    --color-sidebar-icon:    #C8DCC5;
+    --color-sidebar-section: #8BA888;
+    --color-sidebar-active-bg:   rgba(255,255,255,0.15);
+    --color-sidebar-active-text: #ffffff;
+    --color-sidebar-hover-bg:    rgba(255,255,255,0.08);
+
+    --color-topbar-bg:       #ffffff;
+    --color-topbar-text:     #3E2723;
+    --color-topbar-border:   #E6E1D3;
+
+    --color-page-bg:         #F5F1E8;
+    --color-surface:         #ffffff;
+    --color-border:          #E6E1D3;
+    --color-text-primary:    #3E2723;
+    --color-text-secondary:  #5A4A3F;
+    --color-text-muted:      #6B6450;
+
+    --color-btn-primary-bg:  #1B5E20;
+    --color-btn-primary-text:#ffffff;
+    --color-btn-primary-hover:#123F15;
+
+    --color-link:            #2E7D32;
+    --color-link-hover:      #1B5E20;
+
+    --color-focus-ring:      rgba(201,162,39,0.3);
+
+    --color-nav-active-text: #1B5E20;
+    --color-nav-active-bg:   #E6EFE3;
+
+    --color-danger:          #B3261E;
+    --color-danger-dark:     #8C1D16;
+    --color-danger-rgb:      179, 38, 30;
+
+    --color-status-approved-bg:  #E2F0E3;
+    --color-status-approved-text:#2E7D32;
+    --color-status-pending-bg:   #F7EFD3;
+    --color-status-pending-text: #9C7B15;
+    --color-status-flagged-bg:   #F8E2E0;
+    --color-status-flagged-text: #8C1D16;
+    --color-status-inactive-bg:  #EDE8DC;
+    --color-status-inactive-text:#6B6450;
+}
+
+/* ── Civic Blue (Institutional Navy/Gold) ───────────────────────────
+ * PGB "Civic Blue" palette — see BlueDesign.md. Derived from PGB official
+ * correspondence color conventions (navy/gold) with institutional green
+ * and alert red added for HRDMS-specific compliance status semantics.
+ */
+body.theme-civic-blue {
+    --color-primary:         #1B3A6B;
+    --color-primary-dark:    #101F38;
+    --color-primary-light:   #2C5388;
+    --color-primary-rgb:     27, 58, 107;
+
+    --color-accent:          #C9A227;
+    --color-accent-dark:     #9C7B15;
+    --color-accent-light:    #DAB94D;
+    --color-accent-rgb:      201, 162, 39;
+
+    --color-sidebar-bg:      #101F38;
+    --color-sidebar-footer:  #0b1729;
+    --color-sidebar-text:    #DCE4F0;
+    --color-sidebar-icon:    #b7c4dc;
+    --color-sidebar-section: #7f97bf;
+    --color-sidebar-active-bg:   rgba(255,255,255,0.15);
+    --color-sidebar-active-text: #ffffff;
+    --color-sidebar-hover-bg:    rgba(255,255,255,0.08);
+
+    --color-topbar-bg:       #1B3A6B;
+    --color-topbar-text:     #ffffff;
+    --color-topbar-border:   rgba(255,255,255,0.12);
+
+    --color-page-bg:         #F5F6F8;
+    --color-surface:         #FFFFFF;
+    --color-border:          #D3D8DE;
+    --color-text-primary:    #1F2933;
+    --color-text-secondary:  #5A6472;
+    --color-text-muted:      #9AA3AD;
+
+    --color-btn-primary-bg:  #1B3A6B;
+    --color-btn-primary-text:#ffffff;
+    --color-btn-primary-hover:#2C5388;
+
+    --color-link:            #1B3A6B;
+    --color-link-hover:      #2C5388;
+
+    --color-focus-ring:      rgba(201,162,39,0.35);
+
+    --color-nav-active-text: #1B3A6B;
+    --color-nav-active-bg:   #DCE4F0;
+
+    --color-danger:          #B3261E;
+    --color-danger-dark:     #8C1D16;
+    --color-danger-rgb:      179, 38, 30;
+
+    --color-status-approved-bg:  #E2F0E3;
+    --color-status-approved-text:#1E5C22;
+    --color-status-pending-bg:   #F7EFD3;
+    --color-status-pending-text: #9C7B15;
+    --color-status-flagged-bg:   #F8E2E0;
+    --color-status-flagged-text: #8C1D16;
+    --color-status-inactive-bg:  #EBEDF0;
+    --color-status-inactive-text:#5A6472;
 }
 
 /* ── Semantic utility classes using variables ─────────────────────── */
@@ -302,4 +531,42 @@ body.theme-light .pagination .page-item.active .page-link {
 }
 body.theme-light .pagination .page-link {
     color: var(--color-primary) !important;
+}
+
+/* ── Semantic status badges (theme-aware, all 8 themes) ─────────────
+ * Approved/Active/Regular · Pending/Under Review · Flagged/Violation ·
+ * Neutral/Inactive/Separated — usable on any page without per-theme work.
+ */
+.badge-approved,
+.badge-pending,
+.badge-flagged,
+.badge-inactive {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 11px;
+    border-radius: 20px;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+.badge-approved { background: var(--color-status-approved-bg); color: var(--color-status-approved-text); }
+.badge-pending  { background: var(--color-status-pending-bg);  color: var(--color-status-pending-text); }
+.badge-flagged  { background: var(--color-status-flagged-bg);  color: var(--color-status-flagged-text); }
+.badge-inactive { background: var(--color-status-inactive-bg); color: var(--color-status-inactive-text); }
+
+/* Row-level tints for list/table views (flagged or pending records) */
+.table-row-alert   > td { background: var(--color-status-flagged-bg) !important; }
+.table-row-pending  > td { background: var(--color-status-pending-bg) !important; }
+
+/* ── Accessibility: visible keyboard focus on all interactive elements ── */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--color-focus-ring, rgba(37,99,235,0.5));
+    outline-offset: 2px;
 }

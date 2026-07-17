@@ -81,7 +81,7 @@
             @if(empty($columns) || in_array('position_title', $columns))<th class="col-pos">POSITION</th>@endif
             @if(empty($columns) || in_array('salary_grade', $columns))<th class="col-sg">SG</th>@endif
             @if(empty($columns) || in_array('step', $columns))<th class="col-stp">STP</th>@endif
-            @if(empty($columns) || in_array('base_salary_amount', $columns))<th class="col-sal">ANN. SALARY</th>@endif
+            @if(empty($columns) || in_array('base_salary_amount', $columns))<th class="col-sal">MONTHLY SALARY</th>@endif
             @if(empty($columns) || in_array('last_name', $columns))<th class="col-nm">LAST NAME</th>@endif
             @if(empty($columns) || in_array('first_name', $columns))<th class="col-fn">FIRST NAME</th>@endif
             @if(empty($columns) || in_array('middle_name', $columns))<th class="col-mn">M.I.</th>@endif

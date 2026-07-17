@@ -66,6 +66,17 @@
             transition:background .15s;
         }
         .logout-btn:hover { background:rgba(255,255,255,.25); color:#fff; }
+        .topbar-nav-btn {
+            background:rgba(255,255,255,.15);
+            border:1px solid rgba(255,255,255,.3);
+            color:#fff;
+            border-radius:6px;
+            width:30px; height:30px;
+            display:flex; align-items:center; justify-content:center;
+            text-decoration:none;
+            transition:background .15s;
+        }
+        .topbar-nav-btn:hover { background:rgba(255,255,255,.25); color:#fff; }
         .panel-main { padding:28px 24px; max-width:900px; margin:0 auto; }
         .panel-card {
             background:#fff;
@@ -131,6 +142,14 @@
         </div>
     </div>
     <div class="user-info">
+        @unless(request()->routeIs('panel.home'))
+            <a href="javascript:void(0)" onclick="panelGoBack()" class="topbar-nav-btn" title="Go Back">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <a href="{{ route('panel.home') }}" class="topbar-nav-btn" title="Main Menu">
+                <i class="bi bi-house-door-fill"></i>
+            </a>
+        @endunless
         @php $pm = auth('panel')->user(); @endphp
         <span class="badge-type {{ $pm->isTwg() ? 'badge-twg' : 'badge-hrmpsb' }}">
             <i class="bi bi-{{ $pm->isTwg() ? 'star-fill' : 'people-fill' }}"></i>
@@ -158,6 +177,16 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function panelGoBack() {
+        var cameFromThisApp = document.referrer && document.referrer.indexOf(window.location.origin) === 0;
+        if (cameFromThisApp && window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.location.href = '{{ route('panel.home') }}';
+        }
+    }
+</script>
 @yield('scripts')
 </body>
 </html>

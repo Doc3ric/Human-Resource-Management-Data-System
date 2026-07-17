@@ -396,12 +396,12 @@
         <div style="max-width: 700px; margin: 0 auto;">
             <div style="background: #ffffff; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.02); border: 1px solid #f3f4f6;">
                 <h3 style="font-size: 20px; font-weight: 800; color: #111827; margin: 0 0 6px 0;">Theme &amp; Appearance</h3>
-                <p style="font-size: 14px; color: #6b7280; margin: 0 0 28px 0;">Choose a colour theme for your interface. Your preference is saved locally in this browser.</p>
+                <p style="font-size: 14px; color: #6b7280; margin: 0 0 28px 0;">Choose a colour theme for your interface. Your preference is saved to your account and follows you to any device.</p>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px;" id="theme-swatches">
 
                     {{-- Swatch: Navy Default --}}
-                    <button type="button" onclick="setTheme('default')" class="theme-swatch-btn" data-theme="default"
+                    <button type="button" onclick="chooseTheme('default')" class="theme-swatch-btn" data-theme="default"
                         style="background:#113659; border:3px solid transparent; border-radius:14px; padding:20px 12px;
                                display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer; transition:.2s;">
                         <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#113659,#2563eb);
@@ -410,7 +410,7 @@
                     </button>
 
                     {{-- Swatch: Emerald Night --}}
-                    <button type="button" onclick="setTheme('emerald-night')" class="theme-swatch-btn" data-theme="emerald-night"
+                    <button type="button" onclick="chooseTheme('emerald-night')" class="theme-swatch-btn" data-theme="emerald-night"
                         style="background:#133D2F; border:3px solid transparent; border-radius:14px; padding:20px 12px;
                                display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer; transition:.2s;">
                         <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#133D2F,#10b981);
@@ -418,17 +418,17 @@
                         <span style="font-size:12px;font-weight:700;color:#d1fae5;text-align:center;">Emerald<br>Night</span>
                     </button>
 
-                    {{-- Swatch: Financial Teal --}}
-                    <button type="button" onclick="setTheme('theme-financial')" class="theme-swatch-btn" data-theme="theme-financial"
-                        style="background:#055B65; border:3px solid transparent; border-radius:14px; padding:20px 12px;
+                    {{-- Swatch: Modern Mint --}}
+                    <button type="button" onclick="chooseTheme('theme-financial')" class="theme-swatch-btn" data-theme="theme-financial"
+                        style="background:#00695C; border:3px solid transparent; border-radius:14px; padding:20px 12px;
                                display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer; transition:.2s;">
-                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#055B65,#0891b2);
-                                    box-shadow:0 4px 10px rgba(5,91,101,.4);"></div>
-                        <span style="font-size:12px;font-weight:700;color:#e0f2f1;text-align:center;">Financial<br>Teal</span>
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#00695C,#FF8A65);
+                                    box-shadow:0 4px 10px rgba(0,105,92,.4);"></div>
+                        <span style="font-size:12px;font-weight:700;color:#e0f2f1;text-align:center;">Modern<br>Mint</span>
                     </button>
 
                     {{-- Swatch: Corona Dark --}}
-                    <button type="button" onclick="setTheme('theme-corona')" class="theme-swatch-btn" data-theme="theme-corona"
+                    <button type="button" onclick="chooseTheme('theme-corona')" class="theme-swatch-btn" data-theme="theme-corona"
                         style="background:#1a1a2e; border:3px solid transparent; border-radius:14px; padding:20px 12px;
                                display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer; transition:.2s;">
                         <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1a1a2e,#e94560);
@@ -437,7 +437,7 @@
                     </button>
 
                     {{-- Swatch: Indigo Light --}}
-                    <button type="button" onclick="setTheme('theme-light')" class="theme-swatch-btn" data-theme="theme-light"
+                    <button type="button" onclick="chooseTheme('theme-light')" class="theme-swatch-btn" data-theme="theme-light"
                         style="background:#4f46e5; border:3px solid transparent; border-radius:14px; padding:20px 12px;
                                display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer; transition:.2s;">
                         <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#7c3aed);
@@ -445,11 +445,38 @@
                         <span style="font-size:12px;font-weight:700;color:#e0e7ff;text-align:center;">Indigo<br>Light</span>
                     </button>
 
+                    {{-- Swatch: Forest & Cream --}}
+                    <button type="button" onclick="chooseTheme('theme-nature')" class="theme-swatch-btn" data-theme="theme-nature"
+                        style="background:#1B5E20; border:3px solid transparent; border-radius:14px; padding:20px 12px;
+                               display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer; transition:.2s;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1B5E20,#C9A227);
+                                    box-shadow:0 4px 10px rgba(27,94,32,.4);"></div>
+                        <span style="font-size:12px;font-weight:700;color:#F5F1E8;text-align:center;">Forest<br>&amp; Cream</span>
+                    </button>
+
+                    {{-- Swatch: Earth & Olive --}}
+                    <button type="button" onclick="chooseTheme('theme-eyecare')" class="theme-swatch-btn" data-theme="theme-eyecare"
+                        style="background:#556B2F; border:3px solid transparent; border-radius:14px; padding:20px 12px;
+                               display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer; transition:.2s;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#556B2F,#8A6D1D);
+                                    box-shadow:0 4px 10px rgba(85,107,47,.4);"></div>
+                        <span style="font-size:12px;font-weight:700;color:#EDE8DC;text-align:center;">Earth<br>&amp; Olive</span>
+                    </button>
+
+                    {{-- Swatch: Civic Blue --}}
+                    <button type="button" onclick="chooseTheme('theme-civic-blue')" class="theme-swatch-btn" data-theme="theme-civic-blue"
+                        style="background:#1B3A6B; border:3px solid transparent; border-radius:14px; padding:20px 12px;
+                               display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer; transition:.2s;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1B3A6B,#C9A227);
+                                    box-shadow:0 4px 10px rgba(27,58,107,.4);"></div>
+                        <span style="font-size:12px;font-weight:700;color:#DCE4F0;text-align:center;">Civic<br>Blue</span>
+                    </button>
+
                 </div>
 
                 <div style="margin-top:24px;padding:16px;background:#f9fafb;border-radius:10px;font-size:13px;color:#6b7280;display:flex;align-items:center;gap:10px;">
                     <i class="bi bi-info-circle" style="font-size:16px;color:#9ca3af;"></i>
-                    Theme preference is stored in your browser only. Changing the theme here affects this device immediately.
+                    Theme preference is saved to your account and applies everywhere you log in.
                 </div>
             </div>
         </div>
@@ -468,7 +495,7 @@ function switchTab(tabId) {
 
 // Highlight active theme swatch
 function highlightActiveSwatch() {
-    var current = localStorage.getItem('app-theme') || 'default';
+    var current = @json(auth()->user()?->theme_preference) || localStorage.getItem('app-theme') || 'default';
     document.querySelectorAll('.theme-swatch-btn').forEach(function(btn) {
         var isActive = btn.getAttribute('data-theme') === current;
         btn.style.border = isActive ? '3px solid #facc15' : '3px solid transparent';

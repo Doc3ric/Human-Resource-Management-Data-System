@@ -33,15 +33,15 @@
 .sg-info-strip {
     display: flex; align-items: center; justify-content: space-between;
     flex-wrap: wrap; gap: 10px;
-    background: #fff; border: 1px solid #e2e8f0;
+    background: var(--color-surface, #fff); border: 1px solid #e2e8f0;
     border-radius: 10px; padding: 12px 20px; margin-bottom: 16px;
-    font-size: 12px; color: #64748b;
+    font-size: 12px; color: var(--color-text-muted, #64748b);
 }
 .sg-info-strip b { color: #1e3a5f; }
 
 /* Matrix table wrapper */
 .sg-table-wrap {
-    background: #fff; border: 1px solid #e2e8f0;
+    background: var(--color-surface, #fff); border: 1px solid #e2e8f0;
     border-radius: 14px; overflow: hidden;
     box-shadow: 0 4px 20px rgba(0,0,0,.05);
 }
@@ -64,7 +64,7 @@
 
 /* Body rows */
 .sg-table tbody tr { transition: background .1s; }
-.sg-table tbody tr:nth-child(even) td { background: #f8fafc; }
+.sg-table tbody tr:nth-child(even) td { background: var(--color-page-bg, #f8fafc); }
 .sg-table tbody tr:hover td           { background: #eff6ff !important; }
 .sg-table td {
     padding: 10px 18px; vertical-align: middle;
@@ -90,7 +90,7 @@
 /* Salary cells */
 .sg-salary {
     text-align: right; font-family: ui-monospace, monospace;
-    font-size: 13px; color: #1e293b; white-space: nowrap;
+    font-size: 13px; color: var(--color-text-primary, #1e293b); white-space: nowrap;
 }
 .sg-salary-annual {
     display: block; font-size: 10px; color: #94a3b8; margin-top: 2px;
@@ -102,7 +102,7 @@
 
 /* Footer */
 .sg-footer {
-    padding: 12px 20px; background: #f8fafc;
+    padding: 12px 20px; background: var(--color-page-bg, #f8fafc);
     border-top: 1px solid #f1f5f9;
     font-size: 11px; color: #94a3b8; text-align: center;
 }

@@ -748,6 +748,16 @@
 </div>
 
 {{-- ▌▌ VACANT POSITIONS ▌▌ --}}
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+    <label for="vacantOfficeFilter" style="font-size:12px;font-weight:700;color:#475569;">Publish for:</label>
+    <select id="vacantOfficeFilter" onchange="updateVacantOfficeLinks()" style="font-size:12px;padding:6px 10px;border:1px solid #cbd5e1;border-radius:6px;min-width:260px;">
+        <option value="">All Offices</option>
+        @foreach($offices as $office)
+            <option value="{{ $office }}">{{ $office }}</option>
+        @endforeach
+    </select>
+    <span style="font-size:11px;color:#9ca3af;">Scopes Print Form 9 / PDF / Excel below to one office, or leave as "All Offices" for the full publication list.</span>
+</div>
 <div class="both-col">
     {{-- Funded --}}
     <div class="card-panel">
@@ -757,13 +767,13 @@
                 <div style="font-size:11px;color:#93c5fd;margin-top:2px;">{{ number_format($vacantFunded->sum()) }} total open slots</div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
-                <a href="{{ route('plantilla.form9') }}" target="_blank" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;text-decoration:none;" title="Generate CSC Form No. 9">
+                <a id="vacantForm9Link" href="{{ route('plantilla.form9') }}" target="_blank" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;text-decoration:none;" title="Generate CSC Form No. 9">
                     <i class="bi bi-printer"></i> Print Form 9
                 </a>
-                <a href="{{ route('plantilla.vacant.export.pdf', ['type' => 'funded']) }}" target="_blank" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export PDF">
+                <a id="vacantFundedPdfLink" href="{{ route('plantilla.vacant.export.pdf', ['type' => 'funded']) }}" target="_blank" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export PDF">
                     <i class="bi bi-file-earmark-pdf"></i> PDF
                 </a>
-                <a href="{{ route('plantilla.vacant.export.excel', ['type' => 'funded']) }}" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export Excel">
+                <a id="vacantFundedExcelLink" href="{{ route('plantilla.vacant.export.excel', ['type' => 'funded']) }}" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export Excel">
                     <i class="bi bi-file-earmark-excel"></i> Excel
                 </a>
                 <span style="font-size:32px;font-weight:900;color:#1d4ed8;line-height:1;">{{ number_format($vacantFunded->count()) }}</span>
@@ -800,10 +810,10 @@
                 <div style="font-size:11px;color:#9ca3af;margin-top:2px;">{{ number_format($vacantUnfunded->sum()) }} total abolished slots</div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
-                <a href="{{ route('plantilla.vacant.export.pdf', ['type' => 'unfunded']) }}" target="_blank" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export PDF">
+                <a id="vacantUnfundedPdfLink" href="{{ route('plantilla.vacant.export.pdf', ['type' => 'unfunded']) }}" target="_blank" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export PDF">
                     <i class="bi bi-file-earmark-pdf"></i> PDF
                 </a>
-                <a href="{{ route('plantilla.vacant.export.excel', ['type' => 'unfunded']) }}" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export Excel">
+                <a id="vacantUnfundedExcelLink" href="{{ route('plantilla.vacant.export.excel', ['type' => 'unfunded']) }}" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;text-decoration:none;" title="Export Excel">
                     <i class="bi bi-file-earmark-excel"></i> Excel
                 </a>
                 <span style="font-size:32px;font-weight:900;color:#9ca3af;line-height:1;">{{ number_format($vacantUnfunded->count()) }}</span>
@@ -917,6 +927,14 @@
                 @endforeach
             </select>
         </div>
+        <div class="filter-field filter-field-sm">
+            <label>Vacancy Status</label>
+            <select name="vacancy_status" style="width:100%;">
+                <option value="">All Records</option>
+                <option value="vacant" @selected(request('vacancy_status') === 'vacant')>Vacant Only</option>
+                <option value="filled" @selected(request('vacancy_status') === 'filled')>Filled Only</option>
+            </select>
+        </div>
         <div style="display:flex;gap:8px;align-items:flex-end;">
             <button type="submit" style="background:#2563eb;color:#fff;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
                 <i class="bi bi-search me-1"></i> Filter
@@ -943,140 +961,85 @@
     ];
 @endphp
 
-@forelse($grouped as $office => $cats_data)
-    @php
-        $officeTotal = array_sum(array_map('count', $cats_data));
-        $oid = 'off-' . md5($office);
-        $subName = 'Bukidnon Provincial Office';
-        if (str_starts_with($office, 'BPH')) {
-            $subName = 'Bukidnon Provincial Hospital';
-        }
-    @endphp
-    <div class="office-card">
-        <button type="button" onclick="toggleOffice('{{ $oid }}')" class="office-btn">
-
-            <div class="off-left">
-                <div class="off-icon-box"><i class="bi bi-building"></i></div>
-                <div>
-                    <div class="off-name">{{ $office }}</div>
-                    <div class="off-sub">{{ $subName }}</div>
-                </div>
-            </div>
-
-            <div class="off-middle">
-                <div class="off-stat-col">
-                    <span class="off-stat-label">TOTAL POSITIONS</span>
-                    <span class="off-stat-num">{{ str_pad($officeTotal, 2, '0', STR_PAD_LEFT) }}</span>
-                </div>
-
-                @foreach($categories as $cat)
-                    @if(!empty($cats_data[$cat]))
-                        @php $cd = $catDefs[$cat]; @endphp
-                        <div class="off-stat-col">
-                            <span class="off-pill" style="background:{{ $cd['pill'] }};color:{{ $cd['pillText'] }}; border-color:{{ $cd['pillText'] }}30;">{{ $cat }}</span>
-                            <span class="off-stat-num">{{ str_pad(count($cats_data[$cat]), 2, '0', STR_PAD_LEFT) }}</span>
-                        </div>
-                    @endif
-                @endforeach
-            </div>
-
-            <div class="off-right">
-                <span class="off-view-btn">
-                    View Details <i class="bi bi-chevron-right chevron" id="{{ $oid }}-chev"></i>
-                </span>
-            </div>
-
-        </button>
-
-        <div id="{{ $oid }}" style="border-top:1px solid #f3f4f6; display: none;">
-            @foreach($categories as $cat)
-                @if(!empty($cats_data[$cat]))
-                    @php $recs = $cats_data[$cat];
-                    $cd = $catDefs[$cat]; @endphp
-                    <div>
-                        <div class="cat-header" style="background:{{ $cd['bg'] }};border-color:{{ $cd['color'] }};">
-                            <span class="cat-label" style="color:{{ $cd['color'] }};">{{ $cat }}</span>
-                            <span class="cat-count">{{ count($recs) }} position{{ count($recs) !== 1 ? 's' : '' }}</span>
-                        </div>
-                        <div class="overflow-x-auto">
-                        <table class="personnel-table">
-                            <thead>
-                                <tr>
-                                    <th>OFFICE</th>
-                                    <th>LAST NAME</th>
-                                    <th>FIRST NAME</th>
-                                    <th>MIDDLE NAME</th>
-                                    <th>SUFFIX</th>
-                                    <th>POSITION</th>
-                                    <th class="tc">DATE OF BIRTH</th>
-                                    <th class="tc">SEX</th>
-                                    <th class="tc" style="width:100px;">ACTION</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($recs as $rec)
-                                    @php
-                                        $rowTint = '';
-                                        if (str_contains(strtolower($cat), 'permanent') || str_contains(strtolower($cat), 'elected')) $rowTint = 'background:#f0fdf4;';
-                                        elseif (str_contains(strtolower($cat), 'casual') || str_contains(strtolower($cat), 'contractual')) $rowTint = 'background:#fff7ed;';
-                                        elseif (str_contains(strtolower($cat), 'job order')) $rowTint = 'background:#f0f9ff;';
-                                        elseif (str_contains(strtolower($cat), 'co-terminous')) $rowTint = 'background:#fdf2f8;';
-                                        elseif ($rec->is_vacant) $rowTint = 'background:#f8fafc;';
-                                    @endphp
-                                    <tr style="{{ $rowTint }}">
-                                        <td><div style="font-size:12px;color:#64748b;">{{ $subName }}</div></td>
-                                        <td>
-                                            @if($rec->is_vacant)
-                                                <div class="emp-vacant-text">Vacant</div>
-                                            @else
-                                                <div class="emp-name-text">{{ strtoupper($rec->last_name ?? '') }}</div>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(!$rec->is_vacant)
-                                                <div class="emp-name-text">{{ $rec->first_name ?? '' }}</div>
-                                            @endif
-                                        </td>
-                                        <td><div class="emp-name-text">{{ $rec->middle_name ?? '' }}</div></td>
-                                        <td><div class="emp-name-text">{{ $rec->name_extension ?? '' }}</div></td>
-                                        <td>
-                                            <div class="pos-title-text">{{ $rec->position_title }}</div>
-                                            <div style="font-size:11px;color:#64748b;">Item #{{ $rec->item_no_new }}</div>
-                                        </td>
-                                        <td class="tc">
-                                            @if(!$rec->is_vacant && $rec->date_of_birth)
-                                                <span class="num-text">{{ \Carbon\Carbon::parse($rec->date_of_birth)->format('M d, Y') }}</span>
-                                            @endif
-                                        </td>
-                                        <td class="tc">
-                                            @if(!$rec->is_vacant && $rec->sex)
-                                                <span class="num-text">{{ $rec->sex }}</span>
-                                            @endif
-                                        </td>
-                                        <td class="tc">
-                                            <div class="table-actions" style="display:flex;gap:4px;justify-content:center;">
-                                                <a href="{{ route('plantilla.show', $rec) }}" class="btn-icon-plain" style="width:auto;padding:0 8px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;text-decoration:none;transition:all 0.15s;color:#3b82f6;" title="View details" onmouseover="this.style.background='#eff6ff';this.style.borderColor='#bfdbfe';" onmouseout="this.style.background='#f8fafc';this.style.borderColor='#e2e8f0';">
-                                                    <i class="bi bi-eye"></i> VIEW
-                                                </a>
-                                                @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
-                                                    <a href="{{ route('plantilla.edit', $rec) }}" class="btn-icon-plain" style="width:auto;padding:0 8px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;text-decoration:none;transition:all 0.15s;color:#f59e0b;" title="Edit record" onmouseover="this.style.background='#fffbeb';this.style.borderColor='#fde68a';" onmouseout="this.style.background='#f8fafc';this.style.borderColor='#e2e8f0';">
-                                                        <i class="bi bi-pencil"></i> EDIT
-                                                    </a>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                        </div>
-                    </div>
-                @endif
-            @endforeach
+<div class="card-panel overflow-hidden p-0" style="margin-top: 20px;">
+    @if($records->count() > 0)
+        <div class="overflow-x-auto">
+            <table id="plantilla-listing-table" class="personnel-table" style="margin:0;">
+                <thead>
+                    <tr>
+                        <th>OFFICE</th>
+                        <th>CATEGORY</th>
+                        <th>NAME (LAST, FIRST, MIDDLE)</th>
+                        <th>POSITION</th>
+                        <th class="tc">DATE OF BIRTH</th>
+                        <th class="tc">SEX</th>
+                        <th class="tc" style="width:100px;">ACTION</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($records as $rec)
+                        @php
+                            $cat = $rec->resolved_category ?? 'Unknown';
+                            $rowTint = '';
+                            if (str_contains(strtolower($cat), 'permanent') || str_contains(strtolower($cat), 'elected')) $rowTint = 'background:#f0fdf4;';
+                            elseif (str_contains(strtolower($cat), 'casual') || str_contains(strtolower($cat), 'contractual')) $rowTint = 'background:#fff7ed;';
+                            elseif (str_contains(strtolower($cat), 'job order')) $rowTint = 'background:#f0f9ff;';
+                            elseif (str_contains(strtolower($cat), 'co-terminous')) $rowTint = 'background:#fdf2f8;';
+                            elseif ($rec->is_vacant) $rowTint = 'background:#f8fafc;';
+                            
+                            $cd = $catDefs[$cat] ?? ['pill' => '#e2e8f0', 'pillText' => '#475569'];
+                        @endphp
+                        <tr style="{{ $rowTint }}">
+                            <td>
+                                <div style="font-size:13px; font-weight:600; color:#1e293b;">{{ $rec->office_department ?: 'Unassigned' }}</div>
+                            </td>
+                            <td>
+                                <span class="off-pill" style="background:{{ $cd['pill'] }};color:{{ $cd['pillText'] }}; border-color:{{ $cd['pillText'] }}30;">{{ $cat }}</span>
+                            </td>
+                            <td>
+                                @if($rec->is_vacant)
+                                    <div class="emp-vacant-text">Vacant</div>
+                                @else
+                                    <div class="emp-name-text">
+                                        {{ strtoupper($rec->last_name ?? '') }}, {{ $rec->first_name ?? '' }} {{ $rec->middle_name ?? '' }} {{ $rec->name_extension ?? '' }}
+                                    </div>
+                                @endif
+                            </td>
+                            <td>
+                                <div class="pos-title-text">{{ $rec->position_title }}</div>
+                                <div style="font-size:11px;color:#64748b;">Item #{{ $rec->item_no_new ?? $rec->item_no_old ?? 'N/A' }}</div>
+                            </td>
+                            <td class="tc">
+                                @if(!$rec->is_vacant && $rec->date_of_birth)
+                                    <span class="num-text">{{ \Carbon\Carbon::parse($rec->date_of_birth)->format('M d, Y') }}</span>
+                                @endif
+                            </td>
+                            <td class="tc">
+                                @if(!$rec->is_vacant && $rec->sex)
+                                    <span class="num-text">{{ $rec->sex }}</span>
+                                @endif
+                            </td>
+                            <td class="tc">
+                                <div class="table-actions" style="display:flex;gap:4px;justify-content:center;">
+                                    <a href="{{ route('plantilla.show', $rec) }}" class="btn-icon-plain" style="width:auto;padding:0 8px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;text-decoration:none;transition:all 0.15s;color:#3b82f6;" title="View details" onmouseover="this.style.background='#eff6ff';this.style.borderColor='#bfdbfe';" onmouseout="this.style.background='#f8fafc';this.style.borderColor='#e2e8f0';">
+                                        <i class="bi bi-eye"></i> VIEW
+                                    </a>
+                                    @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
+                                        <a href="{{ route('plantilla.edit', $rec) }}" class="btn-icon-plain" style="width:auto;padding:0 8px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;text-decoration:none;transition:all 0.15s;color:#f59e0b;" title="Edit record" onmouseover="this.style.background='#fffbeb';this.style.borderColor='#fde68a';" onmouseout="this.style.background='#f8fafc';this.style.borderColor='#e2e8f0';">
+                                            <i class="bi bi-pencil"></i> EDIT
+                                        </a>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-    </div>
-@empty
-    <div class="card-panel">
+        <div class="px-4 py-3" style="border-top: 1px solid #e5e7eb;">
+            {{ $records->links('pagination::bootstrap-5') }}
+        </div>
+    @else
         <div class="empty-state">
             <div class="empty-icon"><i class="bi bi-search"></i></div>
             <div style="font-size:16px;font-weight:700;color:#1e3a5f;margin-bottom:6px;">No records found</div>
@@ -1089,8 +1052,8 @@
                 <i class="bi bi-arrow-counterclockwise"></i> Clear all filters
             </a>
         </div>
-    </div>
-@endforelse
+    @endif
+</div>
 
 <script>
 function toggleOffice(id) {
@@ -1109,6 +1072,25 @@ function toggleRetirementAlert() {
     var isHidden = table.style.display === 'none';
     table.style.display = isHidden ? 'block' : 'none';
     chev.style.transform = isHidden ? 'rotate(-180deg)' : 'rotate(0deg)';
+}
+
+// Scopes the Vacant Positions publication links (Form 9 / PDF / Excel) to the
+// selected office, or back to all offices when cleared.
+function updateVacantOfficeLinks() {
+    var office = document.getElementById('vacantOfficeFilter').value;
+    var links = [
+        {id: 'vacantForm9Link', base: @json(route('plantilla.form9'))},
+        {id: 'vacantFundedPdfLink', base: @json(route('plantilla.vacant.export.pdf', ['type' => 'funded']))},
+        {id: 'vacantFundedExcelLink', base: @json(route('plantilla.vacant.export.excel', ['type' => 'funded']))},
+        {id: 'vacantUnfundedPdfLink', base: @json(route('plantilla.vacant.export.pdf', ['type' => 'unfunded']))},
+        {id: 'vacantUnfundedExcelLink', base: @json(route('plantilla.vacant.export.excel', ['type' => 'unfunded']))},
+    ];
+    links.forEach(function (link) {
+        var el = document.getElementById(link.id);
+        if (!el) return;
+        var sep = link.base.indexOf('?') === -1 ? '?' : '&';
+        el.href = office ? (link.base + sep + 'office=' + encodeURIComponent(office)) : link.base;
+    });
 }
 
 // Auto-expand all office panels when a category or search filter is active

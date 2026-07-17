@@ -28,12 +28,23 @@ class DocumentClassifier
     {
     }
 
-    public function classify(string $filename, ?string $ocrText): array
+    /**
+     * $raccsEligible lets a caller who already knows a document's true
+     * nature (e.g. a system-generated leave-violation notice, which quotes
+     * CSC rules and so trips the 'disciplinary' keyword below) opt out of
+     * the DISC-RACCS match. Genuine RACCS case files (formal charges,
+     * complaint affidavits) are tracked separately via the Discipline Case
+     * registry and are never ingested with that flag set false.
+     */
+    public function classify(string $filename, ?string $ocrText, bool $raccsEligible = true): array
     {
         $haystack = strtolower($filename . ' ' . ($ocrText ?? ''));
         $docTypeCode = 'OTHER';
 
         foreach (self::DOC_TYPE_KEYWORDS as $code => $keywords) {
+            if ($code === 'DISC-RACCS' && !$raccsEligible) {
+                continue;
+            }
             foreach ($keywords as $keyword) {
                 if (str_contains($haystack, $keyword)) {
                     $docTypeCode = $code;

@@ -183,11 +183,16 @@
     </div>
 
     <div class="body-text">
+        @if($employee->employment_status === 'Elected' || $employee->employment_status === 'E')
+        Pursuant to the Civil Service Commission and Department of Budget and Management
+        Joint Circular No. 1, s. 2016, your salary as <strong><u>{{ $employee->position_title }}</u></strong> is hereby adjusted effective
+        <strong><u>{{ $effectiveDate->format('F j, Y') }}</u></strong>, as follows:
+        @else
         Pursuant to the Civil Service Commission and Department of Budget and Management
         Joint Circular No. 1 dated September 3, 2012, implementing item (4)(d) of the
         Senate and House of Representatives Joint Resolution No. 4, s. 2009, approved on June 17,
-        2009, your salary as <strong><u>{{ $employee->position_title }}</u></strong> is hereby adjusted effective
-        <strong><u>{{ $effectiveDate->format('F j, Y') }}</u></strong>, as follows:
+        2009, your salary as <strong><u>{{ $employee->position_title }}</u></strong> is hereby adjusted effective <strong><u>{{ $effectiveDate->format('F j, Y') }}</u></strong>, as follows:
+        @endif
     </div>
 
     <div class="computation">
@@ -195,7 +200,7 @@
         <div class="comp-row">
             <div class="comp-label">
                 1. &nbsp; Actual monthly basic salary as of
-                <strong>{{ $effectiveDate->clone()->subDay()->format('F j, Y') }}</strong><br>
+                <strong>{{ $effectiveDate->clone()->subDay()->format('M. j, Y') }}</strong><br>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (SG - <u>{{ $employee->salary_grade }}</u>, Step
                 <u>{{ $currentStep }}</u>)
             </div>
@@ -220,7 +225,7 @@
         <div class="comp-row" style="margin-top: 12px;">
             <div class="comp-label">
                 3. &nbsp; Adjusted monthly basic salary effective
-                <strong>{{ $effectiveDate->format('F j, Y') }}</strong>
+                <strong>{{ $effectiveDate->format('M. j, Y') }}</strong>
             </div>
             <div class="comp-value-col">
                 <span class="comp-peso">P</span>
@@ -236,9 +241,13 @@
     </div>
 
     <div class="signoff">
-        Very truly yours,<br><br><br>
-        <span class="governor-name">ROGELIO NEIL P. ROQUE</span>
-        <span>Provincial Governor</span>
+        <div style="text-align: left; display: inline-block;">
+            Very truly yours,<br><br><br>
+            <div style="text-align: center;">
+                <span class="governor-name">ROGELIO NEIL P. ROQUE</span>
+                <span>Provincial Governor</span>
+            </div>
+        </div>
     </div>
 
     <div class="footer-info">

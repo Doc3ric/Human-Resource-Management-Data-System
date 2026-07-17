@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<x-dashboard-app>
 <style>
     .page-title { font-size: 24px; font-weight: 700; color: #111827; margin: 0; }
     .page-subtitle { font-size: 14px; color: #6b7280; margin: 4px 0 24px; }
@@ -134,4 +132,4 @@
         </form>
     </div>
 </div>
-@endsection
+</x-dashboard-app>

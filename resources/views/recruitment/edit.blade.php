@@ -12,6 +12,16 @@
                 <p class="text-muted small mt-1">Fill in all applicable fields. Fields marked <span class="text-danger">*</span> are required.</p>
             </div>
 
+            @if ($errors->any())
+                <div class="alert alert-danger mx-4 mt-2 mb-0">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="card-body p-4">
                 <form action="{{ route('recruitment.update', $applicant->id) }}" method="POST" id="recruitmentForm">
                     @method('PUT')
@@ -76,7 +86,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-semibold" style="font-size:13px;">Birthday <span class="text-danger">*</span></label>
-                            <input type="date" name="date_of_birth" class="form-control" required value="{{ old('date_of_birth', $applicant->date_of_birth) }}">
+                            <input type="date" name="date_of_birth" class="form-control" required value="{{ old('date_of_birth', optional($applicant->date_of_birth)->format('Y-m-d')) }}">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-semibold" style="font-size:13px;">Religion</label>
@@ -317,6 +327,7 @@
                         </div>
                     </details>
 
+                    <script>
                         document.addEventListener('DOMContentLoaded', function() {
                             // Convert all text inputs to uppercase dynamically on input
                             const inputs = document.querySelectorAll('#recruitmentForm input[type="text"], #recruitmentForm textarea');

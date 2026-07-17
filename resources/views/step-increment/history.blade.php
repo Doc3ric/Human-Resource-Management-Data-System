@@ -24,7 +24,7 @@
 .si-hero-btn:hover { background: rgba(255,255,255,.3); color: #fff; }
 
 .si-table-wrap {
-    background: #fff; border: 1px solid #e5e7eb; border-radius: 14px;
+    background: var(--color-surface, #fff); border: 1px solid var(--color-border, #e5e7eb); border-radius: 14px;
     overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.04);
 }
 .si-table { width: 100%; border-collapse: separate; border-spacing: 0; }
@@ -37,7 +37,7 @@
     color: rgba(255,255,255,.72); padding: 12px 16px; white-space: nowrap;
 }
 .si-table tbody tr { transition: background .12s; }
-.si-table tbody tr:nth-child(even) td { background: #f8fafc; }
+.si-table tbody tr:nth-child(even) td { background: var(--color-page-bg, #f8fafc); }
 .si-table tbody tr:hover td { background: #eef2ff !important; }
 .si-table td {
     padding: 11px 16px; vertical-align: middle;
@@ -48,6 +48,7 @@
 .history-type-NOSI { background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; }
 .history-type-NOLP { background: #ede9fe; color: #5b21b6; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; }
 .history-type-NOSA { background: #ffe4e6; color: #e11d48; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; }
+.history-type-SSL_ADJUSTMENT { background: #f5f3ff; color: #6d28d9; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; }
 
 .progress-arrow { color: #94a3b8; margin: 0 6px; font-size: 11px; }
 </style>
@@ -67,7 +68,7 @@
 </div>
 
 <div class="si-table-wrap">
-    <div style="padding: 16px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+    <div style="padding: 16px; background: var(--color-surface, #fff); border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <form method="GET" action="{{ route('step-increment.history') }}" style="display:flex; align-items:center; gap:8px;">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or item number..." 
                    style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 14px; font-size: 13px; width: 260px; outline: none; transition: border-color .2s;">
@@ -95,13 +96,13 @@
             <tbody>
                 @forelse($histories as $log)
                 <tr>
-                    <td style="font-weight: 600; color: #1e293b;">
+                    <td style="font-weight: 600; color: var(--color-text-primary, #1e293b);">
                         {{ $log->effective_date ? $log->effective_date->format('M d, Y') : '—' }}
                     </td>
                     <td>
                         @if($log->plantillaRecord)
                             <div style="font-weight: 700; color: #0f172a; font-size: 13px;">{{ $log->plantillaRecord->full_name }}</div>
-                            <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                            <div style="font-size: 11px; color: var(--color-text-muted, #64748b); margin-top: 2px;">
                                 Item No: {{ $log->plantillaRecord->item_no_new }} | {{ $log->plantillaRecord->position_title }}
                             </div>
                         @else
@@ -113,24 +114,24 @@
                     </td>
                     <td style="text-align: center; font-family: ui-monospace, monospace;">
                         @if($log->previous_salary_grade == $log->new_salary_grade)
-                            <span style="color:#475569;">SG {{ $log->new_salary_grade }}</span>
+                            <span style="color: var(--color-text-secondary, #475569);">SG {{ $log->new_salary_grade }}</span>
                         @else
-                            <span style="color:#64748b;">SG {{ $log->previous_salary_grade }}</span>
+                            <span style="color: var(--color-text-muted, #64748b);">SG {{ $log->previous_salary_grade }}</span>
                             <i class="bi bi-chevron-right progress-arrow"></i>
                             <span style="color:#16a34a; font-weight:700;">SG {{ $log->new_salary_grade }}</span>
                         @endif
                     </td>
                     <td style="text-align: center; font-family: ui-monospace, monospace;">
                         @if($log->previous_step == $log->new_step)
-                            <span style="color:#475569;">Step {{ $log->new_step }}</span>
+                            <span style="color: var(--color-text-secondary, #475569);">Step {{ $log->new_step }}</span>
                         @else
-                            <span style="color:#64748b;">Step {{ $log->previous_step }}</span>
+                            <span style="color: var(--color-text-muted, #64748b);">Step {{ $log->previous_step }}</span>
                             <i class="bi bi-chevron-right progress-arrow"></i>
                             <span style="color:#16a34a; font-weight:700;">Step {{ $log->new_step }}</span>
                         @endif
                     </td>
                     <td style="text-align: right; font-family: ui-monospace, monospace;">
-                        <span style="color:#64748b; font-size:12px;">₱{{ number_format($log->previous_annual_salary, 2) }}</span>
+                        <span style="color: var(--color-text-muted, #64748b); font-size:12px;">₱{{ number_format($log->previous_annual_salary, 2) }}</span>
                         <i class="bi bi-chevron-right progress-arrow"></i><br>
                         <span style="color:#16a34a; font-weight:700;">₱{{ number_format($log->new_annual_salary, 2) }}</span>
                     </td>

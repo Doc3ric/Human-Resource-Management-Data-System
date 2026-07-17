@@ -49,38 +49,50 @@ class CasualImport implements ToCollection, WithStartRow
 
     public function collection(Collection $rows): void
     {
-        $this->format = $this->detectFormat($rows);
+        $headerRowIndex = $this->findSimpleHeaderRowIndex($rows);
 
-        if ($this->format === 'plantilla') {
-            $this->importPlantillaFormat($rows);
+        if ($headerRowIndex !== null) {
+            $this->format = 'simple';
+            $this->importSimpleFormat($rows->slice($headerRowIndex + 1));
         } else {
-            // Skip the first 8 rows for simple format (6 header rows + 1 title + 1 column headers)
-            $this->importSimpleFormat($rows->slice(8));
+            $this->format = 'plantilla';
+            $this->importPlantillaFormat($rows);
         }
     }
 
     // ── FORMAT DETECTION ──────────────────────────────────────────────────
 
-    private function detectFormat(Collection $rows): string
+    /**
+     * The simple template (downloadTemplate()) is the only format with
+     * separate LAST NAME / FIRST NAME columns — the native Plantilla format
+     * only ever has a single combined "Name of Incumbent" column. Returns
+     * the header row's 0-indexed position in $rows (so callers can slice
+     * data starting right after it), or null if this isn't the simple format.
+     * Previously this matched on the literal substring "ITEM OLD"/"ITEM NEW",
+     * which never appears in the real template header ("ITEM NO. (OLD)" /
+     * "ITEM NO. (NEW)"), so every simple-template import was silently
+     * misrouted into the Plantilla parser and lost most of its columns.
+     */
+    private function findSimpleHeaderRowIndex(Collection $rows): ?int
     {
-        foreach ($rows->take(20) as $row) {
-            $joined = strtoupper(implode(' ', $row->toArray()));
-            if (str_contains($joined, 'ITEM OLD') && str_contains($joined, 'ITEM NEW')) {
-                return 'simple';
+        foreach ($rows->take(20) as $i => $row) {
+            $joined = strtoupper(implode(' ', array_map('strval', $row->toArray())));
+            if (str_contains($joined, 'LAST NAME') && str_contains($joined, 'FIRST NAME')) {
+                return $i;
             }
         }
-        return 'plantilla';
+        return null;
     }
 
     // ── SIMPLE TEMPLATE FORMAT ────────────────────────────────────────────
 
     /**
-     * Simple template columns (0-indexed):
+     * Simple template columns (0-indexed), matching CasualController::downloadTemplate():
      * 0=OFFICE, 1=ITEM_OLD, 2=ITEM_NEW, 3=POSITION, 4=LAST_NAME, 5=FIRST_NAME,
      * 6=MI, 7=EXT, 8=VACANT(Y), 9=SG_CUR, 10=STEP_CUR, 11=SALARY_CUR,
      * 12=SG_PROP, 13=STEP_PROP, 14=SALARY_PROP, 15=INCREASE,
      * 16=PREV_RATE, 17=CUR_RATE, 18=SEX, 19=BIRTHDATE,
-     * 20=FIRST_DAY, 21=ELIGIBILITY, 22=REMARKS
+     * 20=FIRST_DAY, 21=ELIGIBILITY
      */
     private function importSimpleFormat(Collection $rows): void
     {
@@ -106,6 +118,7 @@ class CasualImport implements ToCollection, WithStartRow
             try {
                 $casualData = [
                     'office_department'       => $office,
+                    'item_no_old'               => $this->str($row, 1),
                     'item_no_new'                      => $this->str($row, 2) ?? $this->str($row, 1),
                     'position_title'            => $this->str($row, 3),
                     'last_name'                 => $isVacant ? null : $lastName,
@@ -116,10 +129,15 @@ class CasualImport implements ToCollection, WithStartRow
                     'salary_grade'              => $this->int($row, 9),
                     'step'                      => $this->int($row, 10),
                     'authorized_annual_salary'  => $this->numeric($row, 11),
-                    'base_salary_amount'      => $this->numeric($row, 14),
-                    'sex'                       => $this->sex($row, 18),
+                    'sg_proposed'               => $this->int($row, 12),
+                    'step_proposed'             => $this->int($row, 13),
+                    'salary_proposed'           => $this->numeric($row, 14),
+                    'increase_decrease'         => $this->numeric($row, 15),
+                    'previous_rate'             => $this->numeric($row, 16),
+                    'base_salary_amount'      => $this->numeric($row, 17),
+                    'sex'                       => $this->gender($row, 18),
                     'date_of_birth'             => $this->date($row, 19),
-                    'date_original_appointment' => $this->date($row, 20),
+                    'first_day_of_service'      => $this->date($row, 20),
                     'civil_service_eligibility' => $this->str($row, 21),
                 ];
 

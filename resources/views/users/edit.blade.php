@@ -95,6 +95,7 @@
     border-color: #0f172a; background: #fffbeb;
     box-shadow: 0 0 0 3px rgba(180,83,9,.1);
 }
+.role-hint { font-size: 11px; color: #9ca3af; margin-bottom: 10px; }
 .role-icon { font-size: 22px; }
 .role-name  { font-size: 12px; font-weight: 700; color: #0f172a; }
 .role-desc  { font-size: 10px; color: #9ca3af; line-height: 1.4; }
@@ -207,11 +208,13 @@
                 {{-- Role --}}
                 <div class="form-group full-width">
                     <label class="form-label">Role Assignment</label>
+                    <div class="role-hint">Select one or more roles. Access is the union of all selected roles' permissions.</div>
+                    @php $currentRoleNames = old('roles', $user->roles->pluck('name')->all()); @endphp
                     <div class="role-option-grid" style="grid-template-columns:1fr 1fr 1fr 1fr;">
                         @foreach($roles as $r)
                         <div>
-                            <input type="radio" name="role" id="role_{{ $r->id }}" value="{{ $r->name }}"
-                                   class="role-option" {{ old('role', $user->roles->first()?->name) === $r->name ? 'checked' : '' }}>
+                            <input type="checkbox" name="roles[]" id="role_{{ $r->id }}" value="{{ $r->name }}"
+                                   class="role-option" {{ in_array($r->name, $currentRoleNames, true) ? 'checked' : '' }}>
                             <label for="role_{{ $r->id }}" class="role-option-label">
                                 <span class="role-icon">👤</span>
                                 <span class="role-name">{{ $r->name }}</span>
@@ -220,7 +223,8 @@
                         </div>
                         @endforeach
                     </div>
-                    @error('role')<div class="form-error mt-1">{{ $message }}</div>@enderror
+                    @error('roles')<div class="form-error mt-1">{{ $message }}</div>@enderror
+                    @error('roles.*')<div class="form-error mt-1">{{ $message }}</div>@enderror
                 </div>
 
             </div>{{-- end grid --}}

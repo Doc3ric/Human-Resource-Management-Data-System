@@ -28,7 +28,11 @@ class DocumentAccessPolicy
     public function canView(User $user, Document $document): bool
     {
         if ($document->is_raccs) {
-            $hasRole = $user->isSuperAdmin() || $user->hasAnyRole(self::RACCS_ROLES);
+            if ($user->isSuperAdmin()) {
+                return true;
+            }
+
+            $hasRole = $user->hasAnyRole(self::RACCS_ROLES);
 
             return $hasRole && RaccsMfaGate::isVerified();
         }
@@ -59,7 +63,11 @@ class DocumentAccessPolicy
         }
 
         if ($document->is_raccs) {
-            $hasRole = $user->isSuperAdmin() || $user->hasAnyRole(self::RACCS_ROLES);
+            if ($user->isSuperAdmin()) {
+                return null;
+            }
+
+            $hasRole = $user->hasAnyRole(self::RACCS_ROLES);
 
             return $hasRole ? 'MFA not verified or expired' : 'not a RACCS-authorized role';
         }

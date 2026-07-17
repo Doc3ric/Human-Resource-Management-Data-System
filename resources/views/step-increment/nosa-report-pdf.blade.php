@@ -208,9 +208,18 @@
                                 $prevMonthly = \App\Models\SalaryGrade::getRateForSchedule($previousSchedule->id, $sg, $step);
                                 $prevAnnual = $prevMonthly * 12;
                             } else {
-                                $prevAnnual = (float) ($rec->base_salary_amount ?: 0);
+                                // Fallback: use recorded actual monthly salary * 12
+                                $pm = (float) ($rec->base_salary_amount ?: 0);
+                                $newMonthly = \App\Models\SalaryGrade::getRateForSchedule($activeSchedule->id, $sg, $step);
+
+                                if (abs($pm - $newMonthly) < 1 && $rec->previous_rate > 0 && $rec->previous_rate < $newMonthly) {
+                                    $pm = (float) $rec->previous_rate;
+                                } elseif ($pm > $newMonthly && $rec->previous_rate > 0 && $rec->previous_rate < $newMonthly) {
+                                    $pm = (float) $rec->previous_rate;
+                                }
+                                $prevAnnual = $pm * 12;
                             }
-                            $newMonthly = \App\Models\SalaryGrade::getRateForSchedule($activeSchedule->id, $sg, $step);
+                            $newMonthly = $newMonthly ?? \App\Models\SalaryGrade::getRateForSchedule($activeSchedule->id, $sg, $step);
                             $newAnnual = $newMonthly * 12;
                         }
 

@@ -19,7 +19,7 @@ class AllDataController extends Controller
         return [
             'employee_code' => 'nullable|string|max:20|unique:plantilla_records,employee_code' . ($ignoreId ? ",{$ignoreId}" : ''),
             'office_department' => 'nullable|string|max:255',
-            'item_no_new' => 'nullable|string|max:255|unique:plantilla_records,item' . ($ignoreId ? ",{$ignoreId}" : ''),
+            'item_no_new' => 'nullable|string|max:255|unique:plantilla_records,item_no_new' . ($ignoreId ? ",{$ignoreId}" : ''),
             'position_title' => 'nullable|string|max:255',
             'salary_grade' => 'nullable|integer|min:1|max:33',
             'authorized_annual_salary' => 'nullable|numeric|min:0',
@@ -172,6 +172,14 @@ class AllDataController extends Controller
         // Position Title filter
         if ($request->filled('position')) {
             $query->where('position_title', $request->input('position'));
+        }
+
+        // Enhancement Spec Sec. 1 — sort is independent of (and never resets)
+        // the filters above; it only overrides the default ordering.
+        $sortableColumns = ['last_name', 'first_name', 'middle_name', 'office_department', 'position_title', 'date_of_birth', 'sex', 'employment_status'];
+        if ($request->filled('sort') && in_array($request->input('sort'), $sortableColumns, true)) {
+            $direction = $request->input('direction') === 'desc' ? 'desc' : 'asc';
+            $query->reorder()->orderBy($request->input('sort'), $direction);
         }
 
         $perPageInput = $request->input('per_page', 50);

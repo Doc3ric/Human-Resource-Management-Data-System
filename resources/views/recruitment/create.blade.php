@@ -116,7 +116,7 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" style="font-size:13px;">Position Applied <span class="text-danger">*</span></label>
-                            <input type="text" id="position_applied_input" name="position_applied" class="form-control" required placeholder="Specify position…" value="{{ old('position_applied') }}" list="positions_list" onchange="fillVacantPositionDetails(this.value)">
+                            <input type="text" id="position_applied_input" name="position_applied" class="form-control" required placeholder="Specify position…" value="{{ old('position_applied') }}" list="positions_list">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" style="font-size:13px;">Office <span class="text-danger">*</span></label>
@@ -343,34 +343,7 @@
                     </details>
 
                     <script>
-                        // Module 3.1 — selecting a vacant position title auto-populates
-                        // the read-only Office/Item/Salary Grade/Monthly Rate fields.
-                        const vacantPositionDetails = @json($vacantPositionDetails);
-                        function fillVacantPositionDetails(title) {
-                            const details = vacantPositionDetails[title];
-                            const officeInput = document.getElementById('office_input');
-                            const itemInput = document.getElementById('item_no_input');
-                            const sgDisplay = document.getElementById('salary_grade_display');
-                            const rateDisplay = document.getElementById('monthly_rate_display');
-                            if (details) {
-                                if (officeInput && !officeInput.value) {
-                                    officeInput.value = details.office || '';
-                                }
-                                if (itemInput) itemInput.value = details.item_no || '';
-                                if (sgDisplay) sgDisplay.value = details.salary_grade || '';
-                                if (rateDisplay) rateDisplay.value = details.monthly_rate || '';
-                            } else {
-                                if (sgDisplay) sgDisplay.value = '';
-                                if (rateDisplay) rateDisplay.value = '';
-                            }
-                        }
-
                         document.addEventListener('DOMContentLoaded', function() {
-                            const posInput = document.getElementById('position_applied_input');
-                            if (posInput && posInput.value) {
-                                fillVacantPositionDetails(posInput.value);
-                            }
-
                             // Convert all text inputs to uppercase dynamically on input
                             const inputs = document.querySelectorAll('#recruitmentForm input[type="text"], #recruitmentForm textarea');
                             inputs.forEach(input => {
@@ -385,6 +358,14 @@
                                     input.value = input.value.toUpperCase();
                                 }
                             });
+
+                            const officeInput = document.getElementById('office_input');
+                            const itemInput = document.getElementById('item_no_input');
+                            if (officeInput && itemInput) {
+                                officeInput.addEventListener('input', function() {
+                                    itemInput.value = '';
+                                });
+                            }
                         });
                     </script>
 

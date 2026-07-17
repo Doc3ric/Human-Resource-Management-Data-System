@@ -1,0 +1,52 @@
+{% extends "base.html" %}{% block body %}
+<p><a href="{{ url_for('settings') }}">&larr; Settings</a></p>
+<h1>User Management</h1>
+<p class="note">Roles: <b>admin</b> (full access incl. Settings) &middot; <b>encoder</b> (data entry &amp; computation) &middot; <b>viewer</b> (read-only). The last active administrator cannot be removed, demoted, or deactivated.</p>
+
+<details class="adder" open><summary>+ Add user</summary>
+<form method="post" class="grid">
+  <input type="hidden" name="action" value="add">
+  <label>Username<input name="username" required></label>
+  <label>Full name<input name="fullname"></label>
+  <label>Role<select name="role"><option>encoder</option><option>viewer</option><option>admin</option></select></label>
+  <label>Initial password<input name="password" type="text" required></label>
+  <button>Create</button>
+</form></details>
+
+<table><tr><th>Username</th><th>Full name</th><th>Role</th><th>Status</th><th style="width:330px">Actions</th></tr>
+{% for r in rows %}
+<tr>
+  <td>{{ r.username }}{% if r.id==me %} <span class="metag">you</span>{% endif %}</td>
+  <td>
+    <form method="post" class="inline">
+      <input type="hidden" name="action" value="update"><input type="hidden" name="id" value="{{r.id}}">
+      <input name="fullname" value="{{ r.fullname or '' }}" style="width:150px">
+  </td>
+  <td>
+      <select name="role">
+        <option {{'selected' if r.role=='admin'}}>admin</option>
+        <option {{'selected' if r.role=='encoder'}}>encoder</option>
+        <option {{'selected' if r.role=='viewer'}}>viewer</option>
+      </select>
+  </td>
+  <td>{% if r.active==1 %}<span class="good pill">Active</span>{% else %}<span class="bad pill">Inactive</span>{% endif %}</td>
+  <td>
+      <button>Save</button></form>
+      <form method="post" class="inline"><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="{{r.id}}">
+        <button class="ghost">{{ 'Deactivate' if r.active==1 else 'Reactivate' }}</button></form>
+      <form method="post" class="inline" onsubmit="return resetpw(this)"><input type="hidden" name="action" value="resetpw"><input type="hidden" name="id" value="{{r.id}}">
+        <input type="hidden" name="password" class="pw">
+        <button class="ghost">Reset PW</button></form>
+      <form method="post" class="inline" onsubmit="return confirm('Delete user {{r.username}}?')"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="{{r.id}}">
+        <button class="ghost danger">Del</button></form>
+  </td>
+</tr>{% endfor %}
+</table>
+<script>
+function resetpw(f){
+  var p=prompt("New password for this user:");
+  if(p===null||p===""){return false;}
+  f.querySelector(".pw").value=p; return true;
+}
+</script>
+{% endblock %}

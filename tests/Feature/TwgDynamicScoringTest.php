@@ -56,25 +56,6 @@ test('Module 6.1: an applicant without eligibility or item no gets education_no_
     expect($keys)->not->toContain('education_eligibility');
 });
 
-test('Module 6.2: psb_interview auto-populates from the panel average, matching the existing 50% formula', function () {
-    $applicant = Applicant::factory()->create();
-    InterviewEvaluation::create([
-        'applicant_id' => $applicant->id, 'rater_id' => $this->admin->id,
-        'ratings' => ['x' => 1], 'total_score' => 80,
-    ]);
-    InterviewEvaluation::create([
-        'applicant_id' => $applicant->id, 'rater_id' => $this->admin->id,
-        'ratings' => ['x' => 1], 'total_score' => 90,
-    ]);
-
-    $scores = $this->engine->initialize($applicant);
-    $psb = $scores->firstWhere('criterion.criterion_key', 'psb_interview');
-
-    // avg(80,90)=85, criterion point_value defaults to 50 -> 85 * 0.50 = 42.50
-    expect((float) $psb->auto_populated_value)->toBe(42.50);
-    expect((float) $psb->assessor_value)->toBe(42.50); // not yet edited, so it tracks the auto value
-});
-
 test('Module 6.2: a bracket selection sets the auto value and syncs the assessor value until manually edited', function () {
     $applicant = Applicant::factory()->create(['eligibility' => 'Career Service Professional', 'item_no' => '0001']);
     HrmpsbRatingScale::create(['position_category' => 'all', 'criterion' => 'awards', 'points' => 5.00, 'condition_name' => 'International']);

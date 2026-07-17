@@ -1,92 +1,91 @@
 /* Emerald Night Dark Mode - A Brand-Centric Dark Theme */
 
 body.emerald-night {
-    background-color: #0A1F16 !important;
-    color: #e5e7eb !important;
+    background-color: var(--color-page-bg) !important;
+    color: var(--color-text-primary) !important;
 }
 
 /* Sidebar and Topbar */
 body.emerald-night .sidebar {
-    background-color: #133D2F !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    background-color: var(--color-sidebar-bg) !important;
+    border-right: 1px solid var(--color-border) !important;
 }
 
 body.emerald-night .topbar,
 body.emerald-night .main-content>nav {
-    background-color: #133D2F !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-    color: #f3f4f6 !important;
+    background-color: var(--color-topbar-bg) !important;
+    border-bottom: 1px solid var(--color-topbar-border) !important;
+    color: var(--color-topbar-text) !important;
 }
 
 body.emerald-night .sidebar-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-bottom: 1px solid var(--color-border) !important;
 }
 
 body.emerald-night .sidebar-title,
 body.emerald-night .sidebar-logo-text {
-    color: #f9fafb !important;
+    color: var(--color-text-primary) !important;
 }
 
 body.emerald-night .sidebar-logo-sub,
 body.emerald-night .sidebar-section-label {
-    color: #9ca3af !important;
+    color: var(--color-text-muted) !important;
 }
 
 body.emerald-night .nav-link,
 body.emerald-night .sidebar-link {
-    color: #d1d5db !important;
+    color: var(--color-sidebar-text) !important;
 }
 
 body.emerald-night .nav-link:hover,
 body.emerald-night .sidebar-link:hover {
-    background-color: rgba(255, 255, 255, 0.08) !important;
-    color: #ffffff !important;
+    background-color: var(--color-sidebar-hover-bg) !important;
+    color: var(--color-text-primary) !important;
 }
 
 body.emerald-night .nav-link.active,
 body.emerald-night .sidebar-link.active {
-    background-color: #10b981 !important;
+    background-color: var(--color-accent) !important;
     color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+    box-shadow: 0 4px 12px var(--color-focus-ring) !important;
 }
 
 body.emerald-night .sidebar-user {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: var(--color-sidebar-hover-bg) !important;
+    border: 1px solid var(--color-border) !important;
 }
 
 body.emerald-night .sidebar-user-name {
-    color: #f9fafb !important;
+    color: var(--color-text-primary) !important;
 }
 
 body.emerald-night .sidebar-user-role {
-    color: #9ca3af !important;
+    color: var(--color-text-muted) !important;
 }
 
 body.emerald-night .sidebar-footer {
-    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-top: 1px solid var(--color-border) !important;
 }
 
 body.emerald-night .sidebar-logout-btn {
     background: rgba(239, 68, 68, 0.15) !important;
     border: 1px solid rgba(239, 68, 68, 0.3) !important;
-    color: #f87171 !important;
+    color: var(--color-danger) !important;
 }
 
 body.emerald-night .sidebar-logout-btn:hover {
     background: rgba(239, 68, 68, 0.3) !important;
-    color: #fca5a5 !important;
+    color: var(--color-danger-dark) !important;
 }
 
 /* Cards & Containers */
-/* Catching inline background elements dynamically where possible */
 body.emerald-night .bg-white,
 body.emerald-night [style*="background: white"],
 body.emerald-night [style*="background-color: white"],
 body.emerald-night .modal-card {
-    background-color: #0F2D21 !important;
-    color: #f3f4f6 !important;
-    border-color: #1e4d39 !important;
+    background-color: var(--color-surface) !important;
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-border) !important;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
 }
 
@@ -99,52 +98,52 @@ body.emerald-night h5,
 body.emerald-night h6,
 body.emerald-night .text-gray-900,
 body.emerald-night .text-gray-800 {
-    color: #f9fafb !important;
+    color: var(--color-text-primary) !important;
 }
 
 body.emerald-night p,
 body.emerald-night .text-gray-700,
 body.emerald-night .text-gray-600 {
-    color: #d1d5db !important;
+    color: var(--color-text-secondary) !important;
 }
 
 body.emerald-night .text-gray-500,
 body.emerald-night .text-gray-400 {
-    color: #9ca3af !important;
+    color: var(--color-text-muted) !important;
 }
 
 body.emerald-night .page-header p {
-    color: #9ca3af !important;
+    color: var(--color-text-muted) !important;
 }
 
 body.emerald-night .modal-heading {
-    color: #f9fafb !important;
+    color: var(--color-text-primary) !important;
 }
 
 body.emerald-night .modal-subtext {
-    color: #9ca3af !important;
+    color: var(--color-text-muted) !important;
 }
 
 body.emerald-night .modal-btn-cancel {
-    background-color: #0F2D21 !important;
-    color: #f3f4f6 !important;
-    border-color: #374151 !important;
+    background-color: var(--color-sidebar-footer) !important;
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-text-secondary) !important;
 }
 
 body.emerald-night .modal-btn-cancel:hover {
-    background-color: #133D2F !important;
-    border-color: #4b5563 !important;
+    background-color: var(--color-sidebar-bg) !important;
+    border-color: var(--color-text-muted) !important;
 }
 
 /* Specific background colors override (e.g. Tailwind utility classes) */
 body.emerald-night .bg-gray-50 {
-    background-color: #0A1F16 !important;
+    background-color: var(--color-page-bg) !important;
 }
 
 body.emerald-night .bg-gray-100,
 body.emerald-night .bg-gray-200,
 body.emerald-night .bg-gray-300 {
-    background-color: #0d281c !important;
+    background-color: var(--color-sidebar-footer) !important;
 }
 
 /* Alert boxes / Status containers */
@@ -173,12 +172,12 @@ body.emerald-night .text-red-700 {
 }
 
 body.emerald-night .text-red-600 {
-    color: #f87171 !important;
+    color: var(--color-danger) !important;
 }
 
 body.emerald-night .bg-green-50 {
-    background-color: rgba(34, 197, 94, 0.1) !important;
-    border-color: rgba(34, 197, 94, 0.2) !important;
+    background-color: rgba(16, 185, 129, 0.1) !important;
+    border-color: rgba(16, 185, 129, 0.2) !important;
 }
 
 body.emerald-night .text-green-800,
@@ -187,7 +186,7 @@ body.emerald-night .text-green-700 {
 }
 
 body.emerald-night .text-green-600 {
-    color: #4ade80 !important;
+    color: var(--color-accent) !important;
 }
 
 body.emerald-night .bg-amber-50 {
@@ -205,7 +204,6 @@ body.emerald-night .text-amber-600 {
 }
 
 /* Dashboard Top Cards overrides */
-/* These had specific inline hex colors that can be harsh in dark mode - let's dim them slightly by targeting the elements inside */
 body.emerald-night .container-fluid>div>div>div>div[style*="background: #e0f7f4"],
 body.emerald-night .container-fluid>div>div>div>div[style*="background: #e7f1ff"],
 body.emerald-night .container-fluid>div>div>div>div[style*="background: #e8f5e9"],
@@ -216,16 +214,16 @@ body.emerald-night .container-fluid>div>div>div>div[style*="background: #fff3cd"
 body.emerald-night .container-fluid>div>div>div>div[style*="background: #e8f7f9"],
 body.emerald-night .container-fluid>div>div>div>div[style*="background: #fff9f0"],
 body.emerald-night .container-fluid>div>div>div>div[style*="background: #fde8f5"] {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: var(--color-page-bg) !important;
 }
 
-/* Text overrides in specific dashboard cards where they were specifically set to #111827 or #6b7280 via inline styles */
+/* Text overrides in specific dashboard cards */
 body.emerald-night .container-fluid>div>div p[style*="color: #6b7280"] {
-    color: #9ca3af !important;
+    color: var(--color-text-muted) !important;
 }
 
 body.emerald-night .container-fluid>div>div h3[style*="color: #111827"] {
-    color: #f9fafb !important;
+    color: var(--color-text-primary) !important;
 }
 
 /* Borders */
@@ -234,59 +232,85 @@ body.emerald-night .border-gray-300,
 body.emerald-night .border,
 body.emerald-night .border-b,
 body.emerald-night .border-t {
-    border-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: var(--color-border) !important;
 }
 
 /* Forms & Inputs */
 body.emerald-night input,
 body.emerald-night select,
 body.emerald-night textarea {
-    background-color: #0A1F16 !important;
-    color: #e5e7eb !important;
-    border-color: #1e4d39 !important;
+    background-color: var(--color-page-bg) !important;
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-border) !important;
 }
 
 body.emerald-night input:focus,
 body.emerald-night select:focus,
 body.emerald-night textarea:focus {
-    border-color: #34d399 !important;
+    border-color: var(--color-accent) !important;
     outline: none;
-    box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.2) !important;
+    box-shadow: 0 0 0 2px var(--color-focus-ring) !important;
+}
+
+body.emerald-night .btn-outline-dark {
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-text-secondary) !important;
+}
+
+body.emerald-night .btn-outline-dark:hover {
+    background-color: var(--color-sidebar-hover-bg) !important;
+    color: var(--color-text-primary) !important;
+}
+
+/* Global Search Input Override */
+body.emerald-night form[action*="search"] {
+    background: var(--color-page-bg) !important;
+    border-color: var(--color-border) !important;
+}
+body.emerald-night form[action*="search"] input {
+    color: var(--color-text-primary) !important;
+    background: transparent !important;
+}
+body.emerald-night form[action*="search"] input::placeholder {
+    color: var(--color-text-muted) !important;
+}
+body.emerald-night form[action*="search"] i {
+    color: var(--color-text-muted) !important;
 }
 
 /* File Upload Specific (imports page) */
 body.emerald-night .border-dashed {
-    border-color: #1e4d39 !important;
+    border-color: var(--color-border) !important;
 }
 
 body.emerald-night .border-dashed:hover {
-    border-color: #34d399 !important;
-    background-color: rgba(255, 255, 255, 0.02) !important;
+    border-color: var(--color-accent) !important;
+    background-color: var(--color-sidebar-hover-bg) !important;
 }
 
 /* Tables */
 body.emerald-night table {
-    color: #e5e7eb !important;
+    color: var(--color-text-primary) !important;
 }
 
 body.emerald-night thead,
 body.emerald-night th {
-    background-color: #081B13 !important;
-    color: #d1d5db !important;
-    border-color: rgba(255, 255, 255, 0.05) !important;
+    background-color: var(--color-sidebar-footer) !important;
+    color: var(--color-text-secondary) !important;
+    border-color: var(--color-border) !important;
 }
 
 body.emerald-night tbody tr {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-bottom: 1px solid var(--color-border) !important;
 }
 
 body.emerald-night tbody tr:hover,
 body.emerald-night tbody tr:hover td {
-    background-color: rgba(45, 90, 76, 0.3) !important;
+    background-color: var(--color-sidebar-hover-bg) !important;
 }
 
 body.emerald-night td {
-    border-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: var(--color-border) !important;
 }
 
 /* Utilities */

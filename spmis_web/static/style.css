@@ -1,0 +1,58 @@
+*{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#222;background:#eef1f6}
+a{color:#2E75B6;text-decoration:none} a:hover{text-decoration:underline}
+.topbar{background:#1F3864;color:#fff;padding:10px 18px;display:flex;justify-content:space-between;align-items:center}
+.brand{font-weight:bold;font-size:18px} .brand span{font-weight:normal;font-size:12px;color:#cdd7ea;margin-left:8px}
+.who{font-size:13px} .who a{color:#cdd7ea}
+.side{position:fixed;top:46px;left:0;width:180px;bottom:0;background:#27406e;padding-top:10px}
+.side a{display:block;color:#dde5f3;padding:10px 18px;font-size:14px} .side a:hover{background:#1F3864;text-decoration:none}
+.content{margin-left:180px;padding:22px 30px}
+h1{color:#1F3864;font-size:22px;margin:0 0 14px} h2{color:#27406e;font-size:16px;margin:0 0 10px}
+.cards{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.card{background:#fff;border-radius:8px;padding:16px 22px;min-width:150px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.card .num{font-size:30px;font-weight:bold;color:#2E75B6} .card.warn .num{color:#c0392b}
+.panel{background:#fff;border-radius:8px;padding:16px 20px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+table{border-collapse:collapse;width:100%;background:#fff;margin:6px 0;font-size:14px}
+th,td{border:1px solid #d7dde8;padding:7px 10px;text-align:left}
+th{background:#2E75B6;color:#fff} tr:nth-child(even) td{background:#f6f8fc}
+tr.total td{background:#e2efda;font-weight:bold}
+.btn,button{background:#2E75B6;color:#fff;border:0;border-radius:5px;padding:8px 16px;font-size:14px;cursor:pointer}
+.btn:hover,button:hover{background:#1F3864;text-decoration:none} button.ghost{background:#7f8c9b} button.big-btn{font-size:16px;padding:11px 26px;margin-top:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end;margin:8px 0}
+.grid label,.row label{display:flex;flex-direction:column;font-size:13px;color:#444;gap:3px}
+input,select{padding:7px;border:1px solid #b9c4d6;border-radius:5px;font-size:14px}
+.row{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:8px 0}
+.adder{margin:10px 0} .adder summary{cursor:pointer;color:#2E75B6;font-weight:bold;margin-bottom:6px}
+.flash{background:#fff3cd;border:1px solid #ffe69c;padding:8px 12px;border-radius:6px;margin-bottom:12px}
+.meta{color:#666;font-size:13px;margin-top:-6px} .note{color:#666;font-size:12px;font-style:italic}
+.result .kv td{width:25%} .result .big{font-size:18px;font-weight:bold;color:#1F3864}
+.cap{padding:10px 14px;border-radius:6px;margin:8px 0;font-weight:bold}
+.cap.good,.good{background:#e2efda;color:#274e13} .cap.bad,.bad{background:#fbe3e3;color:#922}
+.warncell{background:#fff3cd}
+.flow li{margin:6px 0}
+.loginwrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#1F3864}
+.loginbox{background:#fff;padding:34px 38px;border-radius:10px;width:330px;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+.loginbox h1{text-align:center;margin:0} .loginbox .sub{text-align:center;color:#666;font-size:12px;margin:2px 0 16px}
+.loginbox label{display:block;font-size:13px;margin-top:10px;color:#444} .loginbox input{width:100%}
+.loginbox button{width:100%;margin-top:18px;padding:10px} .loginbox .hint{font-size:11px;color:#999;text-align:center;margin-top:12px}
+
+/* ---- Settings module ---- */
+.navset{margin-top:10px;border-top:1px solid #3a558a}
+.adminbadge{background:#c0392b;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;vertical-align:middle}
+.setcard{display:block;color:#222;min-width:210px;max-width:240px}
+.setcard:hover{text-decoration:none;outline:2px solid #2E75B6}
+.setcard .ic{font-size:24px;color:#2E75B6} .setcard b{display:block;margin:4px 0;color:#1F3864}
+.setcard div:last-child{font-size:12px;color:#666}
+table.rubric td{vertical-align:top} table.rubric .sc{text-align:center;font-weight:bold;background:#eaf0fa;width:60px}
+table.rubric textarea{width:100%;border:1px solid #b9c4d6;border-radius:5px;font-family:Arial;font-size:13px;padding:5px}
+.rubricbox{background:#f6f8fc;border:1px solid #d7dde8;border-radius:8px;padding:10px 12px;margin-top:10px}
+.rubric-title{font-weight:bold;color:#27406e;font-size:13px;margin-bottom:6px}
+table.rubric.mini td.rc{cursor:pointer;font-size:12px} table.rubric.mini td.rc:hover{background:#eaf0fa}
+table.rubric.mini td.rc.picked{background:#e2efda;outline:2px solid #2E75B6}
+
+/* ---- user management ---- */
+form.inline{display:inline;margin:0}
+form.inline button{padding:5px 9px;font-size:12px;margin-left:2px}
+button.danger{background:#c0392b} button.danger:hover{background:#922}
+.pill{padding:2px 9px;border-radius:10px;font-size:12px;font-weight:bold}
+.metag{background:#2E75B6;color:#fff;font-size:10px;padding:1px 6px;border-radius:8px}
+td form.inline input[name="fullname"]{margin:0}

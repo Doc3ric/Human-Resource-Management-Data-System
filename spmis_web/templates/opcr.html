@@ -1,0 +1,76 @@
+{% extends "base.html" %}{% block body %}
+<h1>OPCR / DPCR Roll-up &amp; Finalize</h1>
+<form method="get" class="row">
+  <select name="parent_id"><option value="">Office...</option>{% for o in parents %}<option value="{{o.id}}" {% if o.id==sel_parent %}selected{% endif %}>{{o.name}}</option>{% endfor %}</select>
+  <select name="period_id"><option value="">Period...</option>{% for p in periods %}<option value="{{p.id}}" {% if p.id==sel_period %}selected{% endif %}>{{p.name}}</option>{% endfor %}</select>
+  <button>Show</button>
+</form>
+
+{% if sel_parent and sel_period %}
+<div class="panel">
+<h2>OPCR &mdash; Office Final Rating</h2>
+{% if opcr_row %}
+<table class="kv">
+  <tr><td>Final Rating</td><td class="big">{{ opcr_row.office_fnr }}</td>
+      <td>Adjectival</td><td class="big">{{ opcr_row.office_adjectival }}</td></tr>
+  <tr><td>Rated by</td><td colspan="3">{{ opcr_row.final_rating_by }} &middot; finalized {{ opcr_row.finalized_at }}</td></tr>
+</table>
+{% else %}
+<p>Not yet finalized. Live division average so far: <b>{{ avg if avg is not none else '-' }}</b> {{ avg_adj }}</p>
+{% endif %}
+{% if session.role != 'viewer' %}
+<form method="post" action="{{ url_for('opcr_finalize') }}" class="row">
+  <input type="hidden" name="office_id" value="{{ sel_parent }}">
+  <input type="hidden" name="period_id" value="{{ sel_period }}">
+  <label>Office Final Rating (LCE-approved)<input name="office_fnr" type="number" step="0.01" min="1" max="5" required value="{{ opcr_row.office_fnr if opcr_row else '' }}" style="width:110px"></label>
+  <label>Rated by<input name="final_rating_by" value="{{ opcr_row.final_rating_by if opcr_row else (session.fullname or '') }}" style="width:220px"></label>
+  <button>{{ 'Re-finalize OPCR' if opcr_row else 'Finalize OPCR' }}</button>
+</form>
+{% endif %}
+</div>
+
+<div class="panel">
+<h2>DPCR &mdash; Division Ratings</h2>
+{% if rows %}
+<table>
+<tr><th>Division</th><th>Live Average (IPCRs)</th><th>Finalized DPCR</th><th>Adjectival</th><th>Rated by</th>{% if session.role != 'viewer' %}<th></th>{% endif %}</tr>
+{% for r in rows %}
+<tr>
+  <td>{{r.name}}</td>
+  <td>{{ r.live_fnr if r.live_fnr is not none else '-' }}</td>
+  <td{% if r.dpcr and opcr_row and r.dpcr.div_fnr > opcr_row.office_fnr %} class="bad"{% endif %}>{{ r.dpcr.div_fnr if r.dpcr else '-' }}</td>
+  <td>{{ r.dpcr.div_adjectival if r.dpcr else '-' }}</td>
+  <td>{{ r.dpcr.final_rating_by if r.dpcr else '-' }}</td>
+  {% if session.role != 'viewer' %}
+  <td>
+    {% if opcr_row %}
+    <details><summary>{{ 'Re-finalize' if r.dpcr else 'Finalize' }}</summary>
+    <form method="post" action="{{ url_for('opcr_finalize_dpcr') }}" class="row">
+      <input type="hidden" name="office_id" value="{{ r.id }}">
+      <input type="hidden" name="period_id" value="{{ sel_period }}">
+      <input type="hidden" name="parent_id" value="{{ sel_parent }}">
+      <input name="div_fnr" type="number" step="0.01" min="1" max="5" required
+             value="{{ r.dpcr.div_fnr if r.dpcr else (r.live_fnr if r.live_fnr is not none else '') }}" style="width:90px">
+      <input name="final_rating_by" placeholder="Rated by"
+             value="{{ r.dpcr.final_rating_by if r.dpcr else (session.fullname or '') }}" style="width:160px">
+      <button class="ghost">Save</button>
+    </form></details>
+    {% else %}<span class="note">Finalize OPCR first</span>{% endif %}
+  </td>
+  {% endif %}
+</tr>
+{% endfor %}
+<tr class="total"><td>Office Average (live)</td><td>{{ avg if avg is not none else '-' }}</td><td colspan="{{ '4' if session.role != 'viewer' else '3' }}">{{ avg_adj }}</td></tr>
+</table>
+{% if opcr_row %}
+  {% if over_cap %}
+  <div class="cap bad">Teamwork cap: EXCEEDED &mdash; one or more division ratings (live average and/or a finalized DPCR, red above) are higher than the finalized OPCR rating ({{opcr_row.office_fnr}}). Calibrate division/individual ratings down (manual 6.2.17/6.2.19).</div>
+  {% else %}
+  <div class="cap good">Teamwork cap: OK &mdash; division ratings are within the finalized OPCR rating ({{opcr_row.office_fnr}}).</div>
+  {% endif %}
+{% endif %}
+<p class="note">Rule: no division/individual rating may exceed the immediate higher level's finalized rating (OPCR caps DPCR, DPCR caps IPCR); a red "Finalized DPCR" cell above means that division still needs to be recalibrated down before it can stand.</p>
+{% elif sel_parent %}<p>No IPCR data for that office/period yet.</p>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<x-dashboard-app>
 <style>
     .premium-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 24px; }
     .form-label { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; margin-bottom: 6px; display: block; }
@@ -210,4 +208,4 @@
         document.getElementById('dwpTotal').value = vl + sl;
     }
 </script>
-@endsection
+</x-dashboard-app>

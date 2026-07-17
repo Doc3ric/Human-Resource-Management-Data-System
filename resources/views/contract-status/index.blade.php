@@ -469,7 +469,7 @@ function renderDrilldown(data) {
         const badgeClass = { active:'c-active', lapsed:'c-lapsed', separated:'c-separated' }[data.state] || '';
         const stateBadge = `<span class="dd-badge ${badgeClass}">${STATE_LABEL[data.state]}</span>`;
 
-        return `<tr>
+        return `<tr data-name="${name.toUpperCase()}">
             <td>
                 <div style="font-weight:700;">${name}</div>
                 <div style="font-size:.74rem;color:#64748b;">${r.middle_name||'—'}</div>
@@ -485,9 +485,12 @@ function renderDrilldown(data) {
     const lastHeader   = data.state === 'separated' ? '<th>Separation</th>' : '<th>State</th>';
 
     document.getElementById('ddBody').innerHTML = `
-        <div style="font-size:.8rem;color:#64748b;margin-bottom:12px;">
-            <strong>${data.count}</strong> employee(s) &nbsp;·&nbsp;
-            ${TYPE_LABEL[data.type]} / ${STATE_LABEL[data.state]}
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+            <div style="font-size:.8rem;color:#64748b;">
+                <strong>${data.count}</strong> employee(s) &nbsp;·&nbsp;
+                ${TYPE_LABEL[data.type]} / ${STATE_LABEL[data.state]}
+            </div>
+            <input type="text" id="ddSearch" placeholder="Search name..." style="padding:5px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:.78rem;width:180px;">
         </div>
         <table class="dd-table">
             <thead>
@@ -501,6 +504,16 @@ function renderDrilldown(data) {
             </thead>
             <tbody>${rows}</tbody>
         </table>`;
+
+    const ddSearch = document.getElementById('ddSearch');
+    if (ddSearch) {
+        ddSearch.addEventListener('input', function () {
+            const term = this.value.trim().toUpperCase();
+            document.querySelectorAll('#ddBody tbody tr').forEach(tr => {
+                tr.style.display = (tr.dataset.name || '').includes(term) ? '' : 'none';
+            });
+        });
+    }
 }
 
 function closeDd() { document.getElementById('ddModal').classList.remove('show'); }

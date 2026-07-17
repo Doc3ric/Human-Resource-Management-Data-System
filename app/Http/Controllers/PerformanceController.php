@@ -152,6 +152,7 @@ class PerformanceController extends Controller
                 'position_title',
                 'employment_status',
                 'office_department',
+                'detailed_unit',
                 'is_renewed'
             ]);
 
@@ -165,6 +166,7 @@ class PerformanceController extends Controller
                 'name_extension' => $emp->name_extension,
                 'position_title' => $emp->position_title,
                 'employment_status' => $emp->employment_status,
+                'detailed_unit' => $emp->detailed_unit,
                 // Module 1A.4/1A.5 — surfaced so the tracker can show the
                 // same renewal-status signal the shared widget shows
                 // elsewhere, without assuming renewal from IPCR submission.
@@ -210,6 +212,105 @@ class PerformanceController extends Controller
         $this->emitIpcrTargetSignal((int) $request->plantilla_record_id, (bool) $request->target_submitted);
 
         return response()->json(['success' => true, 'data' => $ipcr]);
+    }
+
+    /**
+     * Delete an individual rating / target submission.
+     */
+    public function deleteRating(Request $request)
+    {
+        $request->validate([
+            'plantilla_record_id' => 'required|exists:plantilla_records,id',
+            'period_type' => 'required|string|in:jan-jun,jul-dec,custom',
+            'custom_period' => 'nullable|string',
+            'year' => 'required|integer',
+        ]);
+
+        IpcrRating::where([
+            'plantilla_record_id' => $request->plantilla_record_id,
+            'year' => $request->year,
+            'period_type' => $request->period_type,
+            'custom_period' => $request->period_type === 'custom' ? $request->custom_period : null,
+        ])->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Get detailed units for a specific office.
+     */
+    public function getDetailedUnits(Request $request)
+    {
+        $office = $request->office;
+        
+        $dbUnits = \App\Models\DetailedUnit::where('mother_office', $office)->pluck('name')->toArray();
+        
+        $plantillaUnits = \App\Models\PlantillaRecord::where('office_department', $office)
+            ->whereNotNull('detailed_unit')
+            ->where('detailed_unit', '!=', '')
+            ->distinct()
+            ->pluck('detailed_unit')
+            ->toArray();
+            
+        $allUnits = array_values(array_unique(array_merge($dbUnits, $plantillaUnits)));
+        sort($allUnits);
+        
+        return response()->json($allUnits);
+    }
+
+    /**
+     * Add a new detailed unit to a mother office.
+     */
+    public function addDetailedUnit(Request $request)
+    {
+        $request->validate([
+            'mother_office' => 'required|string',
+            'name' => 'required|string'
+        ]);
+        
+        $newName = trim($request->name);
+        $motherOffice = $request->mother_office;
+        
+        // 1. Get all existing detailed units for this office
+        $dbUnits = \App\Models\DetailedUnit::where('mother_office', $motherOffice)->pluck('name')->toArray();
+        $plantillaUnits = \App\Models\PlantillaRecord::where('office_department', $motherOffice)
+            ->whereNotNull('detailed_unit')
+            ->where('detailed_unit', '!=', '')
+            ->distinct()
+            ->pluck('detailed_unit')
+            ->toArray();
+            
+        $allExisting = array_unique(array_merge($dbUnits, $plantillaUnits));
+        
+        $newMetaphone = metaphone($newName);
+        
+        foreach ($allExisting as $existing) {
+            $existingTrimmed = trim($existing);
+            if (empty($existingTrimmed)) continue;
+            
+            // Case-insensitive exact match
+            if (strtolower($existingTrimmed) === strtolower($newName)) {
+                 return response()->json(['success' => false, 'message' => "A detailed unit with the same name already exists: '{$existingTrimmed}'"]);
+            }
+            
+            // Soundex/Metaphone check (same sound)
+            if (metaphone($existingTrimmed) === $newMetaphone) {
+                return response()->json(['success' => false, 'message' => "A detailed unit that sounds similar already exists: '{$existingTrimmed}'"]);
+            }
+            
+            // Text similarity
+            similar_text(strtolower($newName), strtolower($existingTrimmed), $perc);
+            if ($perc > 85) {
+                return response()->json(['success' => false, 'message' => "A detailed unit with a very similar name already exists: '{$existingTrimmed}'"]);
+            }
+        }
+            
+        \App\Models\DetailedUnit::create([
+            'mother_office' => $motherOffice,
+            'name' => $newName
+        ]);
+        
+        return response()->json(['success' => true]);
     }
 
     /**

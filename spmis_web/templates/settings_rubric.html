@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block body %}
+<p><a href="{{ url_for('settings') }}">&larr; Settings</a> &nbsp;|&nbsp; <a href="{{ url_for('settings_targets') }}">Targets Library</a></p>
+<h1>Rating Descriptions (Q / E / T)</h1>
+<form method="get" class="row">
+  <label>Scope
+  <select name="template_id" onchange="this.form.submit()">
+    <option value="">Generic default (applies to all targets)</option>
+    {% for t in templates %}<option value="{{t.id}}" {{'selected' if t.id==tid}}>[{{t.level}}] {{t.indicator_text}}</option>{% endfor %}
+  </select></label>
+</form>
+{% if sel %}<p class="note">Editing the rubric for: <b>{{sel.indicator_text}}</b> &mdash; {{sel.measure}}. Blank cells fall back to the generic default.</p>
+{% else %}<p class="note">Editing the <b>generic default</b> rubric used wherever a target has no specific description.</p>{% endif %}
+<form method="post" action="{{ url_for('settings_rubric', template_id=tid or '') }}">
+<table class="rubric"><tr><th style="width:60px">Score</th><th>Quality / Effectiveness (Q)</th><th>Efficiency (E)</th><th>Timeliness (T)</th></tr>
+{% for sc in [5,4,3,2,1] %}
+<tr><td class="sc">{{sc}}</td>
+  <td><textarea name="d_Q_{{sc}}" rows="2">{{ grid['Q'][sc] }}</textarea></td>
+  <td><textarea name="d_E_{{sc}}" rows="2">{{ grid['E'][sc] }}</textarea></td>
+  <td><textarea name="d_T_{{sc}}" rows="2">{{ grid['T'][sc] }}</textarea></td>
+</tr>{% endfor %}
+</table>
+<button>Save descriptions</button>
+</form>
+{% endblock %}

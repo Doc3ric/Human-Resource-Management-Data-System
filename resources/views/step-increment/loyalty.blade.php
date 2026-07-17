@@ -24,7 +24,7 @@
 
 /* Table */
 .si-table-wrap {
-    background:#fff;border:1px solid #e5e7eb;border-radius:14px;
+    background: var(--color-surface, #fff);border: 1px solid var(--color-border, #e5e7eb);border-radius:14px;
     overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.04);
 }
 .si-table { width:100%;border-collapse:separate;border-spacing:0; }
@@ -108,8 +108,8 @@
 @endphp
 
 <div class="si-table-wrap">
-    <div style="padding:14px 16px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-        <div style="font-size:13px;color:#475569;">
+    <div style="padding:14px 16px;background: var(--color-surface, #fff);border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <div style="font-size:13px;color: var(--color-text-secondary, #475569);">
             <i class="bi bi-award-fill" style="color:#b45309;"></i>
             Employees eligible for <strong>Loyalty Incentive</strong> — every <strong>10 years</strong> first, then every additional <strong>5 years</strong> thereafter.
         </div>
@@ -120,7 +120,7 @@
                     BG: {{ Str::limit($activeBgMeta['name'], 20) }}
                 </span>
             @else
-                <span style="display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;border:1px solid #e2e8f0;color:#64748b;padding:5px 12px;border-radius:8px;font-size:11px;font-weight:600;">
+                <span style="display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;border:1px solid #e2e8f0;color: var(--color-text-muted, #64748b);padding:5px 12px;border-radius:8px;font-size:11px;font-weight:600;">
                     <i class="bi bi-image-alt"></i> No background set
                 </span>
             @endif
@@ -252,8 +252,8 @@ function openDismissModal(recordId, employeeName) {
         html: `
             <div style="text-align:center; margin-top:10px;">
                 <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:12px; padding:16px 20px; margin-bottom:16px;">
-                    <div style="font-size:15px; font-weight:800; color:#1e293b; margin-bottom:4px;">${employeeName}</div>
-                    <div style="font-size:13px; color:#64748b;">will be removed from the Loyalty Incentive list.</div>
+                    <div style="font-size:15px; font-weight:800; color: var(--color-text-primary, #1e293b); margin-bottom:4px;">${employeeName}</div>
+                    <div style="font-size:13px; color: var(--color-text-muted, #64748b);">will be removed from the Loyalty Incentive list.</div>
                 </div>
                 <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:12px; font-size:13px; color:#9a3412; display:flex; gap:10px; align-items:flex-start; text-align:left;">
                     <i class="bi bi-info-circle-fill" style="flex-shrink:0; margin-top:2px;"></i>

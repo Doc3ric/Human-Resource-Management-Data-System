@@ -46,6 +46,32 @@ test('Module 5.4: the trailing window excludes applicants applied more than N mo
     expect($grouped->get('external', collect()))->toHaveCount(1);
 });
 
+test('Module 5.4: an explicit date range includes only applicants within it (from/to date picker replaces Window (months))', function () {
+    Applicant::factory()->create(['applied_at' => '2026-04-01', 'is_pgb_employee' => false]); // inside range
+    Applicant::factory()->create(['applied_at' => '2026-03-01', 'is_pgb_employee' => false]); // before range
+    Applicant::factory()->create(['applied_at' => '2026-07-01', 'is_pgb_employee' => false]); // after range
+
+    $grouped = $this->engine->applicantsInRange(
+        \Carbon\Carbon::parse('2026-03-15')->startOfDay(),
+        \Carbon\Carbon::parse('2026-06-15')->endOfDay()
+    );
+
+    expect($grouped->get('external', collect()))->toHaveCount(1);
+});
+
+test('Module 5.4: the exam routing index page accepts date_from/date_to and filters accordingly', function () {
+    Applicant::factory()->create(['applied_at' => '2026-04-01', 'is_pgb_employee' => false, 'last_name' => 'INRANGE']);
+    Applicant::factory()->create(['applied_at' => '2026-01-01', 'is_pgb_employee' => false, 'last_name' => 'OUTOFRANGE']);
+
+    $response = $this->actingAs($this->admin)->get(route('recruitment.exam-routing.index', [
+        'date_from' => '2026-03-15', 'date_to' => '2026-06-15',
+    ]));
+
+    $response->assertOk();
+    $response->assertSee('INRANGE');
+    $response->assertDontSee('OUTOFRANGE');
+});
+
 test('Module 5.4: non-exempt applicants cluster into tables of max size', function () {
     Applicant::factory()->count(13)->create(['is_pgb_employee' => false, 'is_exam_exempt' => false]);
 
@@ -62,7 +88,8 @@ test('Module 5.4: generating persists exam_schedules with table/date/time/room, 
 
     $this->actingAs($this->admin)->post(route('recruitment.exam-routing.generate'), [
         'classification' => 'external',
-        'window_months' => 9,
+        'date_from' => now()->subMonths(9)->toDateString(),
+        'date_to' => now()->toDateString(),
         'table_size' => 6,
         'exam_date' => now()->addDays(5)->toDateString(),
         'exam_time' => '09:00',
@@ -75,7 +102,8 @@ test('Module 5.4: generating persists exam_schedules with table/date/time/room, 
     // Re-generate should update, not duplicate.
     $this->actingAs($this->admin)->post(route('recruitment.exam-routing.generate'), [
         'classification' => 'external',
-        'window_months' => 9,
+        'date_from' => now()->subMonths(9)->toDateString(),
+        'date_to' => now()->toDateString(),
         'table_size' => 6,
         'exam_date' => now()->addDays(6)->toDateString(),
         'exam_time' => '10:00',

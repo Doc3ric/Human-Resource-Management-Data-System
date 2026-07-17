@@ -2,8 +2,16 @@
     {{-- ── Title header rows ── --}}
     <thead>
         <tr>
-            <th colspan="9" style="text-align:center; font-weight:bold; font-size:14px;">PLANTILLA OF PERSONNEL CY
-                {{ now()->year + 1 }}</th>
+            <th colspan="9" style="text-align:right; font-weight:bold; font-size:11px;">Annex F</th>
+        </tr>
+        <tr>
+            <th colspan="9" style="text-align:left; font-weight:bold; font-size:11px;">LBP Form No. 3</th>
+        </tr>
+        <tr>
+            <th colspan="9" style="text-align:center; font-weight:bold; font-size:14px;">PLANTILLA OF LGU PERSONNEL</th>
+        </tr>
+        <tr>
+            <th colspan="9" style="text-align:center; font-weight:bold; font-size:12px;">BUDGET YEAR {{ now()->year + 1 }}</th>
         </tr>
         <tr>
             <th colspan="9" style="text-align:center; font-weight:bold; font-size:13px;">PROVINCE OF BUKIDNON</th>
@@ -15,31 +23,31 @@
         {{-- Column headings --}}
         <tr>
             <th
-                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle; background-color:#e2e8f0;">
+                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle;">
                 Item No. (Old)</th>
             <th
-                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle; background-color:#e2e8f0;">
+                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle;">
                 Item No. (New)</th>
             <th
-                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle; background-color:#e2e8f0;">
+                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle;">
                 Position Title</th>
             <th
-                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle; background-color:#e2e8f0;">
+                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle;">
                 Name of Incumbent</th>
             <th
-                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle; background-color:#e2e8f0;">
+                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle;">
                 Current SG/Step ({{ now()->year }})</th>
             <th
-                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle; background-color:#e2e8f0;">
+                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle;">
                 Current Annual Rate ({{ now()->year }})</th>
             <th
-                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle; background-color:#e2e8f0;">
+                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle;">
                 Proposed SG/Step ({{ now()->year + 1 }})</th>
             <th
-                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle; background-color:#e2e8f0;">
+                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle;">
                 Proposed Annual Rate ({{ now()->year + 1 }})</th>
             <th
-                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle; background-color:#e2e8f0;">
+                style="font-weight:bold; border:1px solid #000; text-align:center; vertical-align:middle;">
                 Increase/Decrease</th>
         </tr>
         <tr>
@@ -64,7 +72,7 @@
             @endphp
             {{-- Office header row --}}
             <tr>
-                <td colspan="9" style="font-weight:bold; background-color:#d1d5db; border:1px solid #000;">
+                <td colspan="9" style="font-weight:bold; border:1px solid #000;">
                     DEPARTMENT / OFFICE: {{ strtoupper($office) }}
                 </td>
             </tr>
@@ -74,18 +82,22 @@
                     $curSg = $rec->salary_grade;
                     $curStep = $rec->step ?: 1;
 
-                    if ($rec->is_vacant) {
-                        $curMonthly = \App\Models\SalaryGrade::getRate($curSg, 1);
-                        $curStep = 1;
+                    if ($rec->authorized_annual_salary > 0) {
+                        $curAnnual = (float)$rec->authorized_annual_salary;
                     } else {
-                        $curMonthly = \App\Models\SalaryGrade::getRate($curSg, $curStep);
+                        if ($rec->is_vacant) {
+                            $curMonthly = \App\Models\SalaryGrade::getRate($curSg, 1);
+                            $curStep = 1;
+                        } else {
+                            $curMonthly = \App\Models\SalaryGrade::getRate($curSg, $curStep);
+                        }
+                        $curAnnual = $curMonthly * 12;
                     }
-                    $curAnnual = $curMonthly * 12;
 
                     // Proposed rates & Prorated increase
-                    $propStep = $curStep;
-                    $propAnnual = $curAnnual;
-                    $increase = 0;
+                    $propStep = $rec->step_proposed ?: $curStep;
+                    $propAnnual = $rec->salary_proposed > 0 ? (float)$rec->salary_proposed : $curAnnual;
+                    $increase = (float)$rec->increase_decrease;
                     $increaseNote = '';
                     
                     $due = $rec->next_step_due_date;
@@ -145,16 +157,16 @@
             {{-- Office subtotal --}}
             <tr>
                 <td colspan="4"
-                    style="border:1px solid #000; text-align:center; font-weight:bold; background-color:#f1f5f9;">
+                    style="border:1px solid #000; text-align:center; font-weight:bold; ">
                     TOTAL — {{ strtoupper($office) }}
                 </td>
                 <td style="border:1px solid #000;"></td>
-                <td style="border:1px solid #000; text-align:right; font-weight:bold; background-color:#f1f5f9;">
+                <td style="border:1px solid #000; text-align:right; font-weight:bold; ">
                     {{ number_format($officeTotalCurrent, 2) }}</td>
                 <td style="border:1px solid #000;"></td>
-                <td style="border:1px solid #000; text-align:right; font-weight:bold; background-color:#f1f5f9;">
+                <td style="border:1px solid #000; text-align:right; font-weight:bold; ">
                     {{ number_format($officeTotalProposed, 2) }}</td>
-                <td style="border:1px solid #000; text-align:right; font-weight:bold; background-color:#f1f5f9;">
+                <td style="border:1px solid #000; text-align:right; font-weight:bold; ">
                     {{ $officeTotalIncrease > 0 ? number_format($officeTotalIncrease, 2) : '-' }}</td>
             </tr>
             <tr>

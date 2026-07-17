@@ -93,13 +93,16 @@
                 <select name="office_department" id="f-office_department" class="tom-select-tags">
                     <option value="">— Select or Type Office —</option>
                     @php $oldCharge = old('office_department', $jo->office_department ?? ''); @endphp
-                    @foreach($chargesList as $c)
-                        <option value="{{ $c }}" {{ $oldCharge === $c ? 'selected' : '' }}>{{ $c }}</option>
+                    
+                    @php $uniqueOffices = ($globalOffices ?? collect([]))->pluck('name')->filter()->unique(); @endphp
+                    @foreach($uniqueOffices as $o)
+                        <option value="{{ $o }}" {{ $oldCharge === $o ? 'selected' : '' }}>{{ $o }}</option>
                     @endforeach
-                    @if($oldCharge && !$chargesList->contains($oldCharge))
+                
+                    @if($oldCharge && !$uniqueOffices->contains($oldCharge))
                         <option value="{{ $oldCharge }}" selected>{{ $oldCharge }}</option>
                     @endif
-                </select>
+                
                 @error('office_department')<span class="field-error">{{ $message }}</span>@enderror
             </div>
             <div class="jo-form-group">
@@ -216,15 +219,15 @@
                 @error('level')<span class="field-error">{{ $message }}</span>@enderror
             </div>
             <div class="jo-form-group">
-                <label>DETAILED UNIT</label>
-                <select name="detailed_unit" id="f-office" class="tom-select-tags">
-                    <option value="">— Select or Type Unit —</option>
-                    @php $oldOff = old('detailed_unit', $jo->detailed_unit ?? ''); @endphp
-                    @foreach($offices as $o)
-                        <option value="{{ $o }}" {{ $oldOff === $o ? 'selected' : '' }}>{{ $o }}</option>
+                <label>Detailed Unit</label>
+                @php $oldSub = old('detailed_unit', $jo->detailed_unit ?? ''); $uniqueSubs = ($globalOffices ?? collect([]))->pluck('sub_office')->filter()->unique(); @endphp
+                <select name="detailed_unit" id="f-detailed-unit" class="tom-select-tags" data-placeholder="Select or type detailed unit...">
+                    <option value=""></option>
+                    @foreach($uniqueSubs as $sub)
+                        <option value="{{ $sub }}" {{ $oldSub === $sub ? 'selected' : '' }}>{{ $sub }}</option>
                     @endforeach
-                    @if($oldOff && !$offices->contains($oldOff))
-                        <option value="{{ $oldOff }}" selected>{{ $oldOff }}</option>
+                    @if($oldSub && !$uniqueSubs->contains($oldSub))
+                        <option value="{{ $oldSub }}" selected>{{ $oldSub }}</option>
                     @endif
                 </select>
                 @error('detailed_unit')<span class="field-error">{{ $message }}</span>@enderror

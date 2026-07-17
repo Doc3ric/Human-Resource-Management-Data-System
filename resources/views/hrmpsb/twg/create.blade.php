@@ -97,6 +97,10 @@
                 <div class="card-body">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
+                            <label class="form-label">Search Applicant Name</label>
+                            <input type="text" class="form-control" id="applicant_search" placeholder="Last or first name...">
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label">Office where vacancy exists</label>
                             <select class="form-select" id="office_select">
                                 <option value="">-- Select Office --</option>
@@ -105,22 +109,22 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label">Position</label>
                             <select class="form-select" id="position_select">
                                 <option value="">-- Select Position --</option>
-                                @foreach($positions as $position)
-                                    <option value="{{ $position }}">{{ $position }}</option>
+                                @foreach($positions as $posKey => $posLabel)
+                                    <option value="{{ $posKey }}">{{ $posLabel }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                             <label class="form-label">Applicant Name</label>
                             <select name="applicant_id" class="form-select" id="applicant_select" required>
                                 <option value="">-- Select Applicant --</option>
                                 @foreach($applicants as $app)
-                                    <option value="{{ $app->id }}" data-office="{{ $app->office }}" data-position="{{ $app->position_applied }}" {{ ($applicant && $applicant->id == $app->id) ? 'selected' : '' }}>
-                                        {{ $app->last_name }}, {{ $app->first_name }}
+                                    <option value="{{ $app->id }}" data-office="{{ $app->office }}" data-position="{{ $app->position_key }}" data-name="{{ strtoupper($app->last_name . ', ' . $app->first_name) }}" {{ ($applicant && $applicant->id == $app->id) ? 'selected' : '' }}>
+                                        {{ $app->last_name }}, {{ $app->first_name }} @if($app->item_no) ({{ $app->item_no }}) @endif
                                     </option>
                                 @endforeach
                             </select>
@@ -310,6 +314,7 @@
             const officeSelect    = document.getElementById('office_select');
             const positionSelect  = document.getElementById('position_select');
             const applicantSelect = document.getElementById('applicant_select');
+            const applicantSearch = document.getElementById('applicant_search');
 
             const allApplicantsHtml = applicantSelect.innerHTML;
             const allPositionsHtml  = positionSelect.innerHTML;
@@ -343,18 +348,21 @@
             function filterApplicants() {
                 const office   = officeSelect.value;
                 const position = positionSelect.value;
+                const search   = (applicantSearch.value || '').trim().toUpperCase();
                 applicantSelect.innerHTML = allApplicantsHtml;
 
                 applicantSelect.querySelectorAll('option').forEach(opt => {
                     if (opt.value === '') return;
                     const matchOffice = office   === '' || opt.getAttribute('data-office')    === office;
                     const matchPos    = position === '' || opt.getAttribute('data-position')  === position;
-                    if (!(matchOffice && matchPos)) opt.remove();
+                    const matchSearch = search   === '' || (opt.getAttribute('data-name') || '').includes(search);
+                    if (!(matchOffice && matchPos && matchSearch)) opt.remove();
                 });
             }
 
             officeSelect.addEventListener('change', filterPositions);
             positionSelect.addEventListener('change', filterApplicants);
+            applicantSearch.addEventListener('input', filterApplicants);
         });
 
         function validateCopyForm() {

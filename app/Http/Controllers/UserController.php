@@ -32,7 +32,8 @@ class UserController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|max:255|unique:users,email',
             'password' => PasswordPolicy::rules(),
-            'role'     => 'required|exists:roles,name',
+            'roles'      => 'required|array|min:1',
+            'roles.*'    => 'exists:roles,name',
         ]);
 
         $isApproved = true;
@@ -45,7 +46,7 @@ class UserController extends Controller
             'name'                  => $data['name'],
             'email'                 => $data['email'],
             'password'              => Hash::make($data['password']),
-            'role'                  => $data['role'],
+            'role'                  => $data['roles'][0],
             'is_approved'           => $isApproved,
             // Admin-created accounts always get a forced change on first
             // login (temp password), regardless of complexity gate status.
@@ -53,7 +54,7 @@ class UserController extends Controller
             'meets_complexity_gate' => PasswordPolicy::meetsGate($data['password']),
         ]);
 
-        $newUser->assignRole($data['role']);
+        $newUser->assignRole($data['roles']);
 
         if ($isApproved) {
             ActivityLog::create([
@@ -90,12 +91,13 @@ class UserController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => $passwordRules,
-            'role'     => 'required|exists:roles,name',
+            'roles'      => 'required|array|min:1',
+            'roles.*'    => 'exists:roles,name',
         ]);
 
         $user->name  = $data['name'];
         $user->email = $data['email'];
-        $user->role  = $data['role'];
+        $user->role  = $data['roles'][0];
 
         if (!empty($data['password'])) {
             $user->password = Hash::make($data['password']);
@@ -107,7 +109,7 @@ class UserController extends Controller
         }
 
         $user->save();
-        $user->syncRoles($data['role']);
+        $user->syncRoles($data['roles']);
 
         return redirect()->route('users.index')
             ->with('success', 'User updated successfully.');

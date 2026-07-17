@@ -18,7 +18,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>SCORING SHEET (LAYOUT C)</h1>
+        <h1>Provincial Government of Bukidnon — PHRMO — TWG Evaluation Sheet</h1>
         <h2>{{ $applicant->last_name }}, {{ $applicant->first_name }} - {{ $applicant->position_applied }}</h2>
     </div>
 
@@ -28,6 +28,7 @@
         <thead>
             <tr>
                 <th>Criterion</th>
+                <th class="text-center">Max Points</th>
                 <th class="text-center">Auto Score</th>
                 <th class="text-center">Assessor Score</th>
                 <th>Notes</th>
@@ -37,6 +38,7 @@
             @foreach($twgScores as $score)
             <tr>
                 <td>{{ $score->criterion->criterion_name ?? 'Unknown Criterion' }}</td>
+                <td class="text-center">{{ number_format($score->criterion->point_value ?? 0, 2) }}</td>
                 <td class="text-center">{{ $score->auto_populated_value ?? '-' }}</td>
                 <td class="text-center">{{ $score->assessor_value ?? '-' }}</td>
                 <td>{{ $score->assessor_notes }}</td>
@@ -45,7 +47,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <th class="text-right fw-bold">TOTAL:</th>
+                <th colspan="2" class="text-right fw-bold">TOTAL:</th>
                 <th class="text-center fw-bold">{{ $twgSubmission->total_auto }}</th>
                 <th class="text-center fw-bold">{{ $twgSubmission->total_assessor }}</th>
                 <th>Overall: {{ $twgSubmission->percentage }}% ({{ $twgSubmission->adjectival_classification }})</th>
@@ -53,6 +55,8 @@
         </tfoot>
     </table>
     <p><strong>Recommendation:</strong> {{ $twgSubmission->recommendation }}</p>
+    <p style="margin-top: 15px;"><strong>Evaluated By:</strong> {{ $twgSubmission->submittedBy->name ?? 'Unknown Assessor' }} <br>
+    <strong>Date Evaluated:</strong> {{ $twgSubmission->submitted_at ? $twgSubmission->submitted_at->format('F d, Y h:i A') : 'N/A' }}</p>
     @else
     <p>No TWG evaluation submitted yet.</p>
     @endif
@@ -87,5 +91,9 @@
     @else
     <p>No HRMPSB interview evaluations recorded yet.</p>
     @endif
+
+    <div style="margin-top: 30px; font-size: 10px; color: #444; border-top: 1px dashed #ccc; padding-top: 10px; text-align: justify;">
+        <strong>LEGAL COMPLIANCE NOTICE:</strong> Evaluated in accordance with 2025 ORAOHRA Rule IX and the approved TWG Rating Criteria. Information contains personal data protected under R.A. 10173 — Confidential.
+    </div>
 </body>
 </html>

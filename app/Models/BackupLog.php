@@ -10,7 +10,7 @@ class BackupLog extends Model
     const UPDATED_AT = null;
 
     protected $fillable = [
-        'filename', 'type', 'size_bytes', 'status',
+        'filename', 'type', 'backup_scope', 'size_bytes', 'status',
         'storage_path', 'storage_driver', 'encrypted', 'notes', 'created_by',
     ];
 

@@ -34,6 +34,11 @@
             <i class="bi bi-pen-fill me-1 text-info"></i>Signatories
         </button>
     </li>
+    <li class="nav-item">
+        <button class="nav-link fw-semibold" id="tab-quicklinks-btn" data-bs-toggle="tab" data-bs-target="#tab-quicklinks" type="button">
+            <i class="bi bi-link-45deg me-1 text-secondary"></i>Panel &amp; Evaluation
+        </button>
+    </li>
 </ul>
 
 <div class="tab-content">
@@ -478,6 +483,38 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<div class="tab-pane fade" id="tab-quicklinks" role="tabpanel">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <a href="{{ route('panel-members.index') }}" class="card shadow-sm border-0 text-decoration-none h-100">
+                <div class="card-body text-center py-4">
+                    <i class="bi bi-person-badge text-primary" style="font-size:2rem;"></i>
+                    <h6 class="fw-bold mt-2 mb-1 text-dark">Panel Accounts</h6>
+                    <p class="text-muted small mb-0">Manage HRMPSB panel member login accounts.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{{ route('recruitment.hrmpsb.interview.create') }}" class="card shadow-sm border-0 text-decoration-none h-100">
+                <div class="card-body text-center py-4">
+                    <i class="bi bi-person-video3 text-primary" style="font-size:2rem;"></i>
+                    <h6 class="fw-bold mt-2 mb-1 text-dark">Interview Evaluation</h6>
+                    <p class="text-muted small mb-0">Score an applicant's panel interview.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{{ route('recruitment.hrmpsb.interview.index') }}" class="card shadow-sm border-0 text-decoration-none h-100">
+                <div class="card-body text-center py-4">
+                    <i class="bi bi-grid-3x3-gap-fill text-primary" style="font-size:2rem;"></i>
+                    <h6 class="fw-bold mt-2 mb-1 text-dark">Scoring Matrix</h6>
+                    <p class="text-muted small mb-0">View all recorded interview evaluations.</p>
+                </div>
+            </a>
         </div>
     </div>
 </div>

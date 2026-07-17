@@ -202,23 +202,23 @@
                 <form action="{{ route('recruitment.index') }}" method="GET" class="row g-2 align-items-end">
                     
                     <div class="col-md-3">
-                        <label class="form-label mb-1" style="font-size: 12px; font-weight: 600;">Search Name/Ref</label>
+                        <label class="form-label mb-1" style="font-size: 12px; font-weight: 600;">Search Name/Ref/Item No</label>
                         <input type="text" name="search" class="form-control form-control-sm" placeholder="Search..." value="{{ request('search') }}">
                     </div>
 
                     <div class="col-md-2">
                         <label class="form-label mb-1" style="font-size: 12px; font-weight: 600;">Position Applied</label>
-                        <select name="position_applied" class="form-select form-select-sm">
+                        <select name="position_applied" id="positionAppliedFilter" class="form-select form-select-sm">
                             <option value="">All</option>
-                            @foreach($positions as $pos)
-                                <option value="{{ $pos }}" {{ request('position_applied') == $pos ? 'selected' : '' }}>{{ $pos }}</option>
+                            @foreach($positions as $posKey => $posLabel)
+                                <option value="{{ $posKey }}" data-office="{{ $positionOffices[$posKey] ?? '' }}" {{ request('position_applied') == $posKey ? 'selected' : '' }}>{{ $posLabel }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="col-md-2">
                         <label class="form-label mb-1" style="font-size: 12px; font-weight: 600;">Office</label>
-                        <select name="office" class="form-select form-select-sm">
+                        <select name="office" id="officeFilter" class="form-select form-select-sm">
                             <option value="">All</option>
                             @foreach($offices as $off)
                                 <option value="{{ $off }}" {{ request('office') == $off ? 'selected' : '' }}>{{ $off }}</option>
@@ -310,29 +310,6 @@
                                         <a href="{{ route('recruitment.receipt', $applicant->id) }}" target="_blank" class="btn btn-sm btn-outline-danger" title="Print Receipt">
                                             <i class="bi bi-file-earmark-pdf-fill"></i>
                                         </a>
-                                        @unless(auth()->user()->hasRole('Appointment Encoder'))
-                                        <a href="{{ route('recruitment.deliberation.show', $applicant->id) }}" class="btn btn-sm btn-outline-secondary" title="Open Deliberation Panel">
-                                            <i class="bi bi-clipboard2-data-fill"></i>
-                                        </a>
-                                        @endunless
-                                        @unless(auth()->user()->hasRole('Appointment Encoder'))
-                                        @php $ev = $applicant->evaluation; @endphp
-                                        <button type="button"
-                                            class="btn btn-sm {{ $ev ? ($ev->final_rating === 'Qualified' ? 'btn-success' : ($ev->final_rating === 'Disqualified' ? 'btn-danger' : 'btn-warning')) : 'btn-outline-warning' }}"
-                                            title="Pre-Evaluate"
-                                            onclick="openPreEval(
-                                                {{ $applicant->id }},
-                                                '{{ addslashes($applicant->full_name) }}',
-                                                '{{ $ev->qs_requirement ?? '' }}',
-                                                '{{ $ev->exam_status ?? '' }}',
-                                                '{{ $ev->docs_complete ?? '' }}',
-                                                '{{ $ev->final_rating ?? '' }}',
-                                                '{{ addslashes($ev->remarks ?? '') }}'
-                                            )">
-                                            <i class="bi bi-clipboard2-check-fill"></i>
-                                        </button>
-                                        @endunless
-
                                         <a href="{{ route('recruitment.edit', $applicant->id) }}" class="btn btn-sm btn-outline-info" title="Edit Application">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
@@ -359,155 +336,6 @@
             </div>
         </div>
     </div>
-
-    <!-- ══════════════════════════════════════════════════════════
-         PRE-EVALUATION MODAL
-    ════════════════════════════════════════════════════════════ -->
-    <div class="modal fade" id="preEvalModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content" style="border-radius:12px; overflow:hidden;">
-                <div class="modal-header border-0 text-white" style="background:linear-gradient(135deg,#1f497d,#2e75b6);">
-                    <h5 class="modal-title fw-bold">
-                        <i class="bi bi-clipboard2-check-fill me-2"></i>
-                        Pre-Evaluation Assessment
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-
-                <form id="preEvalForm" method="POST" action="">
-                    @csrf
-                    <div class="modal-body p-4">
-
-                        <div class="alert alert-info py-2 px-3 mb-3 small" id="preEvalApplicantName"></div>
-
-                        <div class="row g-3">
-                            {{-- QS Requirement --}}
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">
-                                    <i class="bi bi-check2-circle me-1 text-primary"></i>
-                                    QS Requirement
-                                </label>
-                                <div class="d-flex gap-3 mt-1">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="qs_requirement" id="qs_met" value="Met">
-                                        <label class="form-check-label text-success fw-semibold" for="qs_met">Met</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="qs_requirement" id="qs_unmet" value="Unmet">
-                                        <label class="form-check-label text-danger fw-semibold" for="qs_unmet">Unmet</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Examination Status --}}
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">
-                                    <i class="bi bi-pencil-square me-1 text-primary"></i>
-                                    Examination Status
-                                </label>
-                                <div class="d-flex gap-3 mt-1 flex-wrap">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="exam_status" id="exam_passed" value="Passed">
-                                        <label class="form-check-label text-success fw-semibold" for="exam_passed">Passed</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="exam_status" id="exam_failed" value="Failed">
-                                        <label class="form-check-label text-danger fw-semibold" for="exam_failed">Failed</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="exam_status" id="exam_absent" value="Absent">
-                                        <label class="form-check-label text-warning fw-semibold" for="exam_absent">Absent</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Documents Complete --}}
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">
-                                    <i class="bi bi-folder-check me-1 text-primary"></i>
-                                    Complete Documents Submitted On-Time?
-                                </label>
-                                <div class="d-flex gap-3 mt-1">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="docs_complete" id="docs_yes" value="Yes">
-                                        <label class="form-check-label text-success fw-semibold" for="docs_yes">Yes</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="docs_complete" id="docs_no" value="No">
-                                        <label class="form-check-label text-danger fw-semibold" for="docs_no">No</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Final Rating --}}
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">
-                                    <i class="bi bi-award-fill me-1 text-primary"></i>
-                                    Final Rating
-                                </label>
-                                <div class="d-flex gap-3 mt-1">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="final_rating" id="rating_qualified" value="Qualified" onchange="toggleRemarks()">
-                                        <label class="form-check-label text-success fw-bold" for="rating_qualified">Qualified</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="final_rating" id="rating_disqualified" value="Disqualified" onchange="toggleRemarks()">
-                                        <label class="form-check-label text-danger fw-bold" for="rating_disqualified">Disqualified</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Remarks --}}
-                            <div class="col-12" id="remarksSection">
-                                <label class="form-label fw-semibold">
-                                    <i class="bi bi-chat-left-text-fill me-1 text-primary"></i>
-                                    Remarks
-                                    <span class="text-danger small" id="remarksHint">(Required for Disqualified)</span>
-                                </label>
-                                <textarea name="remarks" id="preEvalRemarks" class="form-control" rows="3"
-                                    placeholder="Specify reasons for disqualification or any additional notes..."></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer border-0 bg-light">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary fw-semibold px-4">
-                            <i class="bi bi-save-fill me-1"></i> Save Evaluation
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <script>
-    function openPreEval(id, name, qsReq, examStatus, docsComplete, finalRating, remarks) {
-        document.getElementById('preEvalApplicantName').innerHTML =
-            '<i class="bi bi-person-fill me-1"></i> Evaluating: <strong>' + name + '</strong>';
-        document.getElementById('preEvalForm').action = '{{ url("recruitment") }}/' + id + '/evaluate';
-
-        // Reset all radio buttons
-        document.querySelectorAll('#preEvalModal input[type=radio]').forEach(r => r.checked = false);
-
-        // Set saved values
-        if (qsReq)      { var el = document.querySelector('input[name=qs_requirement][value="'+qsReq+'"]');   if(el) el.checked = true; }
-        if (examStatus) { var el = document.querySelector('input[name=exam_status][value="'+examStatus+'"]'); if(el) el.checked = true; }
-        if (docsComplete){ var el = document.querySelector('input[name=docs_complete][value="'+docsComplete+'"]'); if(el) el.checked = true; }
-        if (finalRating){ var el = document.querySelector('input[name=final_rating][value="'+finalRating+'"]'); if(el) el.checked = true; }
-
-        document.getElementById('preEvalRemarks').value = remarks || '';
-        toggleRemarks();
-
-        new bootstrap.Modal(document.getElementById('preEvalModal')).show();
-    }
-
-    function toggleRemarks() {
-        var isDisq = document.getElementById('rating_disqualified').checked;
-        var hint   = document.getElementById('remarksHint');
-        hint.style.display = isDisq ? 'inline' : 'none';
-    }
-    </script>
 
     <!-- Import CSV Modal -->
     <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
@@ -570,7 +398,7 @@
                         {{-- Filters --}}
                         <div class="mb-3">
                             <label class="form-label fw-bold">Office</label>
-                            <select name="office" class="form-select">
+                            <select name="office" id="reportOfficeFilter" class="form-select">
                                 <option value="">All Offices</option>
                                 @foreach($offices as $off)
                                     <option value="{{ $off }}">{{ $off }}</option>
@@ -580,10 +408,10 @@
                         <div class="row g-2 mb-3">
                             <div class="col-md-7">
                                 <label class="form-label fw-bold">Vacant Position</label>
-                                <select name="position_applied" class="form-select">
+                                <select name="position_applied" id="reportPositionFilter" class="form-select">
                                     <option value="">All Positions</option>
-                                    @foreach($positions as $pos)
-                                        <option value="{{ $pos }}">{{ $pos }}</option>
+                                    @foreach($positions as $posKey => $posLabel)
+                                        <option value="{{ $posKey }}" data-office="{{ $positionOffices[$posKey] ?? '' }}">{{ $posLabel }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -629,6 +457,38 @@
                         // Demographics is PDF-only; hide Excel for it
                         excelBtn.style.display = (type === 'demographics') ? 'none' : 'inline';
                     }
+                    </script>
+                    <script>
+                    // Narrows a Position dropdown to whichever Office is selected, so users can't
+                    // pick a mismatched office/position combo that silently returns zero results.
+                    function wireOfficePositionCascade(officeSelectId, positionSelectId) {
+                        var officeSelect = document.getElementById(officeSelectId);
+                        var positionSelect = document.getElementById(positionSelectId);
+                        if (!officeSelect || !positionSelect) return;
+
+                        var allOptions = Array.prototype.slice.call(positionSelect.options);
+
+                        function applyFilter() {
+                            var selectedOffice = officeSelect.value;
+                            allOptions.forEach(function (opt) {
+                                if (!opt.value) return; // keep the "All" placeholder always visible
+                                var optOffice = opt.getAttribute('data-office');
+                                opt.style.display = (selectedOffice && optOffice && optOffice !== selectedOffice) ? 'none' : '';
+                            });
+                            var selected = positionSelect.options[positionSelect.selectedIndex];
+                            if (selected && selected.style.display === 'none') {
+                                positionSelect.value = '';
+                            }
+                        }
+
+                        officeSelect.addEventListener('change', applyFilter);
+                        applyFilter();
+                    }
+
+                    document.addEventListener('DOMContentLoaded', function () {
+                        wireOfficePositionCascade('officeFilter', 'positionAppliedFilter');
+                        wireOfficePositionCascade('reportOfficeFilter', 'reportPositionFilter');
+                    });
                     </script>
                 </form>
             </div>

@@ -1,0 +1,38 @@
+{% extends "base.html" %}{% block body %}
+<h1>Monitoring &amp; Sanctions</h1>
+{% if session.role != 'viewer' %}
+<details class="adder"><summary>+ Log submission</summary>
+<form method="post" action="{{ url_for('monitoring') }}" class="grid">
+  <label>Office<select name="office_id"><option value="">...</option>{% for o in offices %}<option value="{{o.id}}">{{o.name}}</option>{% endfor %}</select></label>
+  <label>Owner<select name="emp_id"><option value="">...</option>{% for e in employees %}<option value="{{e.id}}">{{e.last_name}}, {{e.first_name}}</option>{% endfor %}</select></label>
+  <label>Form/Report<input name="form_type" placeholder="IPCR / DPCR / OPCR"></label>
+  <label>Period<select name="period_id"><option value="">...</option>{% for p in periods %}<option value="{{p.id}}">{{p.name}}</option>{% endfor %}</select></label>
+  <label>Due date<input name="due_date" type="date"></label>
+  <label>Date submitted<input name="date_submitted" type="date"></label>
+  <button>Save</button>
+</form></details>
+{% endif %}
+<table><tr><th>Office</th><th>Owner</th><th>Form</th><th>Due</th><th>Submitted</th><th>Status</th>{% if session.role != 'viewer' %}<th style="width:190px">Actions</th>{% endif %}</tr>
+{% for r in rows %}<tr>
+  {% if session.role != 'viewer' %}
+  <td>
+    <form method="post" action="{{ url_for('monitoring_edit', sub_id=r.id) }}" class="inline">
+      <select name="office_id"><option value="">...</option>{% for o in offices %}<option value="{{o.id}}" {% if o.id==r.office_id %}selected{% endif %}>{{o.name}}</option>{% endfor %}</select>
+  </td>
+  <td><select name="emp_id"><option value="">...</option>{% for e in employees %}<option value="{{e.id}}" {% if e.id==r.emp_id %}selected{% endif %}>{{e.last_name}}, {{e.first_name}}</option>{% endfor %}</select></td>
+  <td><input name="form_type" value="{{r.form_type or ''}}" style="width:100px"></td>
+  <td><input name="due_date" type="date" value="{{r.due_date or ''}}"></td>
+  <td><input name="date_submitted" type="date" value="{{r.date_submitted or ''}}"></td>
+  <td class="{% if 'NOT SUBMITTED' in r.flag %}bad{% elif 'LATE' in r.flag %}warncell{% endif %}">{{r.flag}}</td>
+  <td>
+      <button>Save</button></form>
+      <form method="post" class="inline" action="{{ url_for('monitoring_delete', sub_id=r.id) }}" onsubmit="return confirm('Delete this submission log entry?')">
+        <button class="ghost danger">Del</button></form>
+  </td>
+  {% else %}
+  <td>{{r.office}}</td><td>{{r.owner}}</td><td>{{r.form_type}}</td>
+  <td>{{r.due_date}}</td><td>{{r.date_submitted or '-'}}</td>
+  <td class="{% if 'NOT SUBMITTED' in r.flag %}bad{% elif 'LATE' in r.flag %}warncell{% endif %}">{{r.flag}}</td>
+  {% endif %}
+</tr>{% endfor %}</table>
+{% endblock %}

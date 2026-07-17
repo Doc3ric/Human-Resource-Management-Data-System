@@ -8,7 +8,7 @@
         .dash-card {
             background: var(--color-surface, #ffffff) !important;
             border-radius: 12px;
-            padding: 24px;
+            padding: 12px 16px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
             border: 1px solid var(--color-border, #e2e8f0) !important;
             height: 100%;
@@ -30,7 +30,7 @@
         }
 
         .dash-card:hover {
-            transform: translateY(-4px);
+            transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             border-color: #cbd5e1;
         }
@@ -48,34 +48,34 @@
         .dash-card-title {
             margin: 0;
             color: var(--color-text-secondary, #64748b) !important;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .dash-card-value {
-            margin: 8px 0 0 0;
+            margin: 4px 0 0 0;
             color: var(--color-text-primary, #0f172a) !important;
-            font-size: 32px;
+            font-size: 24px;
             font-weight: 800;
             line-height: 1.1;
         }
 
         .dash-card-subtext {
-            margin: 4px 0 0 0;
+            margin: 2px 0 0 0;
             color: var(--color-text-muted, #94a3b8) !important;
-            font-size: 12px;
+            font-size: 11px;
         }
 
         .dash-card-icon {
-            width: 54px;
-            height: 54px;
-            border-radius: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 18px;
             background: #eff6ff;
             color: #3b82f6;
             /* Default */
@@ -121,7 +121,7 @@
 
         <div class="container-fluid" style="padding: 0;">
             <!-- Proactive Reminders Alert -->
-            @if(($retirementDueCount ?? 0) > 0 || ($stepDueCount ?? 0) > 0)
+            @if(($retirementDueCount ?? 0) > 0 || ($stepDueCount ?? 0) > 0 || ($notRenewedActiveCount ?? 0) > 0)
                 <div class="alert premium-alert d-flex align-items-center mb-4" role="alert">
                     <i class="bi bi-bell-fill fs-3 me-3"></i>
                     <div>
@@ -138,8 +138,61 @@
                                 <a href="{{ route('step-increment.index') }}">{{ $stepDueCount }} employees due for
                                     step increment</a>
                             @endif
+                            @if((($retirementDueCount ?? 0) > 0 || ($stepDueCount ?? 0) > 0) && ($notRenewedActiveCount ?? 0) > 0) and @endif
+                            @if(($notRenewedActiveCount ?? 0) > 0)
+                                <a href="{{ route('batch-renewal.index') }}">{{ $notRenewedActiveCount }} Casual/Job
+                                    Order personnel still pending renewal</a>
+                                (included in the totals below)
+                            @endif
                             that need your attention.
                         </p>
+                    </div>
+                </div>
+            @endif
+
+            {{-- HR Policy Radar --}}
+            @php
+                $recentPolicies = \App\Models\PolicyUpdate::orderByDesc('published_date')->take(5)->get();
+                $newCount = \App\Models\PolicyUpdate::where('status', 'new')->count();
+            @endphp
+            @if($recentPolicies->count() > 0)
+                <div id="policy-radar" class="dash-card mb-4" style="border-left: 4px solid #ef4444 !important;">
+                    <div class="dash-card-content" style="flex-direction: column;">
+                        <h5 class="fw-bold mb-3" style="color: #374151;">
+                            <i class="bi bi-radar" style="color:#ef4444;"></i> Policy Radar 
+                            @if($newCount > 0)
+                                <span class="badge bg-danger ms-2">{{ $newCount }} New Update(s)</span>
+                            @endif
+                        </h5>
+                        <div class="table-responsive w-100">
+                            <table class="table table-hover table-sm align-middle" style="font-size: 13px;">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Source</th>
+                                        <th>Title</th>
+                                        <th>Matched Keyword</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($recentPolicies as $policy)
+                                        <tr class="{{ $policy->status === 'new' ? 'table-warning' : '' }}">
+                                            <td style="white-space:nowrap;">{{ $policy->published_date }}</td>
+                                            <td><span class="badge bg-secondary">{{ $policy->source }}</span></td>
+                                            <td>
+                                                <strong>{{ $policy->title }}</strong><br>
+                                                <small class="text-muted">{{ Str::limit($policy->description, 100) }}</small>
+                                            </td>
+                                            <td><span class="badge bg-info text-dark">{{ $policy->matched_keyword }}</span></td>
+                                            <td>
+                                                <a href="{{ $policy->url }}" target="_blank" class="btn btn-sm btn-outline-primary py-0" style="font-size:11px;">Read</a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             @endif
@@ -194,16 +247,12 @@
             </div>
 
             <!-- Employment Status Overview -->
+            {{-- "Total Employees" is intentionally not repeated here — it's already shown as
+                 "Total Workforce" in the compliance overview row above (same $totalEmployeesUnique
+                 value); this section only breaks that total down by appointment type. --}}
             <h5 class="fw-bold mb-3" style="color: #374151;"><i class="bi bi-briefcase-fill me-2"></i>Employment Status & Gender Demographics</h5>
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px;">
-                <!-- 1. Total Employees -->
-                <x-stat-card icon="bi-people" color="indigo" label="Total Employees"
-                    :value="$totalEmployeesUnique ?? 0"
-                    compliance="ACTIVE ONLY"
-                    analysis="Total distinct active workforce across all appointment types without duplication."
-                    :link="route('all-data.index', ['vacant' => 'filled'])" />
-
-                <!-- 2. REGULAR -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px;">
+                <!-- 1. REGULAR -->
                 <x-stat-card icon="bi-person-badge" color="green" label="Regular"
                     :value="$regularTotalCount ?? 0"
                     :pct="($totalEmployeesUnique ?? 0) > 0 ? round($regularTotalCount / $totalEmployeesUnique * 100, 1) : 0"
@@ -211,7 +260,7 @@
                     analysis="Elected, Coterminus, Permanent, Part-Time, and Temporary."
                     :link="route('all-data.index', ['vacant' => 'filled', 'status' => 'P'])" />
 
-                <!-- 3. CASUAL : Total -->
+                <!-- 2. CASUAL : Total -->
                 <x-stat-card icon="bi-person-lines-fill" color="orange" label="Casual"
                     :value="$casualOnlyTotal ?? 0"
                     :pct="($totalEmployeesUnique ?? 0) > 0 ? round($casualOnlyTotal / $totalEmployeesUnique * 100, 1) : 0"
@@ -219,7 +268,7 @@
                     analysis="Active Casual Employees."
                     :link="route('casual.index')" />
 
-                <!-- 4. JOB ORDER -->
+                <!-- 3. JOB ORDER -->
                 <x-stat-card icon="bi-file-earmark-person" color="purple" label="Job Order"
                     :value="$joTotalActive ?? 0"
                     :pct="($totalEmployeesUnique ?? 0) > 0 ? round($joTotalActive / $totalEmployeesUnique * 100, 1) : 0"
@@ -376,7 +425,7 @@
             @endphp
 
             <style>
-                /* â•â• Birthday Widget — WONDERFUL EDITION â•â• */
+                /* -- Birthday Widget — WONDERFUL EDITION -- */
 
                 /* ── Keyframes ── */
                 @keyframes bdaySlideIn {

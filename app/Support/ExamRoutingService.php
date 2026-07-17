@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\Applicant;
 use App\Models\ExamSchedule;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -34,17 +35,42 @@ class ExamRoutingService
     /** Applicants within the trailing window, grouped by classification. */
     public function windowedApplicants(int $windowMonths = self::DEFAULT_WINDOW_MONTHS): Collection
     {
-        $since = now()->subMonths($windowMonths);
+        return $this->applicantsInRange(now()->subMonths($windowMonths), null);
+    }
 
-        return Applicant::where(function ($q) use ($since) {
-                $q->where('applied_at', '>=', $since)
-                  ->orWhere(function ($q2) use ($since) {
-                      $q2->whereNull('applied_at')->where('created_at', '>=', $since);
-                  });
-            })
-            ->orderBy('created_at')
+    /** Applicants within an explicit application-date range, grouped by classification. */
+    public function applicantsInRange(?Carbon $dateFrom, ?Carbon $dateTo, array $filters = []): Collection
+    {
+        $query = Applicant::where(function ($q) use ($dateFrom, $dateTo) {
+                $q->where(function ($q2) use ($dateFrom, $dateTo) {
+                    $q2->whereNotNull('applied_at');
+                    if ($dateFrom) $q2->where('applied_at', '>=', $dateFrom);
+                    if ($dateTo) $q2->where('applied_at', '<=', $dateTo);
+                })
+                ->orWhere(function ($q2) use ($dateFrom, $dateTo) {
+                    $q2->whereNull('applied_at');
+                    if ($dateFrom) $q2->where('created_at', '>=', $dateFrom);
+                    if ($dateTo) $q2->where('created_at', '<=', $dateTo);
+                });
+            });
+
+        if (!empty($filters['salary_grade'])) {
+            $query->where('salary_grade_snapshot', $filters['salary_grade']);
+        }
+        
+        $grouped = $query->orderBy('created_at')
             ->get()
+            ->unique(function ($a) {
+                return strtoupper(trim($a->last_name)) . '_' . strtoupper(trim($a->first_name));
+            })
             ->groupBy(fn (Applicant $a) => $this->classify($a));
+
+        if (!empty($filters['classification'])) {
+            $class = $filters['classification'];
+            return collect([$class => $grouped->get($class, collect())]);
+        }
+
+        return $grouped;
     }
 
     /** Cluster a set of (non-exempt) applicants into tables of $tableSize. */

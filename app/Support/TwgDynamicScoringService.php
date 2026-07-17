@@ -48,6 +48,7 @@ class TwgDynamicScoringService
 
         $criteria = TwgRatingCriterion::where('is_active', true)
             ->whereIn('criterion_category', ['all', $category])
+            ->where('criterion_key', '!=', 'psb_interview')
             ->orderBy('sort_order')
             ->get();
 
@@ -57,14 +58,27 @@ class TwgDynamicScoringService
                 ['item_no' => $applicant->item_no]
             );
 
-            if ($criterion->criterion_key === 'psb_interview') {
-                $this->refreshPsbInterview($score, $criterion, $applicant);
+            if ($score->wasRecentlyCreated || !$score->is_edited) {
+                // Attempt to auto-match applicant's qualification with bracket conditions
+                $matchedPoints = $this->autoMatchBracketPoints($score, $applicant);
+                if ($matchedPoints !== null) {
+                    $score->auto_populated_value = $matchedPoints;
+                    $score->assessor_value = $matchedPoints;
+                } else {
+                    // If no match found, default to null so assessors are forced to evaluate properly,
+                    // rather than defaulting to maximum points or a silent 0.
+                    $score->auto_populated_value = null;
+                    $score->assessor_value = null;
+                }
+                $score->save();
             }
         }
 
         return TwgScore::with('criterion')
             ->where('applicant_id', $applicant->id)
-            ->whereHas('criterion', fn ($q) => $q->where('is_active', true)->whereIn('criterion_category', ['all', $category]))
+            ->whereHas('criterion', fn ($q) => $q->where('is_active', true)
+                                                 ->whereIn('criterion_category', ['all', $category])
+                                                 ->where('criterion_key', '!=', 'psb_interview'))
             ->get()
             ->sortBy(fn ($s) => $s->criterion->sort_order)
             ->values();
@@ -124,17 +138,91 @@ class TwgDynamicScoringService
         return $query->orderByDesc('points')->get();
     }
 
-    private function refreshPsbInterview(TwgScore $score, TwgRatingCriterion $criterion, Applicant $applicant): void
+    private function autoMatchBracketPoints(TwgScore $score, Applicant $applicant): ?float
     {
-        $panelAvg = InterviewEvaluation::where('applicant_id', $applicant->id)->avg('total_score');
-        $auto = $panelAvg !== null ? round($panelAvg * ((float) $criterion->point_value / 100), 2) : null;
+        $key = $score->criterion->rating_scale_key;
+        if (!$key) return null;
 
-        $wasSynced = !$score->is_edited; // not yet manually overridden
-        $score->auto_populated_value = $auto;
-        if ($wasSynced) {
-            $score->assessor_value = $auto;
+        $options = $this->bracketOptionsFor($score, $applicant);
+        if ($options->isEmpty()) return null;
+
+        if ($key === 'education') {
+            $edu = strtoupper(trim($applicant->highest_educational_attainment ?? ''));
+            if (!$edu) return null;
+            foreach ($options as $opt) {
+                $cond = strtoupper($opt->condition_name);
+                if (str_contains($cond, 'DOCTOR') && str_contains($edu, 'DOCTOR')) return $opt->points;
+                if (str_contains($cond, 'MASTER') && str_contains($edu, 'MASTER')) return $opt->points;
+                if (str_contains($cond, 'BACHELOR') && str_contains($edu, 'BACHELOR')) return $opt->points;
+                if (str_contains($cond, 'HIGH SCHOOL') && str_contains($edu, 'HIGH SCHOOL')) return $opt->points;
+                if (str_contains($cond, 'ELEMENTARY') && str_contains($edu, 'ELEMENTARY')) return $opt->points;
+                if ($edu === $cond) return $opt->points;
+            }
+        } elseif ($key === 'experience' || $key === 'length_of_service') {
+            $totalYears = (float)($applicant->years_permanent ?? 0) + (float)($applicant->years_coterminous ?? 0) + (float)($applicant->years_casual ?? 0) + (float)($applicant->years_job_order ?? 0);
+            if ($totalYears >= 0) {
+                foreach ($options as $opt) {
+                    if ($opt->min_value !== null || $opt->max_value !== null) {
+                        if ($opt->min_value !== null && $opt->max_value !== null) {
+                            if ($totalYears >= $opt->min_value && $totalYears <= $opt->max_value) return $opt->points;
+                        } elseif ($opt->min_value !== null && $opt->max_value === null) {
+                            if ($totalYears >= $opt->min_value) return $opt->points;
+                        } elseif ($opt->min_value === null && $opt->max_value !== null) {
+                            if ($totalYears <= $opt->max_value) return $opt->points;
+                        }
+                    } else {
+                        // Fallback string parsing for null min/max bounds (like length_of_service)
+                        $cond = strtolower($opt->condition_name);
+                        if (str_contains($cond, 'or more')) {
+                            if (preg_match('/(\d+)/', $cond, $m) && $totalYears >= (float)$m[1]) return $opt->points;
+                        } elseif (preg_match('/(\d+).*?to\s+(\d+)/', $cond, $m)) {
+                            if ($totalYears > (float)$m[1] && $totalYears <= (float)$m[2]) return $opt->points;
+                        } elseif (preg_match('/0\s*to\s*11/', $cond)) {
+                            if ($totalYears < 1) return $opt->points;
+                        } elseif (preg_match('/1\s*\+\s*to\s*2/', $cond)) {
+                            if ($totalYears > 1 && $totalYears <= 2) return $opt->points;
+                        }
+                    }
+                }
+            }
+        } elseif ($key === 'training') {
+            $hours = (float)($applicant->training_hours ?? 0);
+            if ($hours > 0) {
+                foreach ($options as $opt) {
+                    if ($opt->min_value !== null && $opt->max_value !== null) {
+                        if ($hours >= $opt->min_value && $hours <= $opt->max_value) return $opt->points;
+                    } elseif ($opt->min_value !== null && $opt->max_value === null) {
+                        if ($hours >= $opt->min_value) return $opt->points;
+                    } elseif ($opt->min_value === null && $opt->max_value !== null) {
+                        if ($hours <= $opt->max_value) return $opt->points;
+                    }
+                }
+            }
+        } elseif ($key === 'ipcr') {
+            $rating = (float)($applicant->performance_rating ?? 0);
+            if ($rating > 0) {
+                foreach ($options as $opt) {
+                    if ($opt->min_value !== null && $opt->max_value !== null) {
+                        if ($rating >= $opt->min_value && $rating <= $opt->max_value) return $opt->points;
+                    } elseif ($opt->min_value !== null && $opt->max_value === null) {
+                        if ($rating >= $opt->min_value) return $opt->points;
+                    } elseif ($opt->min_value === null && $opt->max_value !== null) {
+                        if ($rating <= $opt->max_value) return $opt->points;
+                    }
+                }
+            }
+        } elseif ($key === 'awards') {
+            $award = strtoupper(trim($applicant->award ?? ''));
+            if (!$award) return null;
+            foreach ($options as $opt) {
+                $cond = strtoupper($opt->condition_name);
+                if (str_contains($cond, 'NATIONAL') && str_contains($award, 'NATIONAL')) return $opt->points;
+                if (str_contains($cond, 'PROVINCIAL') && str_contains($award, 'PROVINCIAL')) return $opt->points;
+                if (str_contains($cond, 'DEPARTMENT') && str_contains($award, 'DEPARTMENT')) return $opt->points;
+                if ($award === $cond) return $opt->points;
+            }
         }
-        $score->save();
+        return null;
     }
 
     /**
@@ -183,7 +271,7 @@ class TwgDynamicScoringService
     {
         $scores = TwgScore::with('criterion')
             ->where('applicant_id', $applicant->id)
-            ->whereHas('criterion', fn ($q) => $q->where('is_active', true))
+            ->whereHas('criterion', fn ($q) => $q->where('is_active', true)->where('criterion_key', '!=', 'psb_interview'))
             ->get();
 
         $totalAuto = (float) $scores->sum('auto_populated_value');

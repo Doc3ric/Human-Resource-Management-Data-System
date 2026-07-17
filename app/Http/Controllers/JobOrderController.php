@@ -56,6 +56,12 @@ class JobOrderController extends Controller
             ->pluck('count', 'office_department')
             ->sortKeys();
 
+        // Enhancement Spec Sec. 1 — sort is independent of (and never resets) the filters above.
+        $sortableColumns = ['last_name', 'first_name', 'office_department', 'detailed_unit', 'position_title', 'sex'];
+        if ($request->filled('sort') && in_array($request->input('sort'), $sortableColumns, true)) {
+            $direction = $request->input('direction') === 'desc' ? 'desc' : 'asc';
+            $query->reorder()->orderBy($request->input('sort'), $direction);
+        }
 
         $perPageInput = $request->input('per_page', 50);
         $perPage = $perPageInput === 'all' ? max(1, $total) : (int) $perPageInput;

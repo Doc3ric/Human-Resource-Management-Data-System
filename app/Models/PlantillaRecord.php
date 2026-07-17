@@ -70,6 +70,8 @@ class PlantillaRecord extends Model
         'nature_of_appointment',
         'nature_of_separation',
         'date_separated',
+        'basis_reference',
+        'originating_admin_case_id',
         'loyalty_dismissed_at',
         'employee_code',
         'name_extension', 'nature_of_work', 'nature_of_work_detail',
@@ -341,11 +343,111 @@ class PlantillaRecord extends Model
     }
 
     /**
-     * Formatted monthly salary (base_salary_amount / 12).
+     * Formatted monthly salary.
      */
     public function getMonthlySalaryAttribute(): float
     {
-        return round($this->base_salary_amount / 12, 2);
+        return round((float)$this->base_salary_amount, 2);
+    }
+
+    // ── Salary Schedule Alignment ───────────────────────────────────────────
+
+    /** employment_status values subject to SSL grade+step alignment checking. */
+    public const SSL_ALIGNMENT_STATUSES = ['P', 'Permanent', 'CT', 'Co-Terminous', 'Coterminous'];
+
+    /** salary_type values meaning base_salary_amount already IS the monthly figure. */
+    public const MONTHLY_BASIS_SALARY_TYPES = ['Monthly'];
+
+    /**
+     * salary_type values meaning base_salary_amount is the ANNUAL figure (÷12 for monthly).
+     * Blank/null is included deliberately — legacy pre-normalization rows store an annual
+     * figure here. This is an inferred rule verified against live data, not a documented
+     * schema invariant; anything outside both lists (e.g. 'Daily' on a P/CT record) is
+     * treated as unresolvable rather than guessed.
+     */
+    public const ANNUAL_BASIS_SALARY_TYPES = ['Annual', null, ''];
+
+    /**
+     * Monthly rate this employee's Grade/Step SHOULD pay under the currently active
+     * SalarySchedule. Returns null (not 0.0) when unresolvable — deliberately bypasses
+     * SalaryGrade::getRate()'s 0.0-on-not-found fallback, which cannot distinguish
+     * "no such grade/step row" from a legitimately zero rate.
+     */
+    public function getExpectedMonthlyRateAttribute(): ?float
+    {
+        if ($this->salary_grade === null || $this->step === null) {
+            return null;
+        }
+        $active = SalarySchedule::getActive();
+        if (!$active) {
+            return null;
+        }
+        $row = SalaryGrade::where('salary_schedule_id', $active->id)
+            ->where('grade', $this->salary_grade)
+            ->where('step', $this->step)
+            ->first();
+        return $row ? (float) $row->monthly_salary : null;
+    }
+
+    /**
+     * This employee's CURRENT monthly rate, normalized from base_salary_amount using
+     * salary_type as the declared basis. Returns null when salary_type is something
+     * unexpected (e.g. 'Daily') or base_salary_amount is missing — those cases are
+     * unresolvable, not guessed.
+     */
+    public function getCurrentMonthlyRateAttribute(): ?float
+    {
+        if ($this->base_salary_amount === null || (float) $this->base_salary_amount == 0.0) {
+            return null;
+        }
+        $amount = (float) $this->base_salary_amount;
+        if (in_array($this->salary_type, self::MONTHLY_BASIS_SALARY_TYPES, true)) {
+            return round($amount, 2);
+        }
+        if (in_array($this->salary_type, self::ANNUAL_BASIS_SALARY_TYPES, true)) {
+            return round($amount / 12, 2);
+        }
+        return null;
+    }
+
+    /** 'aligned' | 'underpaid' | 'overpaid' | 'unresolvable' */
+    public function getSalaryAlignmentStatusAttribute(): string
+    {
+        if (!in_array($this->employment_status, self::SSL_ALIGNMENT_STATUSES, true)) {
+            return 'unresolvable';
+        }
+        $expected = $this->expected_monthly_rate;
+        $current = $this->current_monthly_rate;
+        if ($expected === null || $current === null) {
+            return 'unresolvable';
+        }
+        $diff = round($current - $expected, 2);
+        if (abs($diff) <= 0.01) {
+            return 'aligned';
+        }
+        return $diff > 0 ? 'overpaid' : 'underpaid';
+    }
+
+    public function getIsSalaryMisalignedAttribute(): bool
+    {
+        return in_array($this->salary_alignment_status, ['underpaid', 'overpaid'], true);
+    }
+
+    public function getSalaryVarianceAmountAttribute(): ?float
+    {
+        if ($this->salary_alignment_status === 'unresolvable') {
+            return null;
+        }
+        return round(($this->current_monthly_rate ?? 0) - ($this->expected_monthly_rate ?? 0), 2);
+    }
+
+    public function getSalaryVariancePercentAttribute(): ?float
+    {
+        $expected = $this->expected_monthly_rate;
+        if (!$expected || $this->salary_alignment_status === 'unresolvable') {
+            return null;
+        }
+        return round((($this->current_monthly_rate - $expected) / $expected) * 100, 2);
     }
 
     /**
@@ -377,6 +479,22 @@ class PlantillaRecord extends Model
         if (!$this->date_of_birth)
             return null;
         return $this->date_of_birth->copy()->addYears(65);
+    }
+
+    /**
+     * Whether this employee is due for a Loyalty Incentive award: Permanent, has an
+     * appointment date, and years of service is a 10/15/20/25… milestone.
+     */
+    public function getIsLoyaltyDueAttribute(): bool
+    {
+        if ($this->employment_status !== 'P' || !$this->date_original_appointment) {
+            return false;
+        }
+        $years = (int) $this->date_original_appointment->diffInYears(now());
+        if ($years < 10) {
+            return false;
+        }
+        return $years === 10 || ($years - 10) % 5 === 0;
     }
 
     /** Step increment history logs for this record */
@@ -520,6 +638,21 @@ class PlantillaRecord extends Model
             ->whereYear('date_of_birth', $targetYear);
     }
 
+    /** Candidate pool for Salary Schedule alignment checking (bucketed in PHP via the accessors above). */
+    public function scopeSslInScope($query)
+    {
+        return $query->filled()->whereIn('employment_status', self::SSL_ALIGNMENT_STATUSES);
+    }
+
+    /** Candidate pool for Loyalty Incentive eligibility (milestone check via getIsLoyaltyDueAttribute). */
+    public function scopeLoyaltyDue($query)
+    {
+        return $query->filled()
+            ->where('employment_status', 'P')
+            ->whereNotNull('date_original_appointment')
+            ->whereNull('loyalty_dismissed_at');
+    }
+
     /**
      * Get the list of file attachments for this record.
      */
@@ -531,6 +664,12 @@ class PlantillaRecord extends Model
     public function contractRenewals()
     {
         return $this->hasMany(\App\Models\ContractRenewal::class);
+    }
+
+    /** Enhancement Spec Sec. 6 — reference only, set when a Termination stemmed from a formal case. */
+    public function originatingAdminCase()
+    {
+        return $this->belongsTo(\App\Models\DisciplinaryCase::class, 'originating_admin_case_id');
     }
 
     public function latestRenewal()

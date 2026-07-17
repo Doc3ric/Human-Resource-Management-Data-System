@@ -26,9 +26,28 @@ class DeliberationAgendaController extends Controller
             $query->where('final_rating', 'Qualified');
         });
 
-        // Get unique offices and positions from qualified applicants
-        $offices = (clone $qualifiedApplicantsQuery)->whereNotNull('office')->distinct()->pluck('office');
-        $positions = (clone $qualifiedApplicantsQuery)->whereNotNull('position_applied')->distinct()->pluck('position_applied');
+        // Get unique offices from all applicants (database of applicants)
+        $allApplicantsQuery = Applicant::query();
+        $offices = (clone $allApplicantsQuery)->whereNotNull('office')->distinct()->pluck('office');
+        
+        // Get unique positions with their details for rich dropdown labels from all applicants
+        $positionsData = (clone $allApplicantsQuery)
+            ->whereNotNull('position_applied')
+            ->select('position_applied', 'item_no', 'salary_grade_snapshot')
+            ->distinct()
+            ->get();
+            
+        $positions = [];
+        foreach ($positionsData as $pos) {
+            $rate = \App\Models\SalaryGrade::getRate($pos->salary_grade_snapshot, 1);
+            $label = sprintf("%s (Item: %s | SG-%s | ₱ %s)", 
+                $pos->position_applied, 
+                $pos->item_no ?? 'N/A', 
+                $pos->salary_grade_snapshot ?? 'N/A', 
+                number_format($rate, 2)
+            );
+            $positions[$pos->position_applied] = $label;
+        }
 
         // Apply filters if any
         if ($request->filled('offices')) {
@@ -50,7 +69,13 @@ class DeliberationAgendaController extends Controller
                 $matrix[$office] = [];
             }
             if (!isset($matrix[$office][$pos])) {
-                $matrix[$office][$pos] = [];
+                $rate = \App\Models\SalaryGrade::getRate($app->salary_grade_snapshot, 1);
+                $matrix[$office][$pos] = [
+                    'item_no' => $app->item_no,
+                    'sg' => $app->salary_grade_snapshot,
+                    'rate' => $rate,
+                    'applicants' => []
+                ];
             }
 
             // Tagging logic: Job Order/External/Exempted — reuses Module 5.4's
@@ -64,7 +89,7 @@ class DeliberationAgendaController extends Controller
                 default => 'External',
             };
 
-            $matrix[$office][$pos][] = [
+            $matrix[$office][$pos]['applicants'][] = [
                 'id' => $app->id,
                 'name' => $app->last_name . ', ' . $app->first_name,
                 'tag' => $tag,

@@ -34,6 +34,7 @@ class User extends Authenticatable
         'is_approved',
         'must_change_password',
         'meets_complexity_gate',
+        'theme_preference',
         'google2fa_secret',
         'google2fa_enabled',
     ];

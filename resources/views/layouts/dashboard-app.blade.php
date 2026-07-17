@@ -11,10 +11,14 @@
         <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet">
         <!-- Bootstrap Icons -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        <link rel="stylesheet" href="{{ asset('css/theme-variables.css') }}">
         <link rel="stylesheet" href="{{ asset('css/theme-default.css') }}">
         <link rel="stylesheet" href="{{ asset('css/emerald-night.css') }}">
         <link rel="stylesheet" href="{{ asset('css/theme-financial.css') }}">
         <link rel="stylesheet" href="{{ asset('css/theme-corona.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/theme-eyecare.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/theme-nature.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/theme-civic-blue.css') }}">
 
         <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.default.min.css" rel="stylesheet">
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -23,7 +27,7 @@
             *, *::before, *::after { box-sizing: border-box; }
             body { font-family: 'Inter', sans-serif; margin: 0; transition: background-color .3s, color .3s; }
 
-            /* â”€â”€ Dark Mode Toggle Button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+            /* -- Dark Mode Toggle Button -------------------------------- */
             .dark-mode-toggle {
                 width: 38px; height: 38px; border-radius: 10px;
                 border: 1px solid #e2e8f0;
@@ -38,7 +42,7 @@
             .dark-mode-toggle.dark-active { background: #1e293b; border-color: #334155; color: #f8fafc; }
             .dark-mode-toggle.dark-active:hover { background: #334155; }
 
-            /* â”€â”€ Dark Mode Overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+            /* -- Dark Mode Overrides ------------------------------------ */
             body.dark-mode { background: #0f172a !important; color: #f8fafc !important; }
 
             /* Sidebar */
@@ -160,7 +164,7 @@
             }
             body.dark-mode .wizard-nav-btn:hover { background: #475569 !important; color: #f1f5f9 !important; }
 
-            /* â”€â”€ Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+            /* -- Sidebar --------------------------------------------- */
             .sidebar {
                 width: 240px; flex-shrink: 0;
                 background: #ffffff;
@@ -251,7 +255,7 @@
             }
             .sidebar-logout-btn:hover { background: rgba(239,68,68,.2); color: #dc2626; transform: scale(1.08); }
 
-            /* â”€â”€ Topbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+            /* -- Topbar ---------------------------------------------- */
             .topbar {
                 background: #fff; border-bottom: 1px solid #e5e7eb;
                 padding: 0 24px; height: 60px;
@@ -281,7 +285,7 @@
             }
             .topbar-logout-btn:hover { background: #fee2e2; transform: scale(1.02); }
 
-            /* â”€â”€ Premium Logout Modal â”€â”€ */
+            /* -- Premium Logout Modal -- */
             .logout-overlay {
                 display: none; position: fixed; inset: 0;
                 background: rgba(15,23,42,0.55);
@@ -359,7 +363,7 @@
             }
             .logout-modal-close:hover { background:rgba(0,0,0,.12); color:#0f172a; }
 
-            /* â”€â”€ Page Loading Overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+            /* -- Page Loading Overlay --------------------------------- */
             #page-loading-overlay {
                 display: none;
                 position: fixed; inset: 0; z-index: 99999;
@@ -388,10 +392,10 @@
             body.dark-mode .loading-label { color: #94a3b8; }
         </style>
     </head>
-    <body class="bg-gray-50 antialiased">
+    <body class="bg-gray-50 antialiased {{ auth()->user()?->theme_preference && auth()->user()->theme_preference !== 'default' ? auth()->user()->theme_preference : '' }}">
         <div style="display:flex;min-height:100vh;">
 
-            {{-- â•â•â•â•â•â•â•â•â•â• SIDEBAR â•â•â•â•â•â•â•â•â•â• --}}
+            {{-- ---------- SIDEBAR ---------- --}}
             <aside class="sidebar">
                 {{-- Logo --}}
                 <div class="sidebar-logo">
@@ -528,6 +532,16 @@
                     </a>
                     @endif
 
+                    <div class="sidebar-section-label">Document Filing</div>
+
+                    @if(Route::has('lgu.index'))
+                    <a href="{{ route('lgu.index') }}"
+                       class="sidebar-link {{ request()->routeIs('lgu.*') ? 'active' : '' }}">
+                        <i class="bi bi-folder2-open"></i>
+                        <span>Resources</span>
+                    </a>
+                    @endif
+
                     <div class="sidebar-section-label">Account</div>
 
                     <a href="{{ route('profile.edit') }}"
@@ -581,7 +595,7 @@
                 </div>
             </aside>
 
-            {{-- â•â•â•â•â•â•â•â•â•â• MAIN â•â•â•â•â•â•â•â•â•â• --}}
+            {{-- ---------- MAIN ---------- --}}
             <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
 
                 {{-- Topbar --}}
@@ -605,10 +619,15 @@
                             </button>
                             <ul class="dropdown-menu shadow" style="position: absolute; right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 0; min-width: 180px; z-index: 1000; list-style: none; margin-top: 5px; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                                 <li style="padding: 4px 16px; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Appearance</li>
-                                <li><a class="dropdown-item" href="#" onclick="setTheme('default'); return false;" style="display: flex; align-items: center; padding: 8px 16px; color: #475569; text-decoration: none; font-size: 13px; cursor: pointer;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"><i class="bi bi-sun" style="margin-right: 8px;"></i> Default Light</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="setTheme('emerald-night'); return false;" style="display: flex; align-items: center; padding: 8px 16px; color: #475569; text-decoration: none; font-size: 13px; cursor: pointer;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"><i class="bi bi-moon-stars" style="margin-right: 8px;"></i> Emerald Night</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="setTheme('theme-financial'); return false;" style="display: flex; align-items: center; padding: 8px 16px; color: #475569; text-decoration: none; font-size: 13px; cursor: pointer;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"><i class="bi bi-graph-up-arrow" style="margin-right: 8px;"></i> Financial (Teal)</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="setTheme('theme-corona'); return false;" style="display: flex; align-items: center; padding: 8px 16px; color: #475569; text-decoration: none; font-size: 13px; cursor: pointer;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"><i class="bi bi-moon" style="margin-right: 8px;"></i> Corona (Dark)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="chooseTheme('default'); return false;" style="display: flex; align-items: center; padding: 8px 16px; color: #475569; text-decoration: none; font-size: 13px; cursor: pointer;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"><i class="bi bi-sun" style="margin-right: 8px;"></i> Default Light</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="chooseTheme('theme-civic-blue'); return false;" style="display: flex; align-items: center; padding: 8px 16px; color: #475569; text-decoration: none; font-size: 13px; cursor: pointer;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"><i class="bi bi-bank" style="margin-right: 8px;"></i> Civic Blue</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="chooseTheme('emerald-night'); return false;" style="display: flex; align-items: center; padding: 8px 16px; color: #475569; text-decoration: none; font-size: 13px; cursor: pointer;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"><i class="bi bi-moon-stars" style="margin-right: 8px;"></i> Emerald Night</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="chooseTheme('theme-financial'); return false;" style="display: flex; align-items: center; padding: 8px 16px; color: #475569; text-decoration: none; font-size: 13px; cursor: pointer;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"><i class="bi bi-graph-up-arrow" style="margin-right: 8px;"></i> Modern Mint</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="chooseTheme('theme-corona'); return false;" style="display: flex; align-items: center; padding: 8px 16px; color: #475569; text-decoration: none; font-size: 13px; cursor: pointer;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"><i class="bi bi-moon" style="margin-right: 8px;"></i> Corona (Dark)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="chooseTheme('theme-light'); return false;" style="display: flex; align-items: center; padding: 8px 16px; color: #475569; text-decoration: none; font-size: 13px; cursor: pointer;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"><i class="bi bi-stars" style="margin-right: 8px;"></i> Indigo Light</a></li>
+                                <li style="padding: 4px 16px; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px;">Wellness</li>
+                                <li><a class="dropdown-item" href="#" onclick="chooseTheme('theme-eyecare'); return false;" style="display: flex; align-items: center; padding: 8px 16px; color: #475569; text-decoration: none; font-size: 13px; cursor: pointer;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"><i class="bi bi-flower1" style="margin-right: 8px;"></i> Earth &amp; Olive</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="chooseTheme('theme-nature'); return false;" style="display: flex; align-items: center; padding: 8px 16px; color: #475569; text-decoration: none; font-size: 13px; cursor: pointer;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'"><i class="bi bi-tree" style="margin-right: 8px;"></i> Forest &amp; Cream</a></li>
                             </ul>
                         </div>
 
@@ -721,7 +740,7 @@
 
         // Theme Management
         function setTheme(theme) {
-            document.body.classList.remove('emerald-night', 'theme-financial', 'theme-corona');
+            document.body.classList.remove('emerald-night', 'theme-financial', 'theme-corona', 'theme-eyecare', 'theme-nature', 'theme-light', 'theme-civic-blue');
             if (theme !== 'default') {
                 document.body.classList.add(theme);
             }
@@ -730,12 +749,31 @@
             document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
         }
 
+        // Called when the user actually picks a theme (dropdown / profile
+        // swatches): applies it immediately, then persists it to their
+        // account so it follows them across devices and survives logout.
+        function chooseTheme(theme) {
+            setTheme(theme);
+            fetch('{{ route('profile.theme') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                },
+                body: 'theme=' + encodeURIComponent(theme),
+            }).catch(function () { /* offline - localStorage already has it */ });
+        }
+
         function updateThemeToggleText(theme) {
             const toggles = document.querySelectorAll('.theme-toggle span');
             toggles.forEach(t => {
                 if (theme === 'emerald-night') t.innerText = ' Emerald Night';
-                else if (theme === 'theme-financial') t.innerText = ' Financial';
+                else if (theme === 'theme-financial') t.innerText = ' Modern Mint';
                 else if (theme === 'theme-corona') t.innerText = ' Corona Dark';
+                else if (theme === 'theme-light') t.innerText = ' Indigo Light';
+                else if (theme === 'theme-eyecare') t.innerText = ' Earth & Olive';
+                else if (theme === 'theme-nature') t.innerText = ' Forest & Cream';
+                else if (theme === 'theme-civic-blue') t.innerText = ' Civic Blue';
                 else t.innerText = ' Default Light';
             });
             const toggleIcons = document.querySelectorAll('.theme-toggle i');
@@ -744,11 +782,15 @@
                 if (theme === 'emerald-night') i.className = 'bi bi-moon-stars';
                 else if (theme === 'theme-financial') i.className = 'bi bi-graph-up-arrow';
                 else if (theme === 'theme-corona') i.className = 'bi bi-moon';
+                else if (theme === 'theme-light') i.className = 'bi bi-stars';
+                else if (theme === 'theme-eyecare') i.className = 'bi bi-flower1';
+                else if (theme === 'theme-nature') i.className = 'bi bi-tree';
+                else if (theme === 'theme-civic-blue') i.className = 'bi bi-bank';
                 else i.className = 'bi bi-sun';
             });
         }
 
-        // â”€â”€ Dark Mode Toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // -- Dark Mode Toggle -------------------------------------------
         function toggleDarkMode() {
             const isDark = document.body.classList.toggle('dark-mode');
             localStorage.setItem('app-dark-mode', isDark ? '1' : '0');
@@ -780,20 +822,20 @@
                 updateDarkModeIcon(false);
             }
 
-            // Restore theme
-            let savedTheme = localStorage.getItem('app-theme');
-            if (!savedTheme && localStorage.getItem('emerald-night') === '1') {
-                savedTheme = 'emerald-night';
-                localStorage.setItem('app-theme', 'emerald-night');
-                localStorage.removeItem('emerald-night');
+            // Restore theme - the DB value (if logged in) is authoritative,
+            // since the <body> tag was already server-rendered with it.
+            // localStorage is only a fallback for guests or legacy migration.
+            let savedTheme = @json(auth()->user()?->theme_preference);
+            if (!savedTheme) {
+                savedTheme = localStorage.getItem('app-theme');
+                if (!savedTheme && localStorage.getItem('emerald-night') === '1') {
+                    savedTheme = 'emerald-night';
+                    localStorage.removeItem('emerald-night');
+                }
             }
-            if (savedTheme) {
-                setTheme(savedTheme);
-            } else {
-                setTheme('default');
-            }
+            setTheme(savedTheme || 'default');
 
-            // â”€â”€ Page Loading Overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // -- Page Loading Overlay ---------------------------------
             const overlay = document.getElementById('page-loading-overlay');
 
             // Show loader on sidebar link clicks (skip anchors that open modals / external)
@@ -812,7 +854,7 @@
                 });
             });
 
-            // â”€â”€ Tauri Interceptor for Downloads and PDF links â”€â”€
+            // -- Tauri Interceptor for Downloads and PDF links --
             if (window.__TAURI__ && window.__TAURI__.core) {
                 console.log("[Tauri] Interceptor Active! IPC is available.");
                 

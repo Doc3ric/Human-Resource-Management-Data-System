@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Applicant;
 use App\Models\ApplicantEvaluation;
 use App\Models\PlantillaRecord;
+use App\Support\Recruitment\OfficeCanonicalizer;
+use App\Support\Recruitment\VacancyIdentifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -15,18 +17,42 @@ class RecruitmentController extends Controller
     {
         $query = Applicant::query();
 
+        // Raw office values, canonicalized for the filter dropdown (collapses office-name
+        // variants/abbreviations into one entry) — computed before filtering so a selected
+        // canonical office can be translated back into every raw spelling that matches it.
+        $rawOffices = Applicant::select('office')->distinct()->pluck('office')->filter()->values();
+        $offices = $rawOffices->map(fn ($raw) => OfficeCanonicalizer::canonicalize($raw))->unique()->sort()->values();
+
+        // Vacancy filter options, grouped by item_no so text variants of the same item collapse
+        // into one dropdown entry — computed before filtering, same reasoning as offices above.
+        // positionOffices lets the view scope the Position dropdown to the selected Office.
+        $positionRows = Applicant::whereNotNull('position_applied')->get(['position_applied', 'item_no', 'office']);
+        $positionGroups = [];
+        foreach ($positionRows as $row) {
+            $key = VacancyIdentifier::key($row->item_no, $row->position_applied);
+            $positionGroups[$key]['texts'][] = $row->position_applied;
+            $positionGroups[$key]['office'] = $positionGroups[$key]['office'] ?? OfficeCanonicalizer::canonicalize($row->office);
+        }
+        $positions = collect($positionGroups)
+            ->map(fn ($group) => VacancyIdentifier::labelFor($group['texts']))
+            ->sortBy(fn ($label) => $label);
+        $positionOffices = collect($positionGroups)->map(fn ($group) => $group['office']);
+
         // Filters
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('last_name', 'like', "%{$search}%")
                   ->orWhere('first_name', 'like', "%{$search}%")
-                  ->orWhere('reference_no', 'like', "%{$search}%");
+                  ->orWhere('reference_no', 'like', "%{$search}%")
+                  ->orWhere('item_no', 'like', "%{$search}%")
+                  ->orWhere('position_applied', 'like', "%{$search}%");
             });
         }
 
         if ($request->filled('position_applied')) {
-            $query->where('position_applied', 'like', '%' . $request->position_applied . '%');
+            $conditions = VacancyIdentifier::matchingConditions($positionRows, [$request->position_applied]);
+            VacancyIdentifier::applyMatch($query, $conditions);
         }
 
         if ($request->filled('highest_educational_attainment')) {
@@ -42,7 +68,8 @@ class RecruitmentController extends Controller
         }
 
         if ($request->filled('office')) {
-            $query->where('office', 'like', '%' . $request->office . '%');
+            $matchingRawOffices = OfficeCanonicalizer::matchingRawValues($rawOffices, [$request->office]);
+            $query->whereIn('office', $matchingRawOffices);
         }
 
         if ($request->filled('sex')) {
@@ -66,37 +93,19 @@ class RecruitmentController extends Controller
         $applicants = $query->with('evaluation')->orderBy('created_at', 'desc')->paginate(15);
 
         // For filter dropdown options
-        $positions = Applicant::select('position_applied')->distinct()->pluck('position_applied')->filter()->sort();
-        $offices = Applicant::select('office')->distinct()->pluck('office')->filter()->sort();
         $educations = Applicant::select('highest_educational_attainment')->distinct()->pluck('highest_educational_attainment')->filter()->sort();
-        
-        return view('recruitment.index', compact('applicants', 'positions', 'offices', 'educations', 'stats'));
+
+        return view('recruitment.index', compact('applicants', 'positions', 'positionOffices', 'offices', 'educations', 'stats'));
     }
 
     public function create()
     {
-        // Module 3.1 — vacant positions dropdown pulls from the live,
-        // actually-populated plantilla_records (the Position/OrganizationalUnit
-        // tables are legacy/empty in this app), DISTINCT by title, most
-        // recently added first. Selecting a title auto-populates read-only
-        // Office Allocation / Item Number / Salary Grade / Monthly Salary Rate.
-        $vacantRecords = \App\Models\PlantillaRecord::where('is_vacant', true)
-            ->where('abolished', false)
-            ->whereNotNull('position_title')
-            ->orderByDesc('created_at')
-            ->get(['position_title', 'office_department', 'item_no_new', 'salary_grade', 'base_salary_amount']);
-
-        $vacantPositions = $vacantRecords->pluck('position_title')->unique()->values();
-
-        // One representative (most recent) row per title, for JS auto-fill.
-        $vacantPositionDetails = $vacantRecords->unique('position_title')->values()->mapWithKeys(function ($r) {
-            return [$r->position_title => [
-                'office' => $r->office_department,
-                'item_no' => $r->item_no_new,
-                'salary_grade' => $r->salary_grade,
-                'monthly_rate' => $r->base_salary_amount,
-            ]];
-        });
+        // Reference list of all position titles
+        $vacantPositions = \App\Models\PlantillaRecord::whereNotNull('position_title')
+            ->pluck('position_title')
+            ->unique()
+            ->sort()
+            ->values();
 
         // Get all active offices
         $vacantOffices = \App\Models\OrganizationalUnit::where('status', 'active')
@@ -111,7 +120,7 @@ class RecruitmentController extends Controller
         $eligibilities = \App\Models\Applicant::select('eligibility')->whereNotNull('eligibility')->where('eligibility', '!=', '')->distinct()->pluck('eligibility')->sort();
         $addresses = \App\Models\Applicant::select('address')->whereNotNull('address')->where('address', '!=', '')->distinct()->pluck('address')->sort();
 
-        return view('recruitment.create', compact('vacantPositions', 'vacantOffices', 'vacantPositionDetails', 'degrees', 'eligibilities', 'addresses'));
+        return view('recruitment.create', compact('vacantPositions', 'vacantOffices', 'degrees', 'eligibilities', 'addresses'));
     }
 
     public function store(Request $request)
@@ -184,6 +193,29 @@ class RecruitmentController extends Controller
             }
         }
 
+        // Normalize the free-typed office name at write time (not just at read time) so
+        // new applications land under the same canonical office as existing ones instead
+        // of fragmenting the office filter with a fresh abbreviation/typo variant.
+        if (!empty($data['office'])) {
+            $data['office'] = OfficeCanonicalizer::canonicalize($data['office']);
+        }
+
+        // Reject an exact repeat application for the same vacancy — same person applying
+        // to a genuinely different item_no is allowed (they may apply to more than one
+        // position); same item_no (or, when item_no is blank on both, same position+office)
+        // is treated as an accidental duplicate submission, not a second application.
+        $dupeQuery = Applicant::where('email_address', $data['email_address']);
+        if (!empty($data['item_no'])) {
+            $dupeQuery->where('item_no', $data['item_no']);
+        } else {
+            $dupeQuery->whereNull('item_no')
+                ->where('position_applied', $data['position_applied'])
+                ->where('office', $data['office']);
+        }
+        if ($dupeQuery->exists()) {
+            return back()->withErrors(['position_applied' => 'You have already applied for this position. If you meant to apply for a different vacancy, make sure the Item No. is different from your previous application.'])->withInput();
+        }
+
         // Generate Reference No
         $data['reference_no'] = date('ymdHi') . rand(10, 99);
 
@@ -214,13 +246,12 @@ class RecruitmentController extends Controller
     {
         $applicant = Applicant::findOrFail($id);
 
-        $vacantRecords = \App\Models\PlantillaRecord::where('is_vacant', true)
-            ->where('abolished', false)
-            ->whereNotNull('position_title')
-            ->orderByDesc('created_at')
-            ->get(['position_title', 'office_department', 'item_no_new', 'salary_grade', 'base_salary_amount']);
-
-        $vacantPositions = $vacantRecords->pluck('position_title')->unique()->values();
+        // Reference list of all position titles
+        $vacantPositions = \App\Models\PlantillaRecord::whereNotNull('position_title')
+            ->pluck('position_title')
+            ->unique()
+            ->sort()
+            ->values();
 
         // Get all active offices
         $vacantOffices = \App\Models\OrganizationalUnit::where('status', 'active')
@@ -249,7 +280,7 @@ class RecruitmentController extends Controller
             return back()->withErrors(['plantilla_sync' => $mismatch])->withInput();
         }
 
-        $validated = $request->validate([
+        $request->validate([
             'last_name' => 'required|string|max:100',
             'first_name' => 'required|string|max:100',
             'middle_name' => 'nullable|string|max:100',
@@ -263,10 +294,34 @@ class RecruitmentController extends Controller
             'office' => 'required|string|max:150',
             'highest_educational_attainment' => 'required|string',
             'degree' => 'nullable|string',
-            'eligibility' => 'required|string',
+            'eligibility' => 'nullable|string',
         ]);
 
-        $applicant->update($validated);
+        $data = $request->except(['_token', '_method']);
+        $data['is_pgb_employee']        = $request->has('is_pgb_employee');
+        $data['is_pwd']                 = $request->has('is_pwd');
+        $data['has_non_pgb_employment'] = $request->has('has_non_pgb_employment');
+
+        // Clear PGB sub-fields when not a PGB employee
+        if (!$data['is_pgb_employee']) {
+            foreach (['pgb_status','length_of_service','current_position',
+                      'years_in_present_position','years_permanent','years_coterminous',
+                      'years_casual','years_job_order'] as $f) {
+                $data[$f] = null;
+            }
+        }
+        // Clear non-PGB sub-fields when not applicable
+        if (!$data['has_non_pgb_employment']) {
+            foreach (['np_employment_status','np_employer','np_designation','np_period'] as $f) {
+                $data[$f] = null;
+            }
+        }
+
+        $applicant->fill($data);
+        
+        $validator = new \App\Support\PlantillaSyncValidator();
+        $validator->snapshot($applicant);
+        $applicant->save();
         
         return redirect()->route('recruitment.index')->with('success', 'Applicant updated successfully.');
     }
@@ -300,6 +355,134 @@ class RecruitmentController extends Controller
         );
 
         return back()->with('success', 'Pre-evaluation saved for ' . $applicant->full_name . '.');
+    }
+
+    public function preEvaluate(Request $request)
+    {
+        $applicantsQuery = Applicant::with('evaluation');
+
+        // Get unique offices and positions from all applicants
+        $rawOffices = (clone $applicantsQuery)->whereNotNull('office')->where('office', '!=', '')->distinct()->pluck('office');
+        $offices = $rawOffices->map(fn ($raw) => OfficeCanonicalizer::canonicalize($raw))->unique()->sort()->values();
+
+        // Vacancy filter options — grouped by item_no (the authoritative Plantilla item)
+        // so text variants of the same item ("Nurse II BPMC-43, SG-16..." vs "...43,560.00")
+        // collapse into one entry; falls back to cleaned position text when item_no is blank.
+        $positionsData = (clone $applicantsQuery)
+            ->whereNotNull('position_applied')
+            ->select('position_applied', 'item_no', 'salary_grade_snapshot', 'office')
+            ->get();
+
+        $positionGroups = [];
+        foreach ($positionsData as $pos) {
+            $key = VacancyIdentifier::key($pos->item_no, $pos->position_applied);
+            $positionGroups[$key]['texts'][] = $pos->position_applied;
+            $positionGroups[$key]['item_no'] = $positionGroups[$key]['item_no'] ?? $pos->item_no;
+            $positionGroups[$key]['sg'] = $positionGroups[$key]['sg'] ?? $pos->salary_grade_snapshot;
+            $positionGroups[$key]['office'] = $positionGroups[$key]['office'] ?? OfficeCanonicalizer::canonicalize($pos->office);
+        }
+
+        // positionOffices lets the view scope "Select Vacancies (Items)" to whichever
+        // office(s) are currently selected, so users can't pick a mismatched combo.
+        $positions = [];
+        $positionOffices = [];
+        foreach ($positionGroups as $key => $group) {
+            $rate = \App\Models\SalaryGrade::getRate($group['sg'], 1);
+            $label = sprintf("%s (Item: %s | SG-%s | ₱ %s)",
+                VacancyIdentifier::labelFor($group['texts']),
+                $group['item_no'] ?: 'N/A',
+                $group['sg'] ?? 'N/A',
+                number_format($rate, 2)
+            );
+            $positions[$key] = $label;
+            $positionOffices[$key] = $group['office'];
+        }
+        asort($positions);
+
+        // Apply filters
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $applicantsQuery->where(function ($q) use ($search) {
+                $q->where('last_name', 'like', "%{$search}%")
+                  ->orWhere('first_name', 'like', "%{$search}%")
+                  ->orWhere('reference_no', 'like', "%{$search}%");
+            });
+        }
+        if ($request->filled('offices')) {
+            $selectedOffices = $request->input('offices');
+            $matchingRawOffices = OfficeCanonicalizer::matchingRawValues($rawOffices, $selectedOffices);
+            $applicantsQuery->whereIn('office', $matchingRawOffices);
+        }
+        if ($request->filled('positions')) {
+            $conditions = VacancyIdentifier::matchingConditions($positionsData, $request->input('positions'));
+            VacancyIdentifier::applyMatch($applicantsQuery, $conditions);
+        }
+
+        $applicants = $applicantsQuery->orderBy('last_name')->get();
+
+        // Group by canonical Office -> Vacancy (item_no-aware — collapses position-text variants
+        // of the same item, and keeps genuinely different items apart even if titled identically)
+        $matrix = [];
+        foreach ($applicants as $app) {
+            $office = OfficeCanonicalizer::canonicalize($app->office);
+            $vacancyKey = VacancyIdentifier::key($app->item_no, $app->position_applied);
+
+            if (!isset($matrix[$office])) {
+                $matrix[$office] = [];
+            }
+            if (!isset($matrix[$office][$vacancyKey])) {
+                $rate = \App\Models\SalaryGrade::getRate($app->salary_grade_snapshot, 1);
+                $matrix[$office][$vacancyKey] = [
+                    'label' => null,
+                    'item_no' => $app->item_no,
+                    'sg' => $app->salary_grade_snapshot,
+                    'rate' => $rate,
+                    'applicants' => [],
+                    'position_texts' => [],
+                ];
+            }
+
+            $matrix[$office][$vacancyKey]['position_texts'][] = $app->position_applied;
+            $matrix[$office][$vacancyKey]['applicants'][] = $app;
+        }
+        foreach ($matrix as $office => &$vacancies) {
+            foreach ($vacancies as $vacancyKey => &$details) {
+                $details['label'] = VacancyIdentifier::labelFor($details['position_texts']);
+                unset($details['position_texts']);
+            }
+            unset($details);
+        }
+        unset($vacancies);
+        ksort($matrix);
+
+        return view('recruitment.pre-evaluate', compact('offices', 'positions', 'positionOffices', 'matrix'));
+    }
+
+    public function bulkSaveEvaluation(Request $request)
+    {
+        $evaluations = $request->input('evaluations', []);
+        $userId = auth()->id();
+        $now = now();
+
+        foreach ($evaluations as $appId => $eval) {
+            // Only update if final_rating or some other specific field is set to prevent overwriting all with blanks if they didn't touch it
+            if (!empty($eval['final_rating']) || !empty($eval['qs_requirement']) || !empty($eval['exam_status']) || !empty($eval['docs_complete'])) {
+                ApplicantEvaluation::updateOrCreate(
+                    ['applicant_id' => $appId],
+                    [
+                        'qs_requirement' => $eval['qs_requirement'] ?? null,
+                        'exam_status'    => $eval['exam_status'] ?? null,
+                        'docs_complete'  => $eval['docs_complete'] ?? null,
+                        'final_rating'   => $eval['final_rating'] ?? null,
+                        'remarks'        => $eval['remarks'] ?? null,
+                        'evaluated_by'   => $userId,
+                        'evaluated_at'   => $now,
+                    ]
+                );
+            }
+        }
+
+        return back()->with('success', 'Bulk Pre-evaluations saved successfully.');
     }
 
     public function syncIpcr($id)
@@ -508,7 +691,11 @@ class RecruitmentController extends Controller
 
                 'position_applied'       => $positionApplied ?: 'Unspecified',
                 'item_no'                => $itemNo,
-                'office'                 => $null('PGB OFFICE'),
+                // Office of the VACANCY, derived from the item number's office-code
+                // prefix — NOT the "PGB OFFICE" column, which is the applicant's own
+                // current PGB employer (only meaningful for internal candidates, and
+                // blank for the external majority) and is a different field entirely.
+                'office'                 => OfficeCanonicalizer::fromItemNo($itemNo),
 
                 'highest_educational_attainment' => $hea,
                 'degree'                 => $degree,
@@ -573,29 +760,58 @@ class RecruitmentController extends Controller
 
     public function generateReport(Request $request)
     {
+        $isPreeval = $request->report_type === 'preeval';
+
         $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'start_date' => $isPreeval ? 'nullable|date' : 'required|date',
+            'end_date' => $isPreeval ? 'nullable|date|after_or_equal:start_date' : 'required|date|after_or_equal:start_date',
             'office' => 'nullable|string',
             'position_applied' => 'nullable|string',
         ]);
 
-        $query = Applicant::query()
-            ->whereBetween('created_at', [
+        $query = Applicant::query();
+
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('created_at', [
                 \Carbon\Carbon::parse($request->start_date)->startOfDay(),
                 \Carbon\Carbon::parse($request->end_date)->endOfDay()
             ]);
+        }
 
         if ($request->filled('office')) {
-            $query->where('office', $request->office);
+            $rawOffices = Applicant::select('office')->distinct()->pluck('office')->filter()->values();
+            $matchingRawOffices = OfficeCanonicalizer::matchingRawValues($rawOffices, [$request->office]);
+            $query->whereIn('office', $matchingRawOffices);
         }
 
         if ($request->filled('position_applied')) {
-            $query->where('position_applied', $request->position_applied);
+            $searchPos = $request->position_applied;
+            $query->where(function($q) use ($searchPos) {
+                $q->where('position_applied', 'like', "%{$searchPos}%")
+                  ->orWhere('item_no', 'like', "%{$searchPos}%");
+            });
         }
 
         if ($request->filled('item_no')) {
-            $query->where('item_no', $request->item_no);
+            if (in_array($request->report_type, ['preeval', 'demographics'])) {
+                // In deliberation views, the 'item_no' parameter actually contains a VacancyIdentifier::key
+                // (which can be a real item_no, OR a cleaned position title). We must resolve it exactly 
+                // as DeliberationController does to get the same cohort of applicants.
+                $positionRows = Applicant::whereNotNull('position_applied');
+                if (isset($matchingRawOffices)) {
+                    $positionRows->whereIn('office', $matchingRawOffices);
+                }
+                $positionRows = $positionRows->get(['position_applied', 'item_no']);
+                
+                $conditions = \App\Support\Recruitment\VacancyIdentifier::matchingConditions($positionRows, [$request->item_no]);
+                \App\Support\Recruitment\VacancyIdentifier::applyMatch($query, $conditions);
+            } else {
+                $normalizedItemNo = str_replace(' ', '-', trim($request->item_no));
+                $query->where(function($q) use ($request, $normalizedItemNo) {
+                    $q->where('item_no', $request->item_no)
+                      ->orWhere('item_no', $normalizedItemNo);
+                });
+            }
         }
 
         if ($request->filled('degree')) {
@@ -604,6 +820,12 @@ class RecruitmentController extends Controller
 
         if ($request->filled('eligibility')) {
             $query->where('eligibility', 'like', '%' . $request->eligibility . '%');
+        }
+
+        if ($request->report_type === 'preeval') {
+            $query->whereHas('evaluation', function($q) {
+                $q->whereIn('final_rating', ['Qualified', 'Disqualified']);
+            });
         }
 
         $applicants = $query->with('evaluation')->orderBy('office')->orderBy('position_applied')->orderBy('last_name')->get();
@@ -628,12 +850,18 @@ class RecruitmentController extends Controller
         }
 
         if ($request->report_type === 'demographics') {
-            // Group by office → position/item_no
+            // Group by canonical office → item_no-aware vacancy (collapses office-name and
+            // position-text variants of the same real office/item into one group each), then
+            // rebuild the "item_no|position title" key the view expects with a clean majority-vote label.
             $groupedApplicants = $applicants->groupBy(function ($a) {
-                return $a->office ?: 'Unspecified Office';
+                return OfficeCanonicalizer::canonicalize($a->office);
             })->map(function ($officeGroup) {
                 return $officeGroup->groupBy(function ($a) {
-                    return ($a->item_no ?: '') . '|' . $a->position_applied;
+                    return VacancyIdentifier::key($a->item_no, $a->position_applied);
+                })->mapWithKeys(function ($group, $vacancyKey) {
+                    $itemNo = $group->first()->item_no ?: '';
+                    $label = VacancyIdentifier::labelFor($group->pluck('position_applied'));
+                    return [$itemNo . '|' . $label => $group];
                 });
             });
 
@@ -656,9 +884,10 @@ class RecruitmentController extends Controller
         }
 
         if ($request->report_type === 'preeval') {
-            // Group applicants by Office and Position
+            // Group applicants by canonical Office and item_no-aware vacancy (collapses
+            // position-text variants of the same real item into one group)
             $groupedApplicants = $applicants->groupBy(function($item) {
-                return $item->office . '|' . $item->position_applied;
+                return OfficeCanonicalizer::canonicalize($item->office) . '|' . VacancyIdentifier::key($item->item_no, $item->position_applied);
             });
 
             if ($request->format === 'excel') {
@@ -865,6 +1094,17 @@ class RecruitmentController extends Controller
                     if (preg_match('/([A-Z]{2,6}-[A-Z]{2,6}-\d+|[A-Z]{3,6}-\d+)/i', $payload['position_applied'], $m)) {
                         $payload['item_no'] = strtoupper($m[1]);
                     }
+                }
+
+                // Normalized at write time (not just read time) so this row lands under
+                // the same canonical office as existing records instead of fragmenting
+                // the office filter with a fresh abbreviation/typo variant.
+                if (!empty($payload['office'])) {
+                    $payload['office'] = OfficeCanonicalizer::canonicalize($payload['office']);
+                } elseif (!empty($payload['item_no'])) {
+                    // No office column was mapped for this file — fall back to deriving
+                    // it from the item number's office-code prefix, same as the CSV path.
+                    $payload['office'] = OfficeCanonicalizer::fromItemNo($payload['item_no']);
                 }
 
                 // Duplicate logic: same email + same item_no → update; else create

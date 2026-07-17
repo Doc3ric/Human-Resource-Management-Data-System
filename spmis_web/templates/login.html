@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block bodyonly %}
+<div class="loginwrap"><form class="loginbox" method="post">
+  <h1>PGB&ndash;SPMIS</h1>
+  <p class="sub">Provincial Government of Bukidnon &middot; PHRMO</p>
+  {% with msgs = get_flashed_messages() %}{% if msgs %}<div class="flash">{% for m in msgs %}<div>{{ m }}</div>{% endfor %}</div>{% endif %}{% endwith %}
+  <label>Username</label><input name="username" autofocus required>
+  <label>Password</label><input name="password" type="password" required>
+  <button>Sign in</button>
+  <p class="hint">Default: admin / admin123 (change after first login)</p>
+</form></div>{% endblock %}

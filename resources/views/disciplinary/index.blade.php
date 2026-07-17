@@ -18,7 +18,16 @@
                 <tr style="border-top:1px solid #f3f4f6;">
                     <td style="padding:8px;"><a href="{{ route('disciplinary.show', $c) }}">{{ $c->case_no }}</a></td>
                     <td>{{ str_replace('_', ' ', ucfirst($c->offense_classification)) }}</td>
-                    <td>{{ str_replace('_', ' ', ucfirst($c->status)) }}</td>
+                    <td>
+                        @php
+                            // Workflow-stage mapping only — status reflects case progress,
+                            // not the outcome, so it deliberately never maps to approved/flagged.
+                            $isConcluded = in_array($c->status, ['decided', 'closed'], true);
+                        @endphp
+                        <span class="{{ $isConcluded ? 'badge-inactive' : 'badge-pending' }}">
+                            {{ str_replace('_', ' ', ucfirst($c->status)) }}
+                        </span>
+                    </td>
                     <td>{{ $c->created_at->format('M d, Y') }}</td>
                 </tr>
             @empty

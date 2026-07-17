@@ -24,16 +24,16 @@
             <form action="{{ route('recruitment.hrmpsb.comparative_report') }}" method="GET" class="row g-3 align-items-end">
                 <div class="col-md-3">
                     <label class="form-label">Filter by Position</label>
-                    <select name="position" class="form-select">
+                    <select name="position" id="reportPositionFilter" class="form-select">
                         <option value="">-- All Positions --</option>
-                        @foreach($positions as $pos)
-                            <option value="{{ $pos }}" {{ $position == $pos ? 'selected' : '' }}>{{ $pos }}</option>
+                        @foreach($positions as $posKey => $posLabel)
+                            <option value="{{ $posKey }}" data-office="{{ $positionOffices[$posKey] ?? '' }}" {{ $position == $posKey ? 'selected' : '' }}>{{ $posLabel }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Filter by Office</label>
-                    <select name="office" class="form-select">
+                    <select name="office" id="reportOfficeFilter" class="form-select">
                         <option value="">-- All Offices --</option>
                         @foreach($offices as $off)
                             <option value="{{ $off }}" {{ $office == $off ? 'selected' : '' }}>{{ $off }}</option>
@@ -185,4 +185,31 @@
 
     </div>
 </div>
+<script>
+    // Narrows the Position dropdown to whichever Office is selected, so users can't pick
+    // a mismatched office/position combo that silently returns zero results.
+    document.addEventListener('DOMContentLoaded', function () {
+        var officeSelect = document.getElementById('reportOfficeFilter');
+        var positionSelect = document.getElementById('reportPositionFilter');
+        if (!officeSelect || !positionSelect) return;
+
+        var allOptions = Array.prototype.slice.call(positionSelect.options);
+
+        function applyFilter() {
+            var selectedOffice = officeSelect.value;
+            allOptions.forEach(function (opt) {
+                if (!opt.value) return; // keep the "All Positions" placeholder always visible
+                var optOffice = opt.getAttribute('data-office');
+                opt.style.display = (selectedOffice && optOffice && optOffice !== selectedOffice) ? 'none' : '';
+            });
+            var selected = positionSelect.options[positionSelect.selectedIndex];
+            if (selected && selected.style.display === 'none') {
+                positionSelect.value = '';
+            }
+        }
+
+        officeSelect.addEventListener('change', applyFilter);
+        applyFilter();
+    });
+</script>
 </x-dashboard-app>

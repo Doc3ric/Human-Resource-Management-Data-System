@@ -7,6 +7,7 @@ use App\Models\DisciplinaryCase;
 use App\Models\IncidentReport;
 use App\Models\RaccsAccessLog;
 use App\Support\Raccs\RaccsMfaGate;
+use App\Support\Violations\ViolationLinkageService;
 use Illuminate\Http\Request;
 
 /**
@@ -28,8 +29,9 @@ class DisciplinaryCaseController extends Controller
     private function assertRaccsAccess(Request $request, string $action): ?\Illuminate\Http\RedirectResponse
     {
         $user = $request->user();
-        $hasRole = $user->isSuperAdmin() || $user->hasAnyRole(self::RACCS_ROLES);
-        $mfaOk = $hasRole && RaccsMfaGate::isVerified();
+        $isSuperAdmin = $user->isSuperAdmin();
+        $hasRole = $isSuperAdmin || $user->hasAnyRole(self::RACCS_ROLES);
+        $mfaOk = $isSuperAdmin || ($hasRole && RaccsMfaGate::isVerified());
         $allowed = $hasRole && $mfaOk;
 
         RaccsAccessLog::create([
@@ -73,14 +75,33 @@ class DisciplinaryCaseController extends Controller
             'offense_classification' => 'required|in:light,less_grave,grave',
         ]);
 
+        // Enhancement Spec Sec. 4 — reference-only link back to the immutable
+        // 201-file ledger entry already recorded for this incident (via
+        // IncidentReport::finalize()), if one exists. Never auto-spawned here —
+        // this controller's own human-authored formal_charge is the case itself.
+        $originatingViolationId = !empty($data['incident_report_id'])
+            ? app(ViolationLinkageService::class)->findForSource('IncidentReport', $data['incident_report_id'])?->violation_id
+            : null;
+
         $case = DisciplinaryCase::create([
             ...$data,
+            'originating_violation_id' => $originatingViolationId,
             'case_no' => 'RACCS-' . date('Y') . '-' . strtoupper(substr(uniqid(), -6)),
             'created_by' => $request->user()->id,
         ]);
 
         if (!empty($data['incident_report_id'])) {
             IncidentReport::where('id', $data['incident_report_id'])->update(['final_track' => 'escalated']);
+        }
+
+        if ($originatingViolationId) {
+            \App\Models\ViolationStatusLog::create([
+                'violation_id' => $originatingViolationId,
+                'status' => 'Escalated',
+                'date_logged' => now(),
+                'remarks' => "Admin Case #{$case->case_no} opened.",
+                'logged_by' => $request->user()->id,
+            ]);
         }
 
         ActivityLog::create([

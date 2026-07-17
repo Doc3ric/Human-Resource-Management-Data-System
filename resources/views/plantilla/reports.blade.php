@@ -566,6 +566,7 @@ function getCatPill($cat) {
                     <th>Office / Unit</th>
                     <th class="tc">Date Effectivity</th>
                     <th>Nature of Separation</th>
+                    <th>Basis Reference</th>
                 </tr>
             </thead>
             <tbody>
@@ -581,9 +582,10 @@ function getCatPill($cat) {
                         {{ $r->date_separated ? \Carbon\Carbon::parse($r->date_separated)->format('m/d/Y') : '—' }}
                     </td>
                     <td style="font-weight:600; color:#b45309;">{{ $r->nature_of_separation ?: 'N/A' }}</td>
+                    <td>{{ $r->basis_reference ?: '—' }}</td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="empty-state">No separation records for {{ $year }}.</td></tr>
+                <tr><td colspan="6" class="empty-state">No separation records for {{ $year }}.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -790,6 +792,71 @@ function getCatPill($cat) {
             Please select a Status and Period above, then click Generate to view the custom report.
         </div>
         @endif
+    </div>
+</div>
+
+{{-- ─────────────────────────────────────────────────────────────────────────
+     REPORT 8: Detailed Employees (Enhancement Spec Sec. 5)
+ ──────────────────────────────────────────────────────────────────────────── --}}
+<div class="office-card">
+    <button type="button" onclick="rptToggle('r8')" class="office-btn">
+        <div class="off-left">
+            <div class="off-icon-box" style="background: #eff6ff; color: #1d4ed8;">
+                <i class="bi bi-8-square-fill"></i>
+            </div>
+            <div>
+                <div class="off-name">Detailed Employees</div>
+                <div class="off-sub">Employees currently on detail to another unit</div>
+            </div>
+        </div>
+        <div class="off-right no-print" style="gap:10px;">
+            <div style="display:flex;gap:6px;">
+                <a href="{{ route('plantilla.reports.export.pdf', 8) . '?as_of=' . $asOf . ($r8_include_recalled ? '&r8_include_recalled=1' : '') }}" class="export-btn export-btn-pdf" title="Export PDF">
+                    <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                </a>
+                <a href="{{ route('plantilla.reports.export.excel', 8) . '?as_of=' . $asOf . ($r8_include_recalled ? '&r8_include_recalled=1' : '') }}" class="export-btn export-btn-xlsx" title="Export Excel">
+                    <i class="bi bi-file-earmark-excel-fill"></i> Excel
+                </a>
+            </div>
+            <span class="off-view-btn" style="color:#1d4ed8;">
+                View Report <i class="bi bi-chevron-down chevron" id="r8-chev"></i>
+            </span>
+        </div>
+    </button>
+    <div id="r8" style="border-top:1px solid #f3f4f6; display: none;">
+        <div class="p-4 no-print" style="border-bottom:1px solid #f3f4f6;">
+            <form method="GET" style="display:flex; align-items:center; gap:8px;">
+                <input type="hidden" name="as_of" value="{{ $asOf }}">
+                <label style="font-size:13px; color:#374151; display:flex; align-items:center; gap:6px;">
+                    <input type="checkbox" name="r8_include_recalled" value="1" onchange="this.form.submit()" {{ $r8_include_recalled ? 'checked' : '' }}>
+                    Include Recalled / Historical (for COA audit trail)
+                </label>
+            </form>
+        </div>
+        <div class="overflow-x-auto p-4">
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th style="width:50px;">#</th>
+                    <th>Employee Name</th>
+                    <th>Detailed Unit</th>
+                    <th class="tc">Date of Movement</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($report8 as $idx => $order)
+                <tr>
+                    <td style="color:#94a3b8;">{{ $idx + 1 }}</td>
+                    <td style="font-weight:600;">{{ strtoupper($order->plantillaRecord?->last_name ?? '') }}, {{ $order->plantillaRecord?->first_name ?? '' }}</td>
+                    <td>{{ $order->detailed_unit }}</td>
+                    <td class="tc">{{ $order->date_effective_start->format('m/d/Y') }}</td>
+                </tr>
+                @empty
+                <tr><td colspan="4" class="empty-state">No detail orders to report.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+        </div>
     </div>
 </div>
 

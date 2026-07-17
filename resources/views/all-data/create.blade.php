@@ -130,15 +130,15 @@
                                 <select id="org_unit_select"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white outline-none">
                                     <option value="">Select an office...</option>
-                                    @foreach($offices as $office)
+                                    @foreach(($globalOffices ?? collect([]))->pluck('name')->filter()->unique() as $office)
                                         <option value="{{ $office }}" {{ $oldOrg === $office ? 'selected' : '' }}>
                                             {{ $office }}</option>
                                     @endforeach
-                                    <option value="Others" {{ $oldOrg && !$offices->contains($oldOrg) ? 'selected' : '' }}>Others (Please specify)</option>
+                                    <option value="Others" {{ $oldOrg && !($globalOffices ?? collect([]))->pluck('name')->contains($oldOrg) ? 'selected' : '' }}>Others (Please specify)</option>
                                 </select>
                                 <input type="text" name="office_department" id="org_unit_input" value="{{ $oldOrg }}"
                                     placeholder="Type OFFICE manually..."
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none {{ $oldOrg && !$offices->contains($oldOrg) ? '' : 'hidden' }}">
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none {{ $oldOrg && !($globalOffices ?? collect([]))->pluck('name')->contains($oldOrg) ? '' : 'hidden' }}">
                             </div>
                         </div>
 
@@ -238,7 +238,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Actual Annual Salary <span
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Actual Monthly Salary <span
                                     class="text-gray-400 text-[10px] ml-1">(Calculates from SG if blank)</span></label>
                             <input type="text" inputmode="decimal" name="base_salary_amount" id="base_salary_amount"
                                 value="{{ old('base_salary_amount') }}"
@@ -275,6 +275,22 @@
                             <label class="block text-xs font-medium text-gray-600 mb-1">Level</label>
                             <input type="text" name="level" value="{{ old('level') }}"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Detailed Unit</label>
+                            <div class="flex flex-col gap-2">
+                                @php $oldSub = old('detailed_unit'); $uniqueSubs = ($globalOffices ?? collect([]))->pluck('sub_office')->filter()->unique(); @endphp
+                                <select id="detailed_unit_select" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white outline-none">
+                                    <option value="">Select a sub-office...</option>
+                                    @foreach($uniqueSubs as $sub)
+                                        <option value="{{ $sub }}" {{ $oldSub === $sub ? 'selected' : '' }}>{{ $sub }}</option>
+                                    @endforeach
+                                    <option value="Others" {{ $oldSub && !$uniqueSubs->contains($oldSub) ? 'selected' : '' }}>Others (Please specify)</option>
+                                </select>
+                                <input type="text" name="detailed_unit" id="detailed_unit_input" value="{{ $oldSub }}"
+                                    placeholder="Type Detailed Unit manually..."
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none {{ $oldSub && !$uniqueSubs->contains($oldSub) ? '' : 'hidden' }}">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -619,7 +635,7 @@
                         .then(data => {
                             if (data.annual_salary) {
                                 authSalaryInput.value = window.pesoFormat ? window.pesoFormat(data.annual_salary) : data.annual_salary;
-                                actualSalaryInput.value = window.pesoFormat ? window.pesoFormat(data.annual_salary) : data.annual_salary;
+                                actualSalaryInput.value = window.pesoFormat ? window.pesoFormat(data.monthly_salary) : data.monthly_salary;
                             }
                         })
                         .catch(err => console.error('Error fetching salary:', err));
@@ -633,6 +649,33 @@
                 // Fetch on initial load if we don't have numbers yet but have old values for SG
                 if (sgInput.value && (!authSalaryInput.value || !actualSalaryInput.value)) {
                     fetchSalary();
+                }
+            }
+
+            
+            // SUB-OFFICE Toggle
+            const subSelect = document.getElementById('detailed_unit_select');
+            const subInput = document.getElementById('detailed_unit_input');
+            if (subSelect && subInput) {
+                subSelect.addEventListener('change', function () {
+                    if (this.value === 'Others') {
+                        subInput.classList.remove('hidden');
+                        let isFromList = false;
+                        Array.from(subSelect.options).forEach(opt => {
+                            if (opt.value && opt.value !== 'Others' && opt.value === subInput.value) {
+                                isFromList = true;
+                            }
+                        });
+                        if (isFromList) subInput.value = '';
+                        subInput.focus();
+                    } else {
+                        subInput.classList.add('hidden');
+                        subInput.value = this.value;
+                    }
+                });
+                // Initialize
+                if (subSelect.value !== 'Others' && subSelect.value !== '') {
+                    subInput.value = subSelect.value;
                 }
             }
 

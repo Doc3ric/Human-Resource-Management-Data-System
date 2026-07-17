@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block body %}
+<h1>IPCR Records</h1>{% if session.role != 'viewer' %}<a class="btn" href="{{ url_for('ipcr_new') }}">+ New IPCR</a>{% endif %}
+<table><tr><th>#</th><th>Employee</th><th>Period</th><th>P1</th><th>P2</th><th>FNR</th><th>Adjectival</th><th>Status</th><th></th>{% if session.role != 'viewer' %}<th></th>{% endif %}</tr>
+{% for r in rows %}<tr><td>{{r.id}}</td><td>{{r.emp}}</td><td>{{r.period}}</td>
+<td>{{r.p1 or '-'}}</td><td>{{r.p2 or '-'}}</td><td><b>{{r.fnr or '-'}}</b></td>
+<td>{{r.adjectival or '-'}}</td><td>{{r.status}}</td>
+<td><a href="{{ url_for('ipcr_detail', ipcr_id=r.id) }}">open</a></td>
+{% if session.role != 'viewer' %}<td><form method="post" class="inline" action="{{ url_for('ipcr_delete', ipcr_id=r.id) }}" onsubmit="return confirm('Delete IPCR #{{r.id}} and all its entries?')"><button class="ghost danger">Del</button></form></td>{% endif %}
+</tr>{% endfor %}</table>
+{% endblock %}

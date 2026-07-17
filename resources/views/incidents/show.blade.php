@@ -1,10 +1,39 @@
 <x-dashboard-app>
 <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;max-width:800px;margin:0 auto;">
-    <h2 style="font-size:16px;font-weight:800;">{{ $incident->reference_no }}</h2>
-    <p style="font-size:12.5px;color:#6b7280;">{{ ucfirst($incident->category) }} — {{ $incident->incident_datetime->format('M d, Y g:i A') }} @ {{ $incident->location }}</p>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+            <h2 style="font-size:16px;font-weight:800;">{{ $incident->reference_no }}</h2>
+            <p style="font-size:12.5px;color:#6b7280;">{{ ucfirst($incident->category) }} — {{ $incident->incident_datetime->format('M d, Y g:i A') }} @ {{ $incident->location }}</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+            @if(auth()->user()->isSuperAdmin() || auth()->user()->can('edit Incident Reports'))
+                <a href="{{ route('incidents.edit', $incident) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+            @endif
+            @if(auth()->user()->isSuperAdmin() || auth()->user()->can('delete Incident Reports'))
+                <form method="POST" action="{{ route('incidents.destroy', $incident) }}" onsubmit="return confirm('Are you sure you want to delete this incident report? This action cannot be undone.');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </form>
+            @endif
+            <a href="{{ route('incidents.report', $incident) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-file-earmark-pdf"></i> Generate Report
+            </a>
+        </div>
+    </div>
 
     @if(session('success'))
         <div style="background:#f0fdf4;color:#166534;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;">{{ session('success') }}</div>
+    @endif
+
+    @if($incident->involved_person_name)
+        <h4 style="font-size:13px;font-weight:700;margin-top:16px;">Involved Person/Employee</h4>
+        <p style="font-size:13px;margin:0;">{{ $incident->involved_person_name }}</p>
+        <p style="font-size:12px;color:#6b7280;margin:0;">{{ $incident->involved_position ?? '—' }} @if($incident->involved_office) &middot; {{ $incident->involved_office }} @endif</p>
     @endif
 
     <h4 style="font-size:13px;font-weight:700;margin-top:16px;">Narrative</h4>

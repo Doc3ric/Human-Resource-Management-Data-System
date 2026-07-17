@@ -114,7 +114,7 @@ test('Module 6.7: the CER selector picks Level 1 for SG below 10 and Level 2 for
     expect($response->headers->get('Content-Disposition'))->toContain('CER_Level_2');
 });
 
-test('Module 8.4: Layout D CSV includes both real name and masked ID per spec (this layout is not a blind surface)', function () {
+test('Module 8.4: Layout D CSV includes the real applicant name per spec (this layout is not a blind surface)', function () {
     $applicant = Applicant::factory()->create(['last_name' => 'ZZLAYOUTDSURNAME', 'position_applied' => 'Administrative Aide I']);
 
     $response = $this->actingAs($this->admin)->get(route('recruitment.deliberation.export.layout-d', ['position' => 'Administrative Aide I']));
@@ -122,7 +122,7 @@ test('Module 8.4: Layout D CSV includes both real name and masked ID per spec (t
     $response->assertOk();
     $csv = $response->streamedContent();
     expect($csv)->toContain('ZZLAYOUTDSURNAME');
-    expect($csv)->toContain(BlindScoringId::forApplicant($applicant));
+    expect($csv)->toContain('Applicant Name');
 });
 
 // ---------------------------------------------------------------------
@@ -146,7 +146,7 @@ test('Module 5.4/6.5: agenda prep classifies applicants using ExamRoutingService
 
     $response->assertOk();
     $matrix = $response->viewData('matrix');
-    $tags = collect($matrix['PHRMO']['Admin Aide'])->pluck('tag', 'id');
+    $tags = collect($matrix['PHRMO']['Admin Aide']['applicants'])->pluck('tag', 'id');
     expect($tags[$jo->id])->toBe('Job Order');
     expect($tags[$exempt->id])->toBe('Exempted');
 });

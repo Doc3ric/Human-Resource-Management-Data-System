@@ -191,9 +191,9 @@
         <div class="cas-grid">
             <div class="cas-group" style="grid-column:span 3;">
                 <label>OFFICE</label>
-                <select name="office" id="f-office" class="tom-select-tags" required>
+                <select name="office_department" id="f-office" class="tom-select-tags" required>
                     <option value="">— Select or Type Office —</option>
-                    @php $oldOff = old('office', $casual->office ?? ''); @endphp
+                    @php $oldOff = old('office_department', $casual->office_department ?? ''); @endphp
                     @foreach($offices as $o)
                         <option value="{{ $o }}" {{ $oldOff === $o ? 'selected' : '' }}>{{ $o }}</option>
                     @endforeach
@@ -215,6 +215,30 @@
                     @endif
                 </select>
                 @error('position_title')<span class="field-error">{{ $message }}</span>@enderror
+            </div>
+            <div class="cas-group" style="grid-column:span 1;">
+                <label>Level</label>
+                <select name="level" id="f-level">
+                    <option value="">— Select —</option>
+                    @foreach(['M1','F1','M2','F2'] as $lv)
+                        <option value="{{ $lv }}" {{ old('level', $casual->level ?? '') === $lv ? 'selected' : '' }}>{{ $lv }}</option>
+                    @endforeach
+                </select>
+                @error('level')<span class="field-error">{{ $message }}</span>@enderror
+            </div>
+            <div class="cas-group" style="grid-column:span 2;">
+                <label>Detailed Unit</label>
+                @php $oldSub = old('detailed_unit', $casual->detailed_unit ?? ''); $uniqueSubs = ($globalOffices ?? collect([]))->pluck('sub_office')->filter()->unique(); @endphp
+                <select name="detailed_unit" id="f-detailed-unit" class="tom-select-tags" data-placeholder="Select or type detailed unit...">
+                    <option value=""></option>
+                    @foreach($uniqueSubs as $sub)
+                        <option value="{{ $sub }}" {{ $oldSub === $sub ? 'selected' : '' }}>{{ $sub }}</option>
+                    @endforeach
+                    @if($oldSub && !$uniqueSubs->contains($oldSub))
+                        <option value="{{ $oldSub }}" selected>{{ $oldSub }}</option>
+                    @endif
+                </select>
+                @error('detailed_unit')<span class="field-error">{{ $message }}</span>@enderror
             </div>
             <div class="cas-group" style="grid-column:span 2;">
                 <label>Legislative District</label>
@@ -245,13 +269,13 @@
             <div class="cas-group">
                 <label>Item No. (Old)</label>
                 <input type="text" name="item_no_old" id="f-item-old"
-                       value="{{ old('item_no_old', $casual->item_no_new_no_old ?? '') }}"
+                       value="{{ old('item_no_old', $casual->item_no_old ?? '') }}"
                        placeholder="1">
             </div>
             <div class="cas-group">
                 <label>Item No. (New)</label>
                 <input type="text" name="item_no_new" id="f-item-new"
-                       value="{{ old('item_no_new', $casual->item_no_new_no_new ?? '') }}"
+                       value="{{ old('item_no_new', $casual->item_no_new ?? '') }}"
                        placeholder="1">
             </div>
             <div class="cas-group">
@@ -275,18 +299,18 @@
         <div class="cas-grid cols-3">
             <div class="cas-group">
                 <label>SG – Current Year</label>
-                <input type="number" name="sg_current" id="f-sg-cur" min="1" max="33"
-                       value="{{ old('sg_current', $casual->sg_current ?? '') }}" placeholder="e.g. 1">
+                <input type="number" name="salary_grade" id="f-sg-cur" min="1" max="33"
+                       value="{{ old('salary_grade', $casual->salary_grade ?? '') }}" placeholder="e.g. 1">
             </div>
             <div class="cas-group">
                 <label>Step – Current Year</label>
-                <input type="number" name="step_current" id="f-step-cur" min="1" max="8"
-                       value="{{ old('step_current', $casual->step_current ?? '') }}" placeholder="e.g. 1">
+                <input type="number" name="step" id="f-step-cur" min="1" max="8"
+                       value="{{ old('step', $casual->step ?? '') }}" placeholder="e.g. 1">
             </div>
             <div class="cas-group">
                 <label>Annual Salary – Current (₱)</label>
-                <input type="number" name="salary_current" id="f-sal-cur" step="0.01" min="0"
-                       value="{{ old('salary_current', $casual->salary_current ?? '') }}" placeholder="0.00">
+                <input type="number" name="authorized_annual_salary" id="f-sal-cur" step="0.01" min="0"
+                       value="{{ old('authorized_annual_salary', $casual->authorized_annual_salary ?? '') }}" placeholder="0.00">
             </div>
 
             <div class="cas-group">
@@ -317,8 +341,8 @@
             </div>
             <div class="cas-group">
                 <label>Current Monthly Rate (₱)</label>
-                <input type="text" inputmode="decimal" name="current_rate" id="f-cur-rate"
-                       value="{{ old('current_rate', $casual->current_rate ?? '') }}" placeholder="0.00" class="peso-input">
+                <input type="text" inputmode="decimal" name="base_salary_amount" id="f-cur-rate"
+                       value="{{ old('base_salary_amount', $casual->base_salary_amount ?? '') }}" placeholder="0.00" class="peso-input">
             </div>
         </div>
     </div>
@@ -329,8 +353,8 @@
         <div class="cas-grid">
             <div class="cas-group" style="grid-column:span 2;">
                 <label>Civil Service Eligibility</label>
-                <input type="text" name="eligibility" id="f-elig"
-                       value="{{ old('eligibility', $casual->eligibility ?? '') }}"
+                <input type="text" name="civil_service_eligibility" id="f-elig"
+                       value="{{ old('civil_service_eligibility', $casual->civil_service_eligibility ?? '') }}"
                        placeholder="e.g. No Eligibility / CS Professional">
             </div>
             <div class="cas-group" style="grid-column:span 2;">
@@ -359,7 +383,7 @@
         <div class="cas-grid">
             <div class="cas-group" style="grid-column:span 4;">
                 <label>Annotation</label>
-                <textarea name="annotation" id="f-annotation" placeholder="Add annotation (visible in Casual UI only)...">{{ old('annotation', $casual->annotation ?? '') }}</textarea>
+                <textarea name="remarks_annotation" id="f-annotation" placeholder="Add annotation (visible in Casual UI only)...">{{ old('remarks_annotation', $casual->remarks_annotation ?? '') }}</textarea>
             </div>
         </div>
 

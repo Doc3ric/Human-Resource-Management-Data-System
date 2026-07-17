@@ -30,9 +30,12 @@ class BackupController extends Controller
         abort_unless(Auth::user()->isSuperAdmin(), 403, 'Administrator access required.');
 
         $driver = $request->input('driver', 'local');
+        $scope = $request->input('scope', 'database');
 
         try {
-            $log = $this->backupService->run('manual', Auth::id(), $driver);
+            $log = $scope === 'files'
+                ? $this->backupService->runFiles('manual', Auth::id(), $driver)
+                : $this->backupService->run('manual', Auth::id(), $driver);
             return back()->with('success', "Backup created successfully: {$log->filename} (" . $log->formatted_size . ')');
         } catch (\Throwable $e) {
             return back()->with('error', 'Backup failed: ' . $e->getMessage());
@@ -92,13 +95,17 @@ class BackupController extends Controller
         try {
             ini_set('memory_limit', '2048M'); // Temporarily increase memory limit for large restore
 
-            $encrypted = Storage::disk('local')->get($backup->storage_path);
-            $sql       = $this->backupService->decryptData($encrypted);
-            unset($encrypted);
+            if ($backup->backup_scope === 'files') {
+                $this->backupService->restoreFileArchive($backup->storage_path);
+            } else {
+                $encrypted = Storage::disk('local')->get($backup->storage_path);
+                $sql       = $this->backupService->decryptData($encrypted);
+                unset($encrypted);
 
-            // Execute SQL statements
-            DB::unprepared($sql);
-            unset($sql);
+                // Execute SQL statements
+                DB::unprepared($sql);
+                unset($sql);
+            }
 
             activity('backup')
                 ->causedBy(Auth::user())
@@ -110,7 +117,8 @@ class BackupController extends Controller
                 'notes'  => 'Restore from backup ID ' . $backup->id . ' completed.',
             ]);
 
-            return redirect()->route('backup.index')->with('success', 'Database restored from backup: ' . $backup->filename);
+            $restoredWhat = $backup->backup_scope === 'files' ? 'File storage (IDCC documents/reports)' : 'Database';
+            return redirect()->route('backup.index')->with('success', "{$restoredWhat} restored from backup: " . $backup->filename);
 
         } catch (\Throwable $e) {
             activity('backup')

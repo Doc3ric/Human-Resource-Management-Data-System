@@ -51,10 +51,7 @@ class AppointmentController extends Controller
             'ended' => Appointment::where('status', 'Ended')->count(),
         ];
 
-        $employees = Employee::where('status', 'Active')->get();
-        $positions = Position::where('abolished', false)->get();
-
-        return view('appointments.index', compact('appointments', 'stats', 'employees', 'positions'));
+        return view('appointments.index', compact('appointments', 'stats'));
     }
 
     /**

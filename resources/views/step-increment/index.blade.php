@@ -1,6 +1,6 @@
 <x-dashboard-app>
     <style>
-        /* â”€â”€ Step Increment Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+        /* -- Step Increment Page ------------------------------------------------ */
         .si-hero {
             background: linear-gradient(135deg, #312e81 0%, #4338ca 55%, #6d28d9 100%);
             border-radius: 14px;
@@ -71,11 +71,11 @@
         }
 
         .si-stat-card {
-            background: #fff;
-            border: 1px solid #e5e7eb;
+            background: var(--color-surface, #fff);
+            border: 1px solid var(--color-border, #e5e7eb);
             border-radius: 12px;
             padding: 16px 20px;
-            color: #1e293b;
+            color: var(--color-text-primary, #1e293b);
             box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
             text-decoration: none;
             display: block;
@@ -95,7 +95,7 @@
 
         .si-stat-label {
             font-size: 12px;
-            color: #64748b;
+            color: var(--color-text-muted, #64748b);
             margin-top: 6px;
             font-weight: 600;
         }
@@ -171,8 +171,8 @@
 
         /* Table wrapper */
         .si-table-wrap {
-            background: #fff;
-            border: 1px solid #e5e7eb;
+            background: var(--color-surface, #fff);
+            border: 1px solid var(--color-border, #e5e7eb);
             border-radius: 14px;
             overflow: hidden;
             box-shadow: 0 2px 12px rgba(0, 0, 0, .04);
@@ -209,7 +209,7 @@
         }
 
         .si-table tbody tr:nth-child(even) td {
-            background: #f8fafc;
+            background: var(--color-page-bg, #f8fafc);
         }
 
         .si-table tbody tr:hover td {
@@ -384,7 +384,7 @@
         </div>
     @endif
 
-    {{-- â–Œâ–Œ STAT CARDS â–Œâ–Œ --}}
+    {{-- -- STAT CARDS -- --}}
     <div class="si-stat-grid" style="grid-template-columns: repeat(5, 1fr);">
         <!-- Overdue removed -->
         <a href="{{ route('step-increment.index', ['tab' => 'due']) }}" class="si-stat-card">
@@ -405,7 +405,7 @@
         </a>
     </div>
 
-    {{-- â–Œâ–Œ TABS â–Œâ–Œ --}}
+    {{-- -- TABS -- --}}
     @php $activeTab = $tab ?? 'overdue'; @endphp
     <div class="si-tab-bar" style="flex-wrap:wrap;">
 
@@ -444,13 +444,20 @@
                 <span class="si-badge-pill" style="background:#e11d48;">{{ $stats['magna_carta'] }}</span>
             @endif
         </a>
+        <a href="{{ route('step-increment.salary-alignment') }}" class="si-tab"
+            style="color:#7c3aed;background:#f5f3ff;border-color:#7c3aed;">
+            <i class="bi bi-shuffle"></i> Salary Alignment
+            @if($stats['salary_misaligned'] ?? 0)
+                <span class="si-badge-pill" style="background:#7c3aed;">{{ $stats['salary_misaligned'] }}</span>
+            @endif
+        </a>
         <a href="{{ route('step-increment.index', ['tab' => 'history']) }}"
             class="si-tab {{ $activeTab === 'history' ? 'active-loyalty' : '' }}">
             <i class="bi bi-clock-history"></i> Increment History
         </a>
     </div>
 
-    {{-- â–Œâ–Œ TABLE â–Œâ–Œ --}}
+    {{-- -- TABLE -- --}}
     @php
         $activeTab = trim(strtolower($activeTab));
         $records = match ($activeTab) {
@@ -467,28 +474,28 @@
     <div class="si-table-wrap">
         @if($activeTab === 'due')
             <div
-                style="padding: 16px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-size: 13px; color: #475569;">
+                style="padding: 16px; background: var(--color-surface, #fff); border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 13px; color: var(--color-text-secondary, #475569);">
                     <i class="bi bi-alarm" style="color:#ea580c;"></i>
                     Employees whose step increment is <strong>due in the selected month</strong> ({{ \Carbon\Carbon::createFromFormat('Y-m', $filterMonth ?? now()->format('Y-m'))->format('F Y') }}).
                 </div>
                 <form method="GET" action="{{ route('step-increment.index') }}" style="display:flex;align-items:center;gap:8px;">
                     <input type="hidden" name="tab" value="due">
-                    <label style="font-size:12px; font-weight:600; color:#475569;">Filter By Month:</label>
+                    <label style="font-size:12px; font-weight:600; color: var(--color-text-secondary, #475569);">Filter By Month:</label>
                     <input type="month" name="filter_month" value="{{ $filterMonth ?? now()->format('Y-m') }}" style="border:1px solid #cbd5e1;border-radius:8px;padding:5px 10px;font-size:12px;outline:none;" onchange="this.form.submit()">
                 </form>
             </div>
         @elseif(in_array($activeTab, ['upcoming_nolp', 'upcoming_nosi']))
             {{-- Sub-tab bar for Upcoming --}}
             <div
-                style="padding:14px 16px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                <span style="font-size:13px;color:#475569;">
+                style="padding:14px 16px;background: var(--color-surface, #fff);border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <span style="font-size:13px;color: var(--color-text-secondary, #475569);">
                     <i class="bi bi-calendar-event" style="color:#d97706;"></i>
                     Employees due for step increment in the <strong>next 6 months</strong>.
                 </span>
                 <div style="margin-left:auto;display:flex;gap:8px;">
                     <a href="{{ route('step-increment.index', ['tab' => 'upcoming_nolp']) }}"
-                        style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;{{ $activeTab === 'upcoming_nolp' ? 'background:linear-gradient(135deg,#6d28d9,#8b5cf6);color:#fff;box-shadow:0 2px 8px rgba(109,40,217,.25);' : 'background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;' }}">
+                        style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;{{ $activeTab === 'upcoming_nolp' ? 'background:linear-gradient(135deg,#6d28d9,#8b5cf6);color:#fff;box-shadow:0 2px 8px rgba(109,40,217,.25);' : 'background:#f1f5f9;color: var(--color-text-secondary, #475569);border:1px solid #e2e8f0;' }}">
                         <i class="bi bi-hospital-fill"></i> NOLP (Hospital)
                         @if($stats['upcoming_nolp'])
                             <span
@@ -496,7 +503,7 @@
                         @endif
                     </a>
                     <a href="{{ route('step-increment.index', ['tab' => 'upcoming_nosi']) }}"
-                        style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;{{ $activeTab === 'upcoming_nosi' ? 'background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff;box-shadow:0 2px 8px rgba(3,105,161,.25);' : 'background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;' }}">
+                        style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;{{ $activeTab === 'upcoming_nosi' ? 'background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff;box-shadow:0 2px 8px rgba(3,105,161,.25);' : 'background:#f1f5f9;color: var(--color-text-secondary, #475569);border:1px solid #e2e8f0;' }}">
                         <i class="bi bi-person-workspace"></i> NOSI (Non-Hospital)
                         @if($stats['upcoming_nosi'])
                             <span
@@ -506,15 +513,15 @@
                 </div>
             </div>
         @elseif($activeTab === 'nosi')
-            <div style="padding: 16px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-size: 13px; color: #475569;">
+            <div style="padding: 16px; background: var(--color-surface, #fff); border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 13px; color: var(--color-text-secondary, #475569);">
                     <i class="bi bi-file-earmark-text-fill" style="color:#0369a1;"></i>
                     Generate <strong>Notice of Step Increment (NOSI)</strong> certificates for eligible employees.
                 </div>
                 <div style="display:flex;align-items:center;gap:12px;">
                     <form method="GET" action="{{ route('step-increment.index') }}" style="display:flex;align-items:center;gap:8px;">
                         <input type="hidden" name="tab" value="nosi">
-                        <label style="font-size:12px; font-weight:600; color:#475569;">Filter By Month:</label>
+                        <label style="font-size:12px; font-weight:600; color: var(--color-text-secondary, #475569);">Filter By Month:</label>
                         <input type="month" name="filter_month" value="{{ $filterMonth ?? now()->format('Y-m') }}" style="border:1px solid #cbd5e1;border-radius:8px;padding:5px 10px;font-size:12px;outline:none;" onchange="this.form.submit()">
                     </form>
                     <a href="{{ route('step-increment.pdf.nosi-bulk', ['month' => $filterMonth ?? now()->format('Y-m')]) }}" target="_blank" data-bs-toggle="native"
@@ -528,15 +535,15 @@
                 </div>
             </div>
         @elseif($activeTab === 'nolp')
-            <div style="padding: 16px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-size: 13px; color: #475569;">
+            <div style="padding: 16px; background: var(--color-surface, #fff); border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 13px; color: var(--color-text-secondary, #475569);">
                     <i class="bi bi-file-medical-fill" style="color:#6d28d9;"></i>
                     Generate <strong>Notice of Longevity Pay (NOLP)</strong> certificates for hospital/medical personnel.
                 </div>
                 <div style="display:flex;align-items:center;gap:12px;">
                     <form method="GET" action="{{ route('step-increment.index') }}" style="display:flex;align-items:center;gap:8px;">
                         <input type="hidden" name="tab" value="nolp">
-                        <label style="font-size:12px; font-weight:600; color:#475569;">Filter By Month:</label>
+                        <label style="font-size:12px; font-weight:600; color: var(--color-text-secondary, #475569);">Filter By Month:</label>
                         <input type="month" name="filter_month" value="{{ $filterMonth ?? now()->format('Y-m') }}" style="border:1px solid #cbd5e1;border-radius:8px;padding:5px 10px;font-size:12px;outline:none;" onchange="this.form.submit()">
                     </form>
                     <a href="{{ route('step-increment.pdf.nolp-bulk', ['month' => $filterMonth ?? now()->format('Y-m')]) }}" target="_blank" data-bs-toggle="native"
@@ -551,8 +558,8 @@
             </div>
         @elseif($activeTab === 'history')
             <div
-                style="padding:14px 16px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-                <div style="font-size:13px;color:#475569;">
+                style="padding:14px 16px;background: var(--color-surface, #fff);border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                <div style="font-size:13px;color: var(--color-text-secondary, #475569);">
                     <i class="bi bi-clock-history" style="color:#4338ca;"></i>
                     Complete log of all <strong>NOSI</strong>, <strong>NOLP</strong>, and <strong>NOSA</strong> issuances.
                 </div>
@@ -572,8 +579,8 @@
                 </form>
             </div>
         @else
-            <div style="padding: 16px; background: #fff; border-bottom: 1px solid #e5e7eb;">
-                <div style="font-size: 13px; color: #475569;">
+            <div style="padding: 16px; background: var(--color-surface, #fff); border-bottom: 1px solid #e5e7eb;">
+                <div style="font-size: 13px; color: var(--color-text-secondary, #475569);">
                     Showing employees turning due for a step increment within the next 6 months.
                 </div>
             </div>
@@ -581,8 +588,8 @@
 
         <div class="overflow-x-auto">
             @if($activeTab === 'upcoming_nolp' || $activeTab === 'upcoming_nosi')
-                {{-- â”€â”€ UPCOMING SUB-TAB TABLE
-                â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                {{-- -- UPCOMING SUB-TAB TABLE
+                ------------------------------------
                 --}}
                 <table class="si-table">
                     <thead>
@@ -613,7 +620,7 @@
                                 <td class="tc"><span class="si-sg-badge">{{ $record->salary_grade }}</span></td>
                                 <td class="tc">
                                     <span
-                                        style="display:inline-flex;align-items:center;justify-content:center;background:#f1f5f9;border:1px solid #e2e8f0;color:#475569;font-size:12px;font-weight:700;padding:4px 12px;border-radius:8px;">Step
+                                        style="display:inline-flex;align-items:center;justify-content:center;background:#f1f5f9;border:1px solid #e2e8f0;color: var(--color-text-secondary, #475569);font-size:12px;font-weight:700;padding:4px 12px;border-radius:8px;">Step
                                         {{ $record->step }}</span>
                                 </td>
                                 <td class="tc"><span
@@ -674,8 +681,8 @@
                 </table>
 
             @elseif($activeTab === 'history')
-                {{-- â”€â”€ INCREMENT HISTORY TABLE
-                â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                {{-- -- INCREMENT HISTORY TABLE
+                ------------------------------------
                 --}}
                 <table class="si-table">
                     <thead>
@@ -691,13 +698,13 @@
                     <tbody>
                         @forelse($histories as $log)
                             <tr>
-                                <td style="font-weight:600;color:#1e293b;">
+                                <td style="font-weight:600;color: var(--color-text-primary, #1e293b);">
                                     {{ $log->effective_date ? $log->effective_date->format('M d, Y') : 'â€”' }}</td>
                                 <td>
                                     @if($log->plantillaRecord)
                                         <div style="font-weight:700;color:#0f172a;font-size:13px;">
                                             {{ $log->plantillaRecord->full_name }}</div>
-                                        <div style="font-size:11px;color:#64748b;margin-top:2px;">Item:
+                                        <div style="font-size:11px;color: var(--color-text-muted, #64748b);margin-top:2px;">Item:
                                             {{ $log->plantillaRecord->item_no_new }} | {{ $log->plantillaRecord->position_title }}</div>
                                     @else
                                         <span style="color:#ef4444;font-size:12px;"><i class="bi bi-exclamation-triangle"></i>
@@ -709,25 +716,25 @@
                                 </td>
                                 <td class="tc" style="font-family:ui-monospace,monospace;">
                                     @if($log->previous_salary_grade == $log->new_salary_grade)
-                                        <span style="color:#475569;">SG {{ $log->new_salary_grade }}</span>
+                                        <span style="color: var(--color-text-secondary, #475569);">SG {{ $log->new_salary_grade }}</span>
                                     @else
-                                        <span style="color:#64748b;">SG {{ $log->previous_salary_grade }}</span>
+                                        <span style="color: var(--color-text-muted, #64748b);">SG {{ $log->previous_salary_grade }}</span>
                                         <i class="bi bi-chevron-right" style="color:#94a3b8;margin:0 4px;"></i>
                                         <span style="color:#16a34a;font-weight:700;">SG {{ $log->new_salary_grade }}</span>
                                     @endif
                                 </td>
                                 <td class="tc" style="font-family:ui-monospace,monospace;">
                                     @if($log->previous_step == $log->new_step)
-                                        <span style="color:#475569;">Step {{ $log->new_step }}</span>
+                                        <span style="color: var(--color-text-secondary, #475569);">Step {{ $log->new_step }}</span>
                                     @else
-                                        <span style="color:#64748b;">Step {{ $log->previous_step }}</span>
+                                        <span style="color: var(--color-text-muted, #64748b);">Step {{ $log->previous_step }}</span>
                                         <i class="bi bi-chevron-right" style="color:#94a3b8;margin:0 4px;"></i>
                                         <span style="color:#16a34a;font-weight:700;">Step {{ $log->new_step }}</span>
                                     @endif
                                 </td>
                                 <td style="text-align:right;font-family:ui-monospace,monospace;">
                                     <span
-                                        style="color:#64748b;font-size:12px;">&#8369;{{ number_format($log->previous_annual_salary, 2) }}</span>
+                                        style="color: var(--color-text-muted, #64748b);font-size:12px;">&#8369;{{ number_format($log->previous_annual_salary, 2) }}</span>
                                     <i class="bi bi-chevron-right" style="color:#94a3b8;margin:0 4px;"></i>
                                     <span
                                         style="color:#16a34a;font-weight:700;">&#8369;{{ number_format($log->new_annual_salary, 2) }}</span>
@@ -750,8 +757,8 @@
                 </table>
 
             @elseif($activeTab === 'loyalty')
-                {{-- â”€â”€ LOYALTY INCENTIVE TABLE
-                â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                {{-- -- LOYALTY INCENTIVE TABLE
+                -----------------------------------
                 --}}
                 <table class="si-table">
                     <thead>
@@ -850,8 +857,8 @@
                 </table>
 
             @elseif($activeTab === 'nosi')
-                {{-- â”€â”€ NOSI TABLE
-                â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                {{-- -- NOSI TABLE
+                -------------------------------------------------
                 --}}
                 <table class="si-table">
                     <thead>
@@ -942,8 +949,8 @@
                 </table>
 
             @elseif($activeTab === 'nolp')
-                {{-- â”€â”€ NOLP TABLE
-                â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                {{-- -- NOLP TABLE
+                -------------------------------------------------
                 --}}
                 <table class="si-table">
                     <thead>
@@ -1034,8 +1041,8 @@
                 </table>
 
             @elseif($activeTab === 'magna_carta')
-                {{-- â”€â”€ MAGNA CARTA NOSA TABLE
-                â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                {{-- -- MAGNA CARTA NOSA TABLE
+                -------------------------------------
                 --}}
                 <table class="si-table">
                     <thead>
@@ -1077,7 +1084,7 @@
                                 </td>
                                 <td class="tc">
                                     <span class="si-sg-badge"
-                                        style="background:#f1f5f9;color:#475569;box-shadow:none;border:1px solid #cbd5e1;">Step
+                                        style="background:#f1f5f9;color: var(--color-text-secondary, #475569);box-shadow:none;border:1px solid #cbd5e1;">Step
                                         {{ $record->step }}</span>
                                 </td>
                                 <td class="tc"><span
@@ -1123,8 +1130,8 @@
                 </table>
 
             @else
-                {{-- â”€â”€ STEP INCREMENT TABLE (existing)
-                â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+                {{-- -- STEP INCREMENT TABLE (existing)
+                -------------------------- --}}
                 <table class="si-table">
                     <thead>
                         <tr>
@@ -1274,7 +1281,7 @@
         @endif
     </div>
 
-    {{-- â–Œâ–Œ HIDDEN FORM FOR PROCESS ALL â–Œâ–Œ --}}
+    {{-- -- HIDDEN FORM FOR PROCESS ALL -- --}}
     <form id="form-process-all" action="{{ route('step-increment.process-all') }}" method="POST" style="display:none;">
         @csrf
     </form>
@@ -1303,11 +1310,11 @@
                 <div>
                     <div style="font-weight:800; font-size:15px; color:#0f172a;">${data.name}</div>
                     <div style="font-size:12px; color:#94a3b8; margin-top:2px;">${data.unit}</div>
-                    <div style="font-size:12px; color:#64748b; margin-top:1px;">${data.position}</div>
+                    <div style="font-size:12px; color: var(--color-text-muted, #64748b); margin-top:1px;">${data.position}</div>
                 </div>
             </div>
             
-            <div style="background:#f8fafc; border-radius:12px; padding:16px; display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:20px;">
+            <div style="background: var(--color-page-bg, #f8fafc); border-radius:12px; padding:16px; display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:20px;">
                 <div style="text-align:center;">
                     <div style="font-size:11px; color:#94a3b8; font-weight:600; text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px;">Current Step</div>
                     <div style="font-size:32px; font-weight:900; color:#4338ca;">${data.stepFrom}</div>
@@ -1364,9 +1371,9 @@
         function openProcessAllModal(count) {
             const htmlContent = `
         <div style="text-align: center; margin-top: 10px;">
-            <div style="background:#f8fafc; border-radius:12px; padding:20px; margin-bottom:20px;">
+            <div style="background: var(--color-page-bg, #f8fafc); border-radius:12px; padding:20px; margin-bottom:20px;">
                 <div style="font-size:56px; font-weight:900; color:#4338ca; line-height:1;">${count}</div>
-                <div style="font-size:14px; color:#64748b; font-weight:600; margin-top:8px;">employees will be processed</div>
+                <div style="font-size:14px; color: var(--color-text-muted, #64748b); font-weight:600; margin-top:8px;">employees will be processed</div>
                 
                 <div style="margin-top:16px; display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
                     <span style="font-size:12px; font-weight:700; background:#0ea5e9; color:#fff; padding:4px 12px; border-radius:99px;">NOSI +1 Step</span>
@@ -1405,8 +1412,8 @@
                 html: `
             <div style="text-align:center; margin-top:10px;">
                 <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:12px; padding:16px 20px; margin-bottom:16px;">
-                    <div style="font-size:15px; font-weight:800; color:#1e293b; margin-bottom:4px;">${employeeName}</div>
-                    <div style="font-size:13px; color:#64748b;">will be removed from the Loyalty Incentive list.</div>
+                    <div style="font-size:15px; font-weight:800; color: var(--color-text-primary, #1e293b); margin-bottom:4px;">${employeeName}</div>
+                    <div style="font-size:13px; color: var(--color-text-muted, #64748b);">will be removed from the Loyalty Incentive list.</div>
                 </div>
                 <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:12px; font-size:13px; color:#9a3412; display:flex; gap:10px; align-items:flex-start; text-align:left;">
                     <i class="bi bi-info-circle-fill" style="flex-shrink:0; margin-top:2px;"></i>

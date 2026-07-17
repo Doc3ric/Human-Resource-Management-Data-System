@@ -1,5 +1,11 @@
 <x-dashboard-app>
 <style>
+/* Force a light theme for this report regardless of the browser/OS dark-mode
+   setting — without this, browsers that auto-dark-mode undeclared pages will
+   heuristically re-color everything below, producing washed-out, low-contrast
+   text (pale grey on pale backgrounds) since none of this was designed for it. */
+.report-page { color-scheme: light; }
+
 /* ── Formal Report Page Styles ────────────────────────────────────────── */
 .report-hero {
     background: linear-gradient(135deg, #1e3a5f 0%, #1a5276 55%, #0d6efd 100%);
@@ -25,69 +31,84 @@
 
 /* Accordion controls */
 .office-card {
-    background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; margin-bottom: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.03);
+    background: var(--color-surface, #fff); border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(15,23,42,.06);
+    transition: box-shadow .2s;
 }
+.office-card:hover { box-shadow: 0 4px 14px rgba(15,23,42,.08); }
 .office-btn {
     width: 100%; border: none; background: none; cursor: pointer;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 20px; text-align: left; background: #f8fafc;
+    padding: 15px 20px; text-align: left; background: var(--color-page-bg, #f8fafc);
     transition: background .15s;
 }
-.office-btn:hover { background: #f1f5f9; }
-.office-name { font-weight: 700; color: #1e293b; font-size: 14px; }
-.office-count { font-size: 12px; color: #64748b; margin-left: 8px; font-weight: normal; }
-.chevron { color: #94a3b8; font-size: 14px; transition: transform .2s; }
+.office-btn:hover { background: #eff6ff; }
+.office-name { font-weight: 700; color: #1e3a5f; font-size: 14px; letter-spacing: .2px; }
+.office-count { font-size: 12px; color: var(--color-text-muted, #64748b); margin-left: 8px; font-weight: normal; }
+.chevron { color: var(--color-text-muted, #64748b); font-size: 14px; transition: transform .2s; }
 
-/* Excel Table Exact Mimic */
+/* Report table — on-screen only; print/export PDFs stay plain black-on-white */
 .excel-wrapper {
     overflow-x: auto;
-    padding: 20px;
-    background: #fff;
-    border-top: 1px solid #e5e7eb;
+    padding: 22px;
+    background: var(--color-surface, #fff);
+    border-top: 1px solid #e2e8f0;
 }
 .excel-title-block {
     text-align: center;
     margin-bottom: 20px;
     font-family: Arial, sans-serif;
 }
-.excel-title-1 { font-size: 16px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; }
-.excel-title-2 { font-size: 16px; font-weight: normal; text-transform: uppercase; margin-top: 4px; }
+.excel-title-1 { font-size: 16px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #1e3a5f; }
+.excel-title-2 { font-size: 14px; font-weight: 600; text-transform: uppercase; margin-top: 4px; color: var(--color-text-secondary, #475569); }
 
 .excel-dept {
-    font-family: Arial, sans-serif; font-size: 12px; margin-bottom: 4px;
+    font-family: Arial, sans-serif; font-size: 12px; margin-bottom: 10px; color: #334155;
 }
-.excel-dept strong { text-transform: uppercase; }
+.excel-dept strong { text-transform: uppercase; color: #1e3a5f; }
 
 .excel-table {
     width: 100%;
     border-collapse: collapse;
     font-family: Arial, sans-serif;
-    font-size: 11px;
-    color: #000;
+    font-size: 11.5px;
+    color: var(--color-text-primary, #1e293b);
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    overflow: hidden;
 }
 .excel-table th, .excel-table td {
-    border: 1px solid #000;
-    padding: 6px 4px;
+    border: 1px solid #cbd5e1;
+    padding: 7px 5px;
     vertical-align: middle;
 }
 .excel-table th {
     text-align: center;
-    font-weight: normal;
-    background-color: #fff; /* White bg like excel */
+    font-weight: 700;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    color: #fff;
+    letter-spacing: .2px;
 }
 .excel-table td { text-align: center; }
-.excel-table td.text-left { text-align: left; padding-left: 6px; }
-.excel-table td.text-right { text-align: right; padding-right: 6px; }
+.excel-table td.text-left { text-align: left; padding-left: 8px; }
+.excel-table td.text-right { text-align: right; padding-right: 8px; }
 
-/* Thicker borders for outer outline and headers */
-.excel-table { border: 2px solid #000; }
-.excel-table thead { border-bottom: 2px solid #000; }
-.excel-table tfoot { border-top: 2px solid #000; font-weight: bold; }
-.col-num { font-size: 9px; color: #333; }
+.excel-table tbody tr:nth-child(even) td { background: var(--color-page-bg, #f8fafc); }
+.excel-table tbody tr:hover td { background: #eff6ff; }
+.excel-table tbody tr td { transition: background .12s; }
+
+.excel-table thead { border-bottom: 2px solid #1e3a5f; }
+.excel-table tfoot tr td {
+    border-top: 2px solid #1e3a5f;
+    background: #eef2ff;
+    color: #1e3a5f;
+    font-weight: 800;
+}
+.col-num { font-size: 9px; color: rgba(255,255,255,.75); }
 
 </style>
 
+<div class="report-page">
 <div class="report-hero">
     <div class="report-hero-inner">
         <div>
@@ -102,8 +123,11 @@
             <a href="{{ route('step-increment.office-report.export-excel', ['type' => request('type'), 'mode' => request('mode')]) }}" onclick="event.preventDefault(); handleReportExport(this.href, 'excel')" class="report-back-btn" style="background: #10b981; border-color: #059669;">
                 <i class="bi bi-file-earmark-excel"></i> Export Excel
             </a>
-            <a href="{{ route('step-increment.office-report.export-pdf', ['type' => request('type'), 'mode' => request('mode')]) }}" onclick="event.preventDefault(); handleReportExport(this.href, 'pdf')" class="report-back-btn" style="background: #ef4444; border-color: #dc2626;">
-                <i class="bi bi-file-earmark-pdf"></i> Export PDF
+            <a href="{{ route('step-increment.office-report.export-pdf', ['type' => request('type'), 'mode' => request('mode')]) }}" target="_blank" class="report-back-btn" style="background: #3b82f6; border-color: #2563eb;">
+                <i class="bi bi-printer"></i> Print PDF
+            </a>
+            <a href="{{ route('step-increment.office-report.export-pdf', ['type' => request('type'), 'mode' => request('mode'), 'download' => 1]) }}" onclick="event.preventDefault(); handleReportExport(this.href, 'pdf')" class="report-back-btn" style="background: #ef4444; border-color: #dc2626;">
+                <i class="bi bi-download"></i> Export PDF
             </a>
             <a href="{{ route('step-increment.index') }}" class="report-back-btn">
                 <i class="bi bi-arrow-left"></i> Back to Step Increment
@@ -116,9 +140,9 @@
     <form method="GET" action="{{ route('step-increment.office-report') }}" style="display:flex; gap:10px; flex-wrap: wrap;">
         <input type="hidden" name="type" value="{{ request('type') }}">
         <input type="hidden" name="mode" value="{{ request('mode') }}">
-        <input type="text" name="search" value="{{ request('search') }}" placeholder="🔍 Search name, item, position, office..." style="flex:1; min-width: 200px; padding: 10px 16px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 13px; outline:none; transition: border .2s;">
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="🔍 Search name, item, position, office..." style="flex:1; min-width: 200px; padding: 10px 16px; border: 1px solid var(--color-border, #e5e7eb); border-radius: 10px; font-size: 13px; outline:none; transition: border .2s;">
         
-        <select name="office" style="min-width: 180px; padding: 10px 16px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 13px; outline:none; background: #fff;">
+        <select name="office" style="min-width: 180px; padding: 10px 16px; border: 1px solid var(--color-border, #e5e7eb); border-radius: 10px; font-size: 13px; outline:none; background: var(--color-surface, #fff);">
             <option value="">All Offices</option>
             @foreach($offices ?? [] as $officeName)
                 <option value="{{ $officeName }}" {{ request('office') === $officeName ? 'selected' : '' }}>
@@ -127,7 +151,7 @@
             @endforeach
         </select>
 
-        <select name="position" style="min-width: 180px; padding: 10px 16px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 13px; outline:none; background: #fff;">
+        <select name="position" style="min-width: 180px; padding: 10px 16px; border: 1px solid var(--color-border, #e5e7eb); border-radius: 10px; font-size: 13px; outline:none; background: var(--color-surface, #fff);">
             <option value="">All Positions</option>
             @foreach($positions ?? [] as $pos)
                 <option value="{{ $pos }}" {{ request('position') === $pos ? 'selected' : '' }}>
@@ -138,7 +162,7 @@
 
         <button type="submit" style="background: #1e3a5f; color: #fff; border: none; padding: 0 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: background .2s;">Search</button>
         @if(request('search') || request('office') || request('position'))
-        <a href="{{ route('step-increment.office-report', ['type' => request('type'), 'mode' => request('mode')]) }}" style="background: #f1f5f9; color: #475569; border: 1px solid #e5e7eb; padding: 0 20px; border-radius: 10px; font-weight: 600; text-decoration: none; display: flex; align-items: center;">Clear</a>
+        <a href="{{ route('step-increment.office-report', ['type' => request('type'), 'mode' => request('mode')]) }}" style="background: #f1f5f9; color: var(--color-text-secondary, #475569); border: 1px solid var(--color-border, #e5e7eb); padding: 0 20px; border-radius: 10px; font-weight: 600; text-decoration: none; display: flex; align-items: center;">Clear</a>
         @endif
     </form>
 </div>
@@ -163,9 +187,14 @@
                 <i class="bi bi-file-earmark-excel"></i> Excel
             </a>
             <a href="{{ route('step-increment.office-report.export-pdf-by-office', ['office' => $office, 'type' => request('type'), 'mode' => request('mode')]) }}"
+               target="_blank"
+               style="display:inline-flex; align-items:center; gap:5px; background:#3b82f6; color:#fff; padding:5px 12px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none;">
+                <i class="bi bi-printer"></i> Print
+            </a>
+            <a href="{{ route('step-increment.office-report.export-pdf-by-office', ['office' => $office, 'type' => request('type'), 'mode' => request('mode'), 'download' => 1]) }}"
                onclick="event.preventDefault(); handleReportExport(this.href, 'pdf')"
                style="display:inline-flex; align-items:center; gap:5px; background:#ef4444; color:#fff; padding:5px 12px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none;">
-                <i class="bi bi-file-earmark-pdf"></i> PDF
+                <i class="bi bi-download"></i> PDF
             </a>
             <i class="bi bi-chevron-down chevron" id="{{ $oid }}-chev" onclick="toggleOffice('{{ $oid }}')" style="transform: rotate(-90deg); cursor:pointer;"></i>
         </div>
@@ -183,10 +212,13 @@
             <div class="excel-title-block">
                 @if(request('mode') === 'nosi')
                     <div class="excel-title-1">NOSI/NOLP PLANTILLA BASIS CY {{ now()->year + 1 }}</div>
+                    <div class="excel-title-2">PROVINCE OF BUKIDNON - {{ strtoupper($type) }}</div>
                 @else
-                    <div class="excel-title-1">PLANTILLA OF PERSONNEL CY {{ now()->year + 1 }}</div>
+                    <div style="text-align: right; font-weight: bold; font-size: 13px; margin-bottom: 4px;">Annex F</div>
+                    <div style="text-align: left; font-weight: bold; font-size: 13px; margin-bottom: 4px;">LBP Form No. 3</div>
+                    <div class="excel-title-1">PLANTILLA OF LGU PERSONNEL</div>
+                    <div class="excel-title-2">BUDGET YEAR {{ now()->year + 1 }}<br>PROVINCE OF BUKIDNON - {{ strtoupper($type) }}</div>
                 @endif
-                <div class="excel-title-2">PROVINCE OF BUKIDNON - {{ strtoupper($type) }}</div>
             </div>
 
             <div class="excel-dept">
@@ -209,7 +241,7 @@
                         <th>SG/<br>Step</th>
                         <th style="min-width: 90px;">Amount</th>
                         <th>SG/<br>Step</th>
-                        <th style="min-width: 90px;">Step Increment<br>Amount</th>
+                        <th style="min-width: 90px;">Amount</th>
                     </tr>
                     <tr>
                         <th><span class="col-num">(1)</span></th>
@@ -232,20 +264,23 @@
                         // Current rates
                         $curSg = $rec->salary_grade;
                         $curStep = $rec->step ?: 1;
-                        // Use authorized annual salary or actual, since the report focuses on actual rates normally, but let's calculate based on actual.
-                        // For vacant positions, actual salary might be 0, so we should fetch from SalaryGrade matrix.
-                        if ($rec->is_vacant) {
-                            $curMonthly = \App\Models\SalaryGrade::getRate($curSg, 1);
-                            $curStep = 1;
+                        
+                        if ($rec->authorized_annual_salary > 0) {
+                            $curAnnual = (float)$rec->authorized_annual_salary;
                         } else {
-                            $curMonthly = \App\Models\SalaryGrade::getRate($curSg, $curStep);
+                            if ($rec->is_vacant) {
+                                $curMonthly = \App\Models\SalaryGrade::getRate($curSg, 1);
+                                $curStep = 1;
+                            } else {
+                                $curMonthly = \App\Models\SalaryGrade::getRate($curSg, $curStep);
+                            }
+                            $curAnnual = $curMonthly * 12;
                         }
-                        $curAnnual = $curMonthly * 12;
 
                         // Proposed rates & Prorated increase
-                        $propStep = $curStep;
-                        $propAnnual = $curAnnual;
-                        $increase = 0;
+                        $propStep = $rec->step_proposed ?: $curStep;
+                        $propAnnual = $rec->salary_proposed > 0 ? (float)$rec->salary_proposed : $curAnnual;
+                        $increase = (float)$rec->increase_decrease;
                         $increaseNote = '';
                         
                         $due = $rec->next_step_due_date;
@@ -270,7 +305,7 @@
                                 $monthlyDiff = ($propAnnual - $curAnnual) / 12;
                                 $activeMonths = 12 - $due->month + 1;
                                 $increase = $monthlyDiff * $activeMonths;
-                                $increaseNote = "<br><span style='font-size:9px;color:#64748b;'>(" . $due->format('M') . " - Dec)</span>";
+                                $increaseNote = "<br><span style='font-size:9px;'>(" . $due->format('M') . " - Dec)</span>";
                             }
                         }
 
@@ -286,17 +321,36 @@
                             $mi = $rec->middle_name ? strtoupper(substr($rec->middle_name, 0, 1)) . '.' : '';
                             $incumbent = trim("$first $mi $last");
                         } else {
-                            $incumbent = '<span style="display:inline-block;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;font-style:normal;letter-spacing:0.5px;">VACANT</span>';
+                            $incumbent = '<span style="display:inline-block;border: 1px solid var(--color-border, #000);padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;font-style:normal;letter-spacing:0.5px;">VACANT</span>';
                         }
                     @endphp
                     @php
-                        $rowStyle = $rec->is_vacant ? 'background-color: #f8fafc; font-style: italic; color: #64748b;' : '';
+                        $rowStyle = $rec->is_vacant ? 'font-style: italic;' : '';
                     @endphp
                     <tr style="{{ $rowStyle }}">
                         <td>{{ $itemNum }}</td>
                         <td>{{ $itemNum }}</td>
                         <td class="text-left" style="line-height: 1.2;">{{ $rec->position_title }}</td>
-                        <td class="text-left">{!! $incumbent !!}</td>
+                        <td class="text-left">
+                            {!! $incumbent !!}
+                            <a href="{{ route('plantilla.edit', $rec->id) }}"
+                               title="Edit Plantilla Record" target="_blank"
+                               style="margin-left:8px; color:#10b981; text-decoration:none;">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            @if(!$rec->is_vacant)
+                                <a href="{{ route('step-increment.office-report.export-pdf-individual', ['plantilla' => $rec->id, 'type' => request('type'), 'mode' => request('mode')]) }}" 
+                                   title="Print Individual Plantilla PDF" target="_blank"
+                                   style="margin-left:6px; color:#3b82f6; text-decoration:none;">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+                                <a href="{{ route('step-increment.office-report.export-pdf-individual', ['plantilla' => $rec->id, 'type' => request('type'), 'mode' => request('mode'), 'download' => 1]) }}" 
+                                   title="Export Individual Plantilla PDF" 
+                                   style="margin-left:6px; color:#ef4444; text-decoration:none;">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                            @endif
+                        </td>
                         <td>{{ $curSg }}/{{ $curStep }}</td>
                         <td class="text-right">{{ $curAnnual > 0 ? number_format($curAnnual, 2) : '-' }}</td>
                         <td>{{ $curSg }}/{{ $propStep }}</td>
@@ -322,13 +376,14 @@
     </div>
 </div>
 @empty
-<div class="report-hero" style="background: #fff; border: 1px solid #e5e7eb; color: #333 text-align: center;">
+<div class="report-hero" style="background: var(--color-surface, #fff); border: 1px solid var(--color-border, #e5e7eb); color: #333; text-align: center; box-shadow: none;">
     <div style="padding: 40px; text-align: center;">
         <i class="bi bi-inbox" style="font-size: 40px; color: #cbd5e1;"></i>
-        <h3 style="margin-top: 10px; font-size: 16px; color: #475569;">No Records Found</h3>
+        <h3 style="margin-top: 10px; font-size: 16px; color: var(--color-text-secondary, #475569);">No Records Found</h3>
     </div>
 </div>
 @endforelse
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>

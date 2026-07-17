@@ -323,6 +323,51 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- Violations & Case History (Enhancement Spec Sec. 4) — read-only, fed automatically from Leave Violations and Incident Reports --}}
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mt-4">
+                    <h2 class="text-sm font-semibold text-gray-600 mb-4">Violations &amp; Case History</h2>
+
+                    @if($violations->count() > 0)
+                        <div class="space-y-3">
+                            @foreach($violations as $violation)
+                                @php $latestStatus = $violation->statusLogs->first()->status ?? 'Recorded'; @endphp
+                                <div class="p-3 border border-gray-100 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-800">
+                                                {{ $violation->violation_type }}
+                                                <span class="text-xs font-normal text-gray-400 ml-1">({{ $violation->source_module }})</span>
+                                            </p>
+                                            <p class="text-xs text-gray-500 mt-0.5">{{ $violation->legal_basis }}</p>
+                                        </div>
+                                        <div class="flex items-center gap-2 flex-shrink-0">
+                                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $violation->severity_level === 'Grave' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700' }}">
+                                                {{ $violation->severity_level }}
+                                            </span>
+                                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                                                {{ $latestStatus }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between mt-1">
+                                        <p class="text-xs text-gray-400">{{ $violation->date_created->format('M d, Y h:i A') }}</p>
+                                        @if($violation->letterDocument)
+                                            <a href="{{ route('idcc.preview', $violation->letterDocument) }}" target="_blank" class="text-xs font-semibold text-blue-600 hover:text-blue-800">
+                                                <i class="bi bi-file-earmark-text"></i> View Letter
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-6 border-2 border-dashed border-gray-100 rounded-lg">
+                            <i class="bi bi-shield-check text-gray-300 text-3xl mb-2"></i>
+                            <p class="text-sm text-gray-500">No recorded violations.</p>
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
     </div>

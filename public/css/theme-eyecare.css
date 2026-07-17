@@ -1,0 +1,272 @@
+/* Earth & Olive Theme - Warm, light, earthy olive/tan palette (was: Eye Care dark mode) */
+
+body.theme-eyecare {
+    background-color: var(--color-page-bg) !important;
+    color: var(--color-text-primary) !important;
+}
+
+/* Sidebar and Topbar */
+body.theme-eyecare .sidebar {
+    background-color: var(--color-sidebar-bg) !important;
+    border-right: 1px solid var(--color-border) !important;
+}
+
+body.theme-eyecare .topbar,
+body.theme-eyecare .main-content>nav {
+    background-color: var(--color-topbar-bg) !important;
+    border-bottom: 1px solid var(--color-topbar-border) !important;
+    color: var(--color-topbar-text) !important;
+}
+
+body.theme-eyecare .sidebar-header {
+    border-bottom: 1px solid var(--color-border) !important;
+}
+
+body.theme-eyecare .sidebar-title,
+body.theme-eyecare .sidebar-logo-text {
+    color: var(--color-sidebar-text) !important;
+}
+
+body.theme-eyecare .sidebar-logo-sub,
+body.theme-eyecare .sidebar-section-label {
+    color: var(--color-sidebar-icon) !important;
+}
+
+body.theme-eyecare .nav-link,
+body.theme-eyecare .sidebar-link {
+    color: var(--color-sidebar-text) !important;
+}
+
+body.theme-eyecare .nav-link:hover,
+body.theme-eyecare .sidebar-link:hover {
+    background-color: var(--color-sidebar-hover-bg) !important;
+    color: var(--color-text-primary) !important;
+}
+
+body.theme-eyecare .nav-link.active,
+body.theme-eyecare .sidebar-link.active {
+    background-color: var(--color-accent) !important;
+    color: var(--color-sidebar-active-text) !important;
+    box-shadow: 0 4px 12px var(--color-focus-ring) !important;
+}
+
+body.theme-eyecare .sidebar-user {
+    background: var(--color-sidebar-hover-bg) !important;
+    border: 1px solid var(--color-border) !important;
+}
+
+body.theme-eyecare .sidebar-user-name {
+    color: var(--color-sidebar-text) !important;
+}
+
+body.theme-eyecare .sidebar-user-role {
+    color: var(--color-sidebar-icon) !important;
+}
+
+body.theme-eyecare .sidebar-footer {
+    border-top: 1px solid var(--color-border) !important;
+}
+
+body.theme-eyecare .sidebar-logout-btn {
+    background: rgba(212, 115, 115, 0.15) !important;
+    border: 1px solid rgba(212, 115, 115, 0.3) !important;
+    color: var(--color-danger) !important;
+}
+
+body.theme-eyecare .sidebar-logout-btn:hover {
+    background: rgba(212, 115, 115, 0.25) !important;
+    color: var(--color-danger-dark) !important;
+}
+
+/* Cards & Containers */
+body.theme-eyecare .bg-white,
+body.theme-eyecare [style*="background: white"],
+body.theme-eyecare [style*="background-color: white"],
+body.theme-eyecare .modal-card {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-border) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Headings and Text */
+body.theme-eyecare h1,
+body.theme-eyecare h2,
+body.theme-eyecare h3,
+body.theme-eyecare h4,
+body.theme-eyecare h5,
+body.theme-eyecare h6,
+body.theme-eyecare .text-gray-900,
+body.theme-eyecare .text-gray-800 {
+    color: var(--color-text-primary) !important;
+}
+
+body.theme-eyecare p,
+body.theme-eyecare .text-gray-700,
+body.theme-eyecare .text-gray-600 {
+    color: var(--color-text-secondary) !important;
+}
+
+body.theme-eyecare .text-gray-500,
+body.theme-eyecare .text-gray-400 {
+    color: var(--color-text-muted) !important;
+}
+
+body.theme-eyecare .page-header p {
+    color: var(--color-text-muted) !important;
+}
+
+body.theme-eyecare .modal-heading {
+    color: var(--color-text-primary) !important;
+}
+
+body.theme-eyecare .modal-subtext {
+    color: var(--color-text-muted) !important;
+}
+
+body.theme-eyecare .modal-btn-cancel {
+    background-color: var(--color-sidebar-footer) !important;
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-border) !important;
+}
+
+body.theme-eyecare .modal-btn-cancel:hover {
+    background-color: var(--color-sidebar-bg) !important;
+    border-color: var(--color-text-muted) !important;
+}
+
+/* Specific background colors */
+body.theme-eyecare .bg-gray-50 {
+    background-color: var(--color-page-bg) !important;
+}
+
+body.theme-eyecare .bg-gray-100,
+body.theme-eyecare .bg-gray-200,
+body.theme-eyecare .bg-gray-300 {
+    background-color: var(--color-sidebar-footer) !important;
+}
+
+/* Alert boxes / Status containers */
+body.theme-eyecare .bg-blue-50 {
+    background-color: rgba(96, 165, 250, 0.1) !important;
+}
+
+body.theme-eyecare .text-blue-800,
+body.theme-eyecare .text-blue-700,
+body.theme-eyecare .text-blue-600 {
+    color: #93c5fd !important;
+}
+
+body.theme-eyecare .bg-red-50 {
+    background-color: rgba(248, 113, 113, 0.1) !important;
+}
+
+body.theme-eyecare .text-red-800,
+body.theme-eyecare .text-red-700,
+body.theme-eyecare .text-red-600 {
+    color: var(--color-danger) !important;
+}
+
+body.theme-eyecare .bg-green-50 {
+    background-color: rgba(52, 211, 153, 0.1) !important;
+}
+
+body.theme-eyecare .text-green-800,
+body.theme-eyecare .text-green-700,
+body.theme-eyecare .text-green-600 {
+    color: var(--color-accent) !important;
+}
+
+body.theme-eyecare .bg-amber-50 {
+    background-color: rgba(251, 191, 36, 0.1) !important;
+}
+
+body.theme-eyecare .text-amber-800,
+body.theme-eyecare .text-amber-700,
+body.theme-eyecare .text-amber-600 {
+    color: #fcd34d !important;
+}
+
+/* Dashboard Top Cards overrides */
+body.theme-eyecare .container-fluid>div>div>div>div[style*="background: #e0f7f4"],
+body.theme-eyecare .container-fluid>div>div>div>div[style*="background: #e7f1ff"],
+body.theme-eyecare .container-fluid>div>div>div>div[style*="background: #e8f5e9"],
+body.theme-eyecare .container-fluid>div>div>div>div[style*="background: #fffbea"],
+body.theme-eyecare .container-fluid>div>div>div>div[style*="background: #ffe8e8"],
+body.theme-eyecare .container-fluid>div>div>div>div[style*="background: #f3e8ff"],
+body.theme-eyecare .container-fluid>div>div>div>div[style*="background: #fff3cd"],
+body.theme-eyecare .container-fluid>div>div>div>div[style*="background: #e8f7f9"],
+body.theme-eyecare .container-fluid>div>div>div>div[style*="background: #fff9f0"],
+body.theme-eyecare .container-fluid>div>div>div>div[style*="background: #fde8f5"] {
+    background: var(--color-page-bg) !important;
+}
+
+/* Text overrides in specific dashboard cards */
+body.theme-eyecare .container-fluid>div>div p[style*="color: #6b7280"] {
+    color: var(--color-text-muted) !important;
+}
+
+body.theme-eyecare .container-fluid>div>div h3[style*="color: #111827"] {
+    color: var(--color-text-primary) !important;
+}
+
+/* Borders */
+body.theme-eyecare .border-gray-200,
+body.theme-eyecare .border-gray-300,
+body.theme-eyecare .border,
+body.theme-eyecare .border-b,
+body.theme-eyecare .border-t {
+    border-color: var(--color-border) !important;
+}
+
+/* Forms & Inputs */
+body.theme-eyecare input,
+body.theme-eyecare select,
+body.theme-eyecare textarea {
+    background-color: var(--color-page-bg) !important;
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-border) !important;
+}
+
+body.theme-eyecare input:focus,
+body.theme-eyecare select:focus,
+body.theme-eyecare textarea:focus {
+    border-color: var(--color-accent) !important;
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-focus-ring) !important;
+}
+
+/* Theme button globally */
+body.theme-eyecare .btn-primary {
+    background-color: var(--color-btn-primary-bg) !important;
+    border-color: var(--color-btn-primary-bg) !important;
+    color: var(--color-btn-primary-text) !important;
+}
+
+body.theme-eyecare .btn-primary:hover {
+    background-color: var(--color-btn-primary-hover) !important;
+    border-color: var(--color-btn-primary-hover) !important;
+}
+
+/* Tables */
+body.theme-eyecare table {
+    color: var(--color-text-secondary) !important;
+}
+
+body.theme-eyecare thead,
+body.theme-eyecare th {
+    background-color: var(--color-sidebar-footer) !important;
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-border) !important;
+}
+
+body.theme-eyecare tbody tr {
+    border-bottom: 1px solid var(--color-border) !important;
+}
+
+body.theme-eyecare tbody tr:hover,
+body.theme-eyecare tbody tr:hover td {
+    background-color: var(--color-sidebar-hover-bg) !important;
+    color: var(--color-text-primary) !important;
+}
+

@@ -1,0 +1,41 @@
+{% extends "base.html" %}{% block body %}
+<h1>Employees</h1>
+{% if session.role != 'viewer' %}
+<details class="adder"><summary>+ Add employee</summary>
+<form method="post" action="{{ url_for('employee_add') }}" class="grid">
+  <label>Emp No<input name="emp_no"></label>
+  <label>Last Name<input name="last_name" required></label>
+  <label>First Name<input name="first_name" required></label>
+  <label>Position<input name="position"></label>
+  <label>Office/Division<select name="office_id">{% for o in offices %}<option value="{{o.id}}">{{o.name}}</option>{% endfor %}</select></label>
+  <label>Role<select name="role_type"><option>Rank &amp; File</option><option>Head</option></select></label>
+  <label>Status<input name="status" value="Permanent"></label>
+  <button>Save</button>
+</form></details>
+{% endif %}
+<table><tr><th>Emp No</th><th>Name</th><th>Position</th><th>Office/Division</th><th>Role</th><th>Status</th><th>Active</th>{% if session.role != 'viewer' %}<th style="width:190px">Actions</th>{% endif %}</tr>
+{% for r in rows %}<tr>
+  <td>{{r.emp_no}}</td>
+  {% if session.role != 'viewer' %}
+  <td>
+    <form method="post" action="{{ url_for('employee_edit', emp_id=r.id) }}" class="inline">
+      <input name="last_name" value="{{r.last_name}}" style="width:90px" required>
+      <input name="first_name" value="{{r.first_name}}" style="width:90px" required>
+  </td>
+  <td><input name="position" value="{{r.position or ''}}" style="width:130px"></td>
+  <td><select name="office_id">{% for o in offices %}<option value="{{o.id}}" {% if o.id==r.office_id %}selected{% endif %}>{{o.name}}</option>{% endfor %}</select></td>
+  <td><select name="role_type"><option {{'selected' if r.role_type=='Rank & File'}}>Rank &amp; File</option><option {{'selected' if r.role_type=='Head'}}>Head</option></select></td>
+  <td><input name="status" value="{{r.status or ''}}" style="width:90px"></td>
+  <td>{% if r.active==1 %}<span class="good pill">Active</span>{% else %}<span class="bad pill">Inactive</span>{% endif %}</td>
+  <td>
+      <button>Save</button></form>
+      <form method="post" class="inline" action="{{ url_for('employee_toggle', emp_id=r.id) }}">
+        <button class="ghost">{{ 'Deactivate' if r.active==1 else 'Reactivate' }}</button></form>
+  </td>
+  {% else %}
+  <td>{{r.last_name}}, {{r.first_name}}</td><td>{{r.position}}</td><td>{{r.office}}</td>
+  <td>{{r.role_type}}</td><td>{{r.status}}</td>
+  <td>{% if r.active==1 %}<span class="good pill">Active</span>{% else %}<span class="bad pill">Inactive</span>{% endif %}</td>
+  {% endif %}
+</tr>{% endfor %}</table>
+{% endblock %}

@@ -158,7 +158,7 @@ class SalaryScheduleController extends Controller
                 AND IF(COALESCE(pr.step, '') = '', 1, pr.step) = sg.step
                 AND sg.salary_schedule_id = ?
             SET
-                pr.base_salary_amount      = (sg.monthly_salary * 12),
+                pr.base_salary_amount      = sg.monthly_salary,
                 pr.authorized_annual_salary  = (sg.monthly_salary * 12),
                 pr.updated_at                = NOW()
             WHERE pr.deleted_at IS NULL

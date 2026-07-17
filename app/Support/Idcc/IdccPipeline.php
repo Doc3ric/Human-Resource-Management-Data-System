@@ -15,6 +15,13 @@ use Illuminate\Support\Facades\Storage;
  */
 class IdccPipeline
 {
+    /**
+     * attachment_field values that are always system-generated due-process
+     * notices, never a genuine RACCS case file — even though their legal
+     * citations can trip the classifier's 'disciplinary' keyword match.
+     */
+    private const NON_RACCS_ATTACHMENT_FIELDS = ['leave_violation_notice', 'payroll_coordination', 'detail_order_recall_letter'];
+
     public function __construct(
         private readonly OcrManager $ocr,
         private readonly DocumentClassifier $classifier,
@@ -37,7 +44,8 @@ class IdccPipeline
         $ocrResult = $this->ocr->extract($absolutePath, $mime);
 
         // Stage 3 — classification.
-        $classification = $this->classifier->classify($originalName, $ocrResult->text);
+        $raccsEligible = !in_array($context['attachment_field'] ?? null, self::NON_RACCS_ATTACHMENT_FIELDS, true);
+        $classification = $this->classifier->classify($originalName, $ocrResult->text, $raccsEligible);
 
         // Stage 5 — RACCS docs are stored in a segregated subtree (logical
         // isolation; true physical air-gapping is an infrastructure decision
@@ -119,7 +127,8 @@ class IdccPipeline
 
         try {
             $ocrResult = $this->ocr->extract($tempPath, $document->mime_type);
-            $classification = $this->classifier->classify($document->original_filename, $ocrResult->text);
+            $raccsEligible = !in_array($document->attachment_field, self::NON_RACCS_ATTACHMENT_FIELDS, true);
+            $classification = $this->classifier->classify($document->original_filename, $ocrResult->text, $raccsEligible);
         } finally {
             @unlink($tempPath);
         }

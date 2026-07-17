@@ -235,12 +235,19 @@
                 </div>
 
                 <div style="width: 250px;">
-                    <select id="officeSelect" class="form-select form-select-sm" onchange="fetchEmployees()">
+                    <select id="officeSelect" class="form-select form-select-sm" onchange="fetchDetailedUnits(this.value); fetchEmployees();">
                         <option value="">-- Select Office --</option>
                         @foreach($offices as $office)
                             <option value="{{ $office }}">{{ $office }}</option>
                         @endforeach
                     </select>
+                </div>
+
+                <div style="display: flex; gap: 4px; align-items: center; width: 230px;">
+                    <select id="detailedUnitSelect" class="form-select form-select-sm" style="flex: 1;" onchange="filterTable()">
+                        <option value="">-- All Detailed Units --</option>
+                    </select>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="promptAddDetailedUnit()" title="Add Detailed Unit"><i class="bi bi-plus-lg"></i></button>
                 </div>
 
                 <div style="width: 100px;">
@@ -273,8 +280,17 @@
                         <option value="poor">Poor</option>
                     </select>
                 </div>
+                
+                <div>
+                    <button class="btn btn-sm btn-primary fw-bold shadow-sm" onclick="applyAllFilters()" title="Apply Filters">
+                        <i class="bi bi-funnel-fill"></i> Apply Filter
+                    </button>
+                </div>
 
                 <div class="ms-auto d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-warning fw-bold px-3 shadow-sm" id="missingFilterBtn" onclick="toggleMissingFilter()">
+                        <i class="bi bi-funnel-fill me-1"></i> Missing Only
+                    </button>
                     <button class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#importModal">
                         <i class="bi bi-file-earmark-arrow-up-fill me-1"></i> Import
                     </button>
@@ -287,7 +303,7 @@
                     <button class="btn btn-sm btn-outline-info fw-bold px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#batchDatesModal">
                         <i class="bi bi-calendar-check-fill me-1"></i> Batch Dates
                     </button>
-                    <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm" onclick="batchSaveAll()">
+                    <button id="saveAllBtn" class="btn btn-sm btn-success fw-bold px-3 shadow-sm" onclick="batchSaveAll()">
                         <i class="bi bi-floppy me-1"></i> Save All
                     </button>
                 </div>
@@ -561,6 +577,12 @@
                     <div class="mb-3">
                         <label class="form-label" style="font-size: 12px; font-weight: 600;">Target Submission Date</label>
                         <input type="date" class="form-control form-control-sm" id="batchTargetDate">
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="batchMarkTarget" checked>
+                            <label class="form-check-label" for="batchMarkTarget" style="font-size: 11.5px; color: #475569;">
+                                Automatically check "Target IPCR" for these employees
+                            </label>
+                        </div>
                     </div>
                     <div class="mb-2">
                         <label class="form-label" style="font-size: 12px; font-weight: 600;">Rating Submission Date</label>
@@ -578,6 +600,30 @@
     <script>
         let currentEmployees = [];
         let deleteId = null;
+        let missingFilterActive = false;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // No default office selection
+        });
+
+        function toggleMissingFilter() {
+            missingFilterActive = !missingFilterActive;
+            const btn = document.getElementById('missingFilterBtn');
+            if (missingFilterActive) {
+                btn.classList.remove('btn-outline-warning');
+                btn.classList.add('btn-warning');
+                btn.innerHTML = '<i class="bi bi-funnel-fill me-1"></i> Show All';
+            } else {
+                btn.classList.remove('btn-warning');
+                btn.classList.add('btn-outline-warning');
+                btn.innerHTML = '<i class="bi bi-funnel me-1"></i> Missing Only';
+            }
+            filterTable();
+        }
+
+        function applyAllFilters() {
+            fetchEmployees();
+        }
 
         function fetchEmployees() {
             const office = document.getElementById('officeSelect').value;
@@ -596,11 +642,14 @@
 
             tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></td></tr>';
 
+            fetchDetailedUnits(office);
+
             fetch(`{{ route('performance.employees') }}?office=${encodeURIComponent(office)}&year=${year}&period_type=${periodType}&custom_period=${encodeURIComponent(customPeriod)}`)
                 .then(res => res.json())
                 .then(data => {
                     currentEmployees = data;
                     renderTable(data);
+                    filterTable();
                 })
                 .catch(err => {
                     console.error('Error fetching employees:', err);
@@ -694,7 +743,7 @@
                     : '';
 
                 html += `
-                    <tr data-emp-id="${emp.id}" id="row-${emp.id}" style="${rowFlagStyle}" data-adj="${(adjRatingVal||'').toLowerCase()}">
+                    <tr data-emp-id="${emp.id}" id="row-${emp.id}" style="${rowFlagStyle}" data-adj="${(adjRatingVal||'').toLowerCase()}" data-detailed-unit="${emp.detailed_unit || ''}">
                         <td>${emp.last_name || ''}${notRenewedBadge}</td>
                         <td>${emp.first_name || ''}</td>
                         <td>${emp.middle_name || ''}</td>
@@ -703,11 +752,11 @@
                         <td><span class="status-badge ${getStatusBadgeClass(emp.employment_status)}">${emp.employment_status || 'REGULAR'}</span></td>
                         <td style="text-align: center;">
                             <input class="form-check-input target-checkbox" type="checkbox" data-id="${emp.id}" ${targetChecked} onchange="updateRowState(${emp.id})">
-                            <input type="date" class="form-control form-control-sm mt-1" style="font-size: 11px; padding: 2px 4px; width: 100px; margin: 0 auto;" id="target-date-${emp.id}" value="${targetDateVal}" onchange="updateRowState(${emp.id})" title="Target Submission Date">
+                            <input type="date" class="form-control form-control-sm mt-1" style="font-size: 11px; padding: 2px 4px; width: 100px; margin: 0 auto;" id="target-date-${emp.id}" value="${targetDateVal}" onchange="updateRowState(${emp.id})" title="Target Submission Date" tabindex="-1">
                         </td>
-                        <td>
-                            <input type="number" step="0.01" min="0" max="5" class="form-control form-control-sm rating-input mb-1" value="${ratingVal}" placeholder="Score" onchange="updateRowState(${emp.id})" id="rating-${emp.id}" ${targetChecked ? '' : 'disabled'}>
-                            <input type="date" class="form-control form-control-sm" style="font-size: 11px; padding: 2px 4px; width: 100px;" id="rating-date-${emp.id}" value="${ratingDateVal}" onchange="updateRowState(${emp.id})" title="Rating Submission Date">
+                        <td style="text-align: center;">
+                            <input type="number" step="0.01" min="0" max="5" class="form-control form-control-sm rating-input mb-1" style="margin: 0 auto;" value="${ratingVal}" placeholder="Score" onchange="updateRowState(${emp.id})" onkeydown="handleRatingKeydown(event, ${emp.id})" id="rating-${emp.id}" ${targetChecked ? '' : 'disabled'}>
+                            <input type="date" class="form-control form-control-sm" style="font-size: 11px; padding: 2px 4px; width: 100px; margin: 0 auto;" id="rating-date-${emp.id}" value="${ratingDateVal}" onchange="updateRowState(${emp.id})" title="Rating Submission Date" tabindex="-1">
                         </td>
                         <td style="text-align: center;">
                             <div style="font-weight: bold; font-size: 15px; color: ${finalRatingVal !== '-' && finalRatingVal < ratingVal ? '#dc2626' : '#1e293b'}">
@@ -720,8 +769,9 @@
                             </span>
                         </td>
                         <td style="text-align: center; white-space: nowrap;">
-                            <button class="btn-icon btn-save-icon" onclick="saveRating(${emp.id})" title="Save Rating"><i class="bi bi-floppy"></i></button>
-                            <a href="/plantilla/${emp.id}/edit" class="btn-icon btn-danger-icon" title="Terminate/Remove Employee"><i class="bi bi-person-dash"></i></a>
+                            <button class="btn-icon btn-save-icon" onclick="saveRating(${emp.id})" title="Edit / Save IPCR Record"><i class="bi bi-floppy"></i></button>
+                            <button class="btn-icon btn-danger-icon" onclick="deleteRating(${emp.id})" title="Delete IPCR Record"><i class="bi bi-trash"></i></button>
+                            <a href="/plantilla/${emp.id}/edit" class="btn-icon btn-danger-icon" title="Terminate/Remove Employee" style="margin-left: 4px; background: #e2e8f0; color: #475569;"><i class="bi bi-person-dash"></i></a>
                         </td>
                     </tr>
                 `;
@@ -753,17 +803,86 @@
         function filterTable() {
             const term = document.getElementById('searchInput').value.toLowerCase();
             const adjFilter = document.getElementById('adjectivalSelect').value.toLowerCase();
+            const duSelect = document.getElementById('detailedUnitSelect');
+            const duFilter = duSelect ? duSelect.value : '';
+            
             const rows = document.querySelectorAll('#employeeTableBody tr');
             rows.forEach(row => {
-                if (row.cells.length < 5) return;
+                if (row.cells.length < 5 || !row.hasAttribute('data-emp-id')) return;
+                
                 const text = row.innerText.toLowerCase();
                 const adjVal = row.getAttribute('data-adj') || '';
+                const rowDu = row.getAttribute('data-detailed-unit') || '';
+                const empId = row.getAttribute('data-emp-id');
+                const targetCb = document.querySelector(`#row-${empId} .target-checkbox`);
+                const ratingIn = document.getElementById(`rating-${empId}`);
                 
                 let matchesSearch = text.includes(term);
                 let matchesAdj = (adjFilter === '' || adjVal === adjFilter);
+                let matchesDu = (duFilter === '' || rowDu === duFilter);
+                let matchesMissing = true;
+
+                if (missingFilterActive) {
+                    const hasMissing = (!targetCb || !targetCb.checked) || (!ratingIn || ratingIn.value.trim() === '');
+                    matchesMissing = hasMissing;
+                }
                 
-                row.style.display = (matchesSearch && matchesAdj) ? '' : 'none';
+                row.style.display = (matchesSearch && matchesAdj && matchesDu && matchesMissing) ? '' : 'none';
             });
+        }
+
+        function fetchDetailedUnits(office) {
+            fetch(`{{ route('performance.detailed-units') }}?office=${encodeURIComponent(office)}`)
+                .then(res => res.json())
+                .then(units => {
+                    const detailedUnitSelect = document.getElementById('detailedUnitSelect');
+                    if (detailedUnitSelect) {
+                        const currentDu = detailedUnitSelect.value;
+                        detailedUnitSelect.innerHTML = '<option value="">-- All Detailed Units --</option>';
+                        units.forEach(u => {
+                            const opt = document.createElement('option');
+                            opt.value = u;
+                            opt.textContent = u;
+                            detailedUnitSelect.appendChild(opt);
+                        });
+                        // Add an option to represent missing/blank detailed units if they want, but let's keep it simple
+                        if (units.includes(currentDu)) detailedUnitSelect.value = currentDu;
+                    }
+                })
+                .catch(err => console.error('Error fetching detailed units:', err));
+        }
+
+        function promptAddDetailedUnit() {
+            const office = document.getElementById('officeSelect').value;
+            if (!office) {
+                alert('Please select a mother office first.');
+                return;
+            }
+            const unitName = prompt('Enter the name of the new Detailed Unit for ' + office + ':');
+            if (unitName && unitName.trim()) {
+                fetch(`{{ route('performance.detailed-units.add') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        mother_office: office,
+                        name: unitName.trim()
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchDetailedUnits(office);
+                        // Also select it after adding? Wait, fetchDetailedUnits is async.
+                        // Let's just alert.
+                    } else {
+                        alert('Failed to add detailed unit.');
+                    }
+                })
+                .catch(err => alert('Failed to add detailed unit.'));
+            }
         }
 
         function handleTopPeriodChange() {
@@ -775,6 +894,32 @@
                 customInputContainer.style.display = 'none';
                 fetchEmployees();
             }
+        }
+
+        /**
+         * Enhancement Spec Sec. 2 — Enter/Tab on a rating cell moves focus to
+         * the next employee's rating cell, never the target/rating date
+         * pickers in the same row (those are tabindex="-1" so native tab
+         * order can't land on them either).
+         */
+        function handleRatingKeydown(event, empId) {
+            if (event.key !== 'Enter' && event.key !== 'Tab') return;
+            event.preventDefault();
+
+            const cells = Array.from(document.querySelectorAll('.rating-input'));
+            const currentIndex = cells.findIndex(cell => cell.id === `rating-${empId}`);
+            if (currentIndex === -1) return;
+
+            for (let i = currentIndex + 1; i < cells.length; i++) {
+                if (!cells[i].disabled) {
+                    cells[i].focus();
+                    cells[i].select();
+                    return;
+                }
+            }
+
+            const saveBtn = document.getElementById('saveAllBtn');
+            if (saveBtn) saveBtn.focus();
         }
 
         function updateRowState(id) {
@@ -820,23 +965,61 @@
             btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
             btn.disabled = true;
 
-            fetch('{{ route('performance.save') }}', {
+            fetch(`{{ route('performance.save') }}`, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'Accept': 'application/json',
+                headers: {
+                    'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 body: JSON.stringify(payload)
             })
             .then(res => res.json())
             .then(data => {
-                btn.innerHTML = '<i class="bi bi-check-lg"></i>';
-                clearRowState(id);
-                fetchEmployees();
-                setTimeout(() => { btn.innerHTML = origHtml; btn.disabled = false; }, 1500);
+                if(data.success) {
+                    clearRowState(id);
+                    const btn = row.querySelector('.btn-save-icon');
+                    const origHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="bi bi-check-circle"></i>';
+                    btn.style.background = '#22c55e';
+                    btn.style.color = '#fff';
+                    setTimeout(() => {
+                        btn.innerHTML = origHtml;
+                        btn.style.background = '';
+                        btn.style.color = '';
+                        btn.disabled = false;
+                    }, 1000);
+                }
             })
             .catch(err => { console.error(err); alert('Error saving data.'); btn.innerHTML = origHtml; btn.disabled = false; });
+        }
+
+        function deleteRating(id) {
+            if(!confirm('Are you sure you want to delete this IPCR record?')) return;
+            const periodType = document.getElementById('periodSelect').value;
+            const customPeriod = document.getElementById('customPeriodInput').value;
+            const year = document.getElementById('yearSelect').value;
+
+            const payload = {
+                plantilla_record_id: id,
+                period_type: periodType,
+                custom_period: customPeriod,
+                year: year
+            };
+
+            fetch(`{{ route('performance.delete') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    fetchEmployees();
+                }
+            });
         }
 
         function toggleAllTargets(checkbox) {
@@ -857,9 +1040,10 @@
         function applyBatchDates() {
             const tDate = document.getElementById('batchTargetDate').value;
             const rDate = document.getElementById('batchRatingDate').value;
+            const autoCheckTarget = document.getElementById('batchMarkTarget').checked;
 
-            if (!tDate && !rDate) {
-                alert('Please enter at least one date before applying.');
+            if (!tDate && !rDate && !autoCheckTarget) {
+                alert('Please enter at least one date or check a box before applying.');
                 return;
             }
 
@@ -869,6 +1053,8 @@
             rows.forEach(row => {
                 if (row.style.display !== 'none' && row.hasAttribute('data-emp-id')) {
                     const id = row.getAttribute('data-emp-id');
+                    const cb = row.querySelector('.target-checkbox');
+                    
                     if (tDate) {
                         const targetInput = document.getElementById(`target-date-${id}`);
                         if (targetInput) targetInput.value = tDate;
@@ -876,6 +1062,10 @@
                     if (rDate) {
                         const ratingInput = document.getElementById(`rating-date-${id}`);
                         if (ratingInput) ratingInput.value = rDate;
+                    }
+                    if (autoCheckTarget && cb) {
+                        cb.checked = true;
+                        updateRowState(id);
                     }
                     applied++;
                 }

@@ -195,10 +195,12 @@
                 <h2 class="section-title">Assign User Role</h2>
             </div>
             
+            <p class="cu-hint" style="margin-top:0;margin-bottom:16px;">Select one or more roles. Access is the union of all selected roles' permissions.</p>
+            @php $selectedRoleNames = old('roles', ['System & Administration']); @endphp
             <div class="role-grid">
                 @foreach($roles as $r)
                 <div class="role-generic">
-                    <input type="radio" name="role" id="role_{{ $r->id }}" value="{{ $r->name }}" class="role-option" {{ old('role', 'System & Administration') === $r->name ? 'checked' : '' }}>
+                    <input type="checkbox" name="roles[]" id="role_{{ $r->id }}" value="{{ $r->name }}" class="role-option" {{ in_array($r->name, $selectedRoleNames, true) ? 'checked' : '' }}>
                     <label for="role_{{ $r->id }}" class="role-card">
                         <i class="bi bi-check-circle-fill role-check-indicator"></i>
                         <div class="role-icon-wrapper" style="background:#eff6ff; color:#3b82f6;">
@@ -211,7 +213,8 @@
                 @endforeach
 
             </div>
-            @error('role')<div class="cu-error" style="margin-top: 12px; text-align: center;">{{ $message }}</div>@enderror
+            @error('roles')<div class="cu-error" style="margin-top: 12px; text-align: center;">{{ $message }}</div>@enderror
+            @error('roles.*')<div class="cu-error" style="margin-top: 12px; text-align: center;">{{ $message }}</div>@enderror
         </div>
 
         {{-- Bottom Actions --}}

@@ -8,6 +8,7 @@
             <th>Office / Unit</th>
             <th>Date Effectivity</th>
             <th>Nature of Separation</th>
+            <th>Basis Reference</th>
         </tr>
     </thead>
     <tbody>
@@ -19,6 +20,7 @@
             <td>{{ $r->office_department }}</td>
             <td>{{ $r->date_separated ? \Carbon\Carbon::parse($r->date_separated)->format('m/d/Y') : '—' }}</td>
             <td>{{ $r->nature_of_separation ?: 'N/A' }}</td>
+            <td>{{ $r->basis_reference ?: '—' }}</td>
         </tr>
         @endforeach
     </tbody>

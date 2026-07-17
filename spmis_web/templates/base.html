@@ -1,0 +1,30 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PGB-SPMIS{% block t %}{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head><body>
+{% if session.uid %}
+<header class="topbar">
+  <div class="brand">PGB&ndash;SPMIS <span>Strategic Performance Management Information System</span></div>
+  <div class="who">{{ session.fullname or session.uname }} ({{ session.role }}) &nbsp;|&nbsp;
+    <a href="{{ url_for('account_password') }}">My Account</a> &nbsp;|&nbsp;
+    <a href="{{ url_for('logout') }}">Logout</a></div>
+</header>
+<nav class="side">
+  <a href="{{ url_for('dashboard') }}">Dashboard</a>
+  <a href="{{ url_for('employees') }}">Employees</a>
+  <a href="{{ url_for('periods') }}">Rating Periods</a>
+  <a href="{{ url_for('ipcr_list') }}">IPCR</a>
+  <a href="{{ url_for('summary') }}">Summary List</a>
+  <a href="{{ url_for('opcr') }}">OPCR Roll-up</a>
+  <a href="{{ url_for('monitoring') }}">Monitoring</a>
+  <a href="{{ url_for('export_iprr') }}">Export IPRR (CSV)</a>
+  {% if session.role == 'admin' %}<a href="{{ url_for('settings') }}" class="navset">&#9881; Settings</a>{% endif %}
+</nav>
+<main class="content">
+{% with msgs = get_flashed_messages() %}{% if msgs %}
+  <div class="flash">{% for m in msgs %}<div>{{ m }}</div>{% endfor %}</div>
+{% endif %}{% endwith %}
+{% block body %}{% endblock %}
+</main>
+{% else %}{% block bodyonly %}{% endblock %}{% endif %}
+</body></html>

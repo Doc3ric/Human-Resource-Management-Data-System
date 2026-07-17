@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\Applicant;
 use App\Support\ExamRoutingService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 /** Module 5.4 — examination routing engine (PGB JO / External / Exempted classification + clustering). */
@@ -16,30 +17,57 @@ class ExamRoutingController extends Controller
 
     public function index(Request $request)
     {
-        $windowMonths = (int) $request->input('window_months', ExamRoutingService::DEFAULT_WINDOW_MONTHS);
+        $dateFrom = $request->filled('date_from')
+            ? Carbon::parse($request->input('date_from'))->startOfDay()
+            : now()->subMonths(ExamRoutingService::DEFAULT_WINDOW_MONTHS)->startOfDay();
+        $dateTo = $request->filled('date_to')
+            ? Carbon::parse($request->input('date_to'))->endOfDay()
+            : now()->endOfDay();
         $tableSize = (int) $request->input('table_size', ExamRoutingService::DEFAULT_TABLE_SIZE);
 
-        $grouped = $this->engine->windowedApplicants($windowMonths);
+        $filters = [
+            'classification' => $request->input('classification'),
+            'salary_grade' => $request->input('salary_grade')
+        ];
+
+        $grouped = $this->engine->applicantsInRange($dateFrom, $dateTo, $filters);
 
         $pgbJo = $this->engine->cluster($grouped->get('pgb_jo', collect()), $tableSize);
         $external = $this->engine->cluster($grouped->get('external', collect()), $tableSize);
         $exempt = $grouped->get('exempt', collect());
 
-        return view('recruitment.exam-routing.index', compact('pgbJo', 'external', 'exempt', 'windowMonths', 'tableSize'));
+        $savedSchedules = \App\Models\ExamSchedule::select('classification', 'exam_date', 'exam_time', 'room')
+            ->distinct()
+            ->orderBy('exam_date', 'desc')
+            ->orderBy('exam_time', 'desc')
+            ->get();
+
+        return view('recruitment.exam-routing.index', compact('pgbJo', 'external', 'exempt', 'dateFrom', 'dateTo', 'tableSize', 'savedSchedules', 'filters'));
     }
 
     public function generate(Request $request)
     {
         $validated = $request->validate([
             'classification' => 'required|in:pgb_jo,external',
-            'window_months' => 'required|integer|min:1',
+            'date_from' => 'required|date',
+            'date_to' => 'required|date|after_or_equal:date_from',
             'table_size' => 'required|integer|min:1',
             'exam_date' => 'nullable|date',
             'exam_time' => 'nullable',
             'room' => 'nullable|string',
+            'salary_grade' => 'nullable|integer',
         ]);
 
-        $grouped = $this->engine->windowedApplicants($validated['window_months']);
+        $filters = [
+            'classification' => $validated['classification'],
+            'salary_grade' => $validated['salary_grade'] ?? null,
+        ];
+
+        $grouped = $this->engine->applicantsInRange(
+            Carbon::parse($validated['date_from'])->startOfDay(),
+            Carbon::parse($validated['date_to'])->endOfDay(),
+            $filters
+        );
         $tables = $this->engine->cluster($grouped->get($validated['classification'], collect()), $validated['table_size']);
 
         $this->engine->generate(

@@ -1,0 +1,124 @@
+{% extends "base.html" %}{% block body %}
+<h1>IPCR #{{ ip.id }} &mdash; {{ ip.emp }}</h1>
+<p class="meta">{{ ip.position }} &middot; {{ ip.office }} &middot; {{ ip.period }} &middot; Role: {{ ip.role_type }}</p>
+
+<div class="panel"><h2>Part I &mdash; Performance (70%)</h2>
+<table><tr><th>MFO</th><th>Success Indicator</th><th>Measure</th><th>Q</th><th>E</th><th>T</th>{% if session.role != 'viewer' %}<th></th>{% endif %}</tr>
+{% for s in si %}<tr><td>{{s.mfo}}</td><td>{{s.indicator_text}}</td><td>{{s.measure or ''}}</td><td>{{s.q if s.q is not none}}</td><td>{{s.e if s.e is not none}}</td><td>{{s.t if s.t is not none}}</td>
+{% if session.role != 'viewer' %}<td><form method="post" class="inline" action="{{ url_for('delete_si', ipcr_id=ip.id, si_id=s.id) }}" onsubmit="return confirm('Remove this success indicator?')"><button class="ghost danger">Del</button></form></td>{% endif %}
+</tr>{% endfor %}</table>
+
+{% if session.role != 'viewer' %}
+<form method="post" action="{{ url_for('add_si', ipcr_id=ip.id) }}" id="siForm">
+  <input type="hidden" name="template_id" id="template_id">
+  <div class="row">
+    <label style="flex:1.4">Use Target (library)
+      <select id="tplPick"><option value="">-- type your own below --</option>
+      {% for t in templates %}<option value="{{t.id}}">[{{t.level}}] {{t.indicator_text}}</option>{% endfor %}</select>
+    </label>
+    <label>MFO<select name="mfo_id">{% for m in mfos %}<option value="{{m.id}}">{{m.no}}. {{m.name}}</option>{% endfor %}</select></label>
+  </div>
+  <div class="row">
+    <input name="indicator_text" id="indicator_text" placeholder="Success indicator" required style="flex:1.4">
+    <input name="measure" id="measure" placeholder="Measure (target + standard)" style="flex:1">
+    <input name="q" id="q" type="number" step="0.1" min="1" max="5" placeholder="Q" style="width:60px">
+    <input name="e" id="e" type="number" step="0.1" min="1" max="5" placeholder="E" style="width:60px">
+    <input name="t" id="t" type="number" step="0.1" min="1" max="5" placeholder="T" style="width:60px">
+    <button>Add</button>
+  </div>
+</form>
+<div id="rubricBox" class="rubricbox" style="display:none">
+  <div class="rubric-title">Rating guide &mdash; click a cell to set the score</div>
+  <table class="rubric mini"><tr><th>Score</th><th>Quality (Q)</th><th>Efficiency (E)</th><th>Timeliness (T)</th></tr>
+    <tbody id="rubricBody"></tbody></table>
+</div>
+
+<script>
+(function(){
+  var pick=document.getElementById('tplPick');
+  var box=document.getElementById('rubricBox'), body=document.getElementById('rubricBody');
+  function setVal(id,v){document.getElementById(id).value=v;}
+  pick.addEventListener('change', function(){
+    var id=this.value;
+    document.getElementById('template_id').value=id;
+    if(!id){ box.style.display='none'; return; }
+    fetch('/api/template/'+id).then(function(r){return r.json();}).then(function(d){
+      setVal('indicator_text', d.indicator_text||'');
+      setVal('measure', d.measure||'');
+      body.innerHTML='';
+      [5,4,3,2,1].forEach(function(sc){
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td class="sc">'+sc+'</td>'+
+          ['Q','E','T'].map(function(dim){
+            var txt=(d.rubric[dim]&&d.rubric[dim][sc])?d.rubric[dim][sc]:'';
+            return '<td class="rc" data-dim="'+dim+'" data-sc="'+sc+'">'+txt+'</td>';
+          }).join('');
+        body.appendChild(tr);
+      });
+      body.querySelectorAll('.rc').forEach(function(td){
+        td.addEventListener('click', function(){
+          var dim=this.getAttribute('data-dim').toLowerCase();
+          setVal(dim, this.getAttribute('data-sc'));
+          this.parentNode.parentNode.querySelectorAll('[data-dim="'+this.getAttribute('data-dim')+'"]').forEach(function(c){c.classList.remove('picked');});
+          this.classList.add('picked');
+        });
+      });
+      box.style.display='block';
+    });
+  });
+})();
+</script>
+{% endif %}
+</div>
+
+<div class="panel"><h2>Part II &mdash; Attitude Towards Work (30%) &middot; cross-rating</h2>
+<table><tr><th>Rater Group</th><th>Rater</th><th>Factor Ave</th>{% if session.role != 'viewer' %}<th></th>{% endif %}</tr>
+{% for c in cr %}<tr><td>{{c.rater_group}}</td><td>{{c.rater_name}}</td><td>{{c.factor_ave}}</td>
+{% if session.role != 'viewer' %}<td><form method="post" class="inline" action="{{ url_for('delete_cr', ipcr_id=ip.id, cr_id=c.id) }}" onsubmit="return confirm('Remove this cross-rating?')"><button class="ghost danger">Del</button></form></td>{% endif %}
+</tr>{% endfor %}</table>
+{% if session.role != 'viewer' %}
+<form method="post" action="{{ url_for('add_cr', ipcr_id=ip.id) }}" class="row">
+  <select name="rater_group"><option>Supervisor/NHA</option><option>Peer/Subordinate</option><option>Client</option></select>
+  <input name="rater_name" placeholder="Rater name" style="flex:1">
+  <input name="factor_ave" type="number" step="0.01" min="1" max="5" placeholder="Ave (1-5)" required style="width:110px">
+  <button>Add</button>
+</form>
+{% endif %}
+<p class="note">Weights by role &mdash; Supervisor/NHA 20%, Peer/Subordinate 30%, Client 50%.</p></div>
+
+<div class="panel result"><h2>Computation</h2>
+{% if session.role != 'viewer' %}
+<form method="post" action="{{ url_for('set_hours', ipcr_id=ip.id) }}" class="row">
+  <label>Intervening Task hours&nbsp;<input name="its_hours" type="number" step="0.1" value="{{ ip.its_hours or 0 }}" style="width:90px"></label>
+  <button class="ghost">Save hours</button>
+</form>
+{% else %}
+<p>Intervening Task hours: {{ ip.its_hours or 0 }}</p>
+{% endif %}
+<table class="kv">
+  <tr><td>P1 (Performance)</td><td>{{ ip.p1 if ip.p1 is not none else '-' }}</td>
+      <td>EPS1 = P1&times;70%</td><td>{{ ip.eps1 if ip.eps1 is not none else '-' }}</td></tr>
+  <tr><td>P2 (Attitude)</td><td>{{ ip.p2 if ip.p2 is not none else '-' }}</td>
+      <td>EPS2 = P2&times;30%</td><td>{{ ip.eps2 if ip.eps2 is not none else '-' }}</td></tr>
+  <tr><td>Intervening Task Score</td><td>{{ ip.its if ip.its is not none else '-' }}</td>
+      <td><b>FNR (capped 5.00)</b></td><td class="big">{{ ip.fnr if ip.fnr is not none else '-' }}</td></tr>
+  <tr><td colspan="2"></td><td><b>Adjectival</b></td><td class="big">{{ ip.adjectival or '-' }}</td></tr>
+</table>
+{% if session.role != 'viewer' %}
+<form method="post" action="{{ url_for('ipcr_compute', ipcr_id=ip.id) }}"><button class="big-btn">Compute rating</button></form>
+{% endif %}
+{% if dpcr_cap %}
+  {% if ip.fnr is not none and ip.fnr > dpcr_cap.div_fnr %}
+  <div class="cap bad">Teamwork cap: EXCEEDED &mdash; this rating ({{ip.fnr}}) is higher than the division's finalized DPCR ({{dpcr_cap.div_fnr}}). Recalibrate down (manual 6.2.17/6.2.19).</div>
+  {% else %}
+  <div class="cap good">Teamwork cap: OK &mdash; within the division's finalized DPCR ({{dpcr_cap.div_fnr}}).</div>
+  {% endif %}
+{% endif %}
+</div>
+<p><a href="{{ url_for('ipcr_list') }}">&larr; back to list</a>
+{% if session.role != 'viewer' %}
+&nbsp;|&nbsp;
+<form method="post" class="inline" action="{{ url_for('ipcr_delete', ipcr_id=ip.id) }}" onsubmit="return confirm('Delete this entire IPCR and all its entries?')"><button class="ghost danger">Delete this IPCR</button></form>
+{% endif %}
+</p>
+{% endblock %}

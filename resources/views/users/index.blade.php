@@ -98,6 +98,7 @@
             font-size: 11px;
             font-weight: 700;
             white-space: nowrap;
+            margin: 2px 4px 2px 0;
         }
 
         /* System & Administration */
@@ -268,26 +269,28 @@
                             </td>
                             <td style="color:#6b7280;">{{ $user->email }}</td>
                             <td>
-                                @php $spatieRole = $user->roles->first()?->name ?? ''; @endphp
-                                @if($spatieRole === 'System & Administration')
-                                    <span class="role-badge role-sa"><i class="bi bi-shield-fill-check"></i> System &amp; Admin</span>
-                                @elseif($spatieRole === 'Personnel Records')
-                                    <span class="role-badge role-pr"><i class="bi bi-people-fill"></i> Personnel Records</span>
-                                @elseif($spatieRole === 'Appointment')
-                                    <span class="role-badge role-appt"><i class="bi bi-person-plus-fill"></i> Appointment</span>
-                                @elseif($spatieRole === 'Appointment Encoder')
-                                    <span class="role-badge role-appt-enc"><i class="bi bi-keyboard"></i> Appt. Encoder</span>
-                                @elseif($spatieRole === 'Performance Management')
-                                    <span class="role-badge role-perf"><i class="bi bi-graph-up-arrow"></i> Performance Mgmt</span>
-                                @elseif($spatieRole === 'Welfare & Benefits')
-                                    <span class="role-badge role-wb"><i class="bi bi-cash-stack"></i> Welfare &amp; Benefits</span>
-                                @elseif($spatieRole === 'Viewer')
-                                    <span class="role-badge role-viewer"><i class="bi bi-eye-fill"></i> Viewer</span>
-                                @elseif($spatieRole)
-                                    <span class="role-badge" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;"><i class="bi bi-person-badge"></i> {{ $spatieRole }}</span>
-                                @else
+                                @forelse($user->roles as $spatieRoleModel)
+                                    @php $spatieRole = $spatieRoleModel->name; @endphp
+                                    @if($spatieRole === 'System & Administration')
+                                        <span class="role-badge role-sa"><i class="bi bi-shield-fill-check"></i> System &amp; Admin</span>
+                                    @elseif($spatieRole === 'Personnel Records')
+                                        <span class="role-badge role-pr"><i class="bi bi-people-fill"></i> Personnel Records</span>
+                                    @elseif($spatieRole === 'Appointment')
+                                        <span class="role-badge role-appt"><i class="bi bi-person-plus-fill"></i> Appointment</span>
+                                    @elseif($spatieRole === 'Appointment Encoder')
+                                        <span class="role-badge role-appt-enc"><i class="bi bi-keyboard"></i> Appt. Encoder</span>
+                                    @elseif($spatieRole === 'Performance Management')
+                                        <span class="role-badge role-perf"><i class="bi bi-graph-up-arrow"></i> Performance Mgmt</span>
+                                    @elseif($spatieRole === 'Welfare & Benefits')
+                                        <span class="role-badge role-wb"><i class="bi bi-cash-stack"></i> Welfare &amp; Benefits</span>
+                                    @elseif($spatieRole === 'Viewer')
+                                        <span class="role-badge role-viewer"><i class="bi bi-eye-fill"></i> Viewer</span>
+                                    @else
+                                        <span class="role-badge" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;"><i class="bi bi-person-badge"></i> {{ $spatieRole }}</span>
+                                    @endif
+                                @empty
                                     <span class="role-badge role-none"><i class="bi bi-person-x-fill"></i> No Role</span>
-                                @endif
+                                @endforelse
                             </td>
                             <td>
                                 @if($user->is_approved)

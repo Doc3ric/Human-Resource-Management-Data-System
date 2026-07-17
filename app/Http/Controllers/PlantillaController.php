@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PlantillaRecord;
 use App\Models\ActivityLog;
+use App\Models\DetailOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -14,6 +15,7 @@ use App\Exports\Reports\Report3Export;
 use App\Exports\Reports\Report4Export;
 use App\Exports\Reports\Report5Export;
 use App\Exports\Reports\Report6Export;
+use App\Exports\Reports\Report8Export;
 
 class PlantillaController extends Controller
 {
@@ -241,6 +243,14 @@ class PlantillaController extends Controller
                     ->whereDate('date_of_birth', '<=', $maxDate);
             }
         }
+        if ($request->filled('vacancy_status')) {
+            $isFiltered = true;
+            if ($request->input('vacancy_status') === 'vacant') {
+                $query->where('is_vacant', true);
+            } elseif ($request->input('vacancy_status') === 'filled') {
+                $query->where('is_vacant', false);
+            }
+        }
         if ($request->filled('category')) {
             $isFiltered = true;
             $cat = $request->input('category');
@@ -290,22 +300,7 @@ class PlantillaController extends Controller
             $query->where('position_title', $request->input('position'));
         }
 
-        $filtered = $query->get();
-
-        $emptySlots = array_fill_keys(self::CATEGORIES, []);
-        $grouped = [];
-
-        foreach ($filtered as $record) {
-            $isJo = in_array($record->employment_status, ['JO', 'Job Order', 'J.O.', 'J']);
-            $officeField = $record->office_department;
-            $office = $officeField ?: 'Unassigned';
-            
-            $cat = $this->resolveCategory($record);
-            if (!isset($grouped[$office]))
-                $grouped[$office] = $emptySlots;
-            $grouped[$office][$cat][] = $record;
-        }
-        ksort($grouped);
+        $records = $query->paginate(50)->withQueryString();
 
         // Cache offices list since it rarely changes completely
         $offices = cache()->remember('plantilla_offices_list_fixed', 3600, function () {
@@ -320,8 +315,16 @@ class PlantillaController extends Controller
                 ->filter()->values();
         });
 
+        // We also need the resolveCategory method available in the view if needed, 
+        // but it's protected/private. Let's map it or just rely on simple checks in the view.
+        // Actually, we can just attach the resolved category to each record directly.
+        $records->getCollection()->transform(function ($record) {
+            $record->resolved_category = $this->resolveCategory($record);
+            return $record;
+        });
+
         return view('plantilla.index', [
-            'grouped' => $grouped,
+            'records' => $records,
             'offices' => $offices,
             'positions' => $positions,
             'categories' => self::CATEGORIES,
@@ -497,6 +500,7 @@ class PlantillaController extends Controller
     public function exportVacantPdf(Request $request)
     {
         $type = $request->input('type', 'funded'); // 'funded' or 'unfunded'
+        $office = $request->input('office');
 
         if ($type === 'unfunded') {
             $records = PlantillaRecord::where(function ($q) {
@@ -511,13 +515,18 @@ class PlantillaController extends Controller
                         $q3->whereNull('base_salary_amount')->orWhere('base_salary_amount', 0);
                     });
                 });
-            })->orderBy('position_title')->get();
+            })->when($office, fn ($q) => $q->where('office_department', $office))
+                ->orderBy('position_title')->get();
             $title = 'Vacant Unfunded Positions';
         } else {
             $records = PlantillaRecord::where('is_vacant', true)
                 ->where('abolished', false)->where('dissolved', false)
+                ->when($office, fn ($q) => $q->where('office_department', $office))
                 ->orderBy('position_title')->get();
             $title = 'Vacant Funded Positions';
+        }
+        if ($office) {
+            $title .= " — {$office}";
         }
 
         $pdf = Pdf::loadView('exports.vacant-pdf', compact('records', 'title', 'type'))
@@ -528,14 +537,15 @@ class PlantillaController extends Controller
 
     /**
      * Export Vacant Positions list as Excel.
-     * ?type=funded|unfunded
+     * ?type=funded|unfunded&office=exact office_department name (optional)
      */
     public function exportVacantExcel(Request $request)
     {
         $type = $request->input('type', 'funded');
+        $office = $request->input('office');
         $filename = 'Vacant_' . ucfirst($type) . '_' . now()->format('Y-m-d') . '.xlsx';
 
-        return Excel::download(new \App\Exports\VacantExport($type), $filename);
+        return Excel::download(new \App\Exports\VacantExport($type, $office), $filename);
     }
 
     /**
@@ -844,6 +854,17 @@ class PlantillaController extends Controller
                 ->get();
         }
 
+        // ── REPORT 8: Detailed Employees (Enhancement Spec Sec. 5) ─────────────
+        $r8_include_recalled = $request->boolean('r8_include_recalled');
+        $report8 = DetailOrder::with('plantillaRecord')
+            ->when(!$r8_include_recalled, fn ($q) => $q->where('status', '!=', 'Recalled'))
+            ->get()
+            ->sortBy([
+                ['detailed_unit', 'asc'],
+                [fn ($o) => $o->plantillaRecord?->last_name ?? '', 'asc'],
+            ])
+            ->values();
+
         return view('plantilla.reports', compact(
             'report1',
             'report2',
@@ -852,6 +873,7 @@ class PlantillaController extends Controller
             'report5',
             'report6',
             'report7',
+            'report8',
             'asOf',
             'year',
             'month',
@@ -860,7 +882,8 @@ class PlantillaController extends Controller
             'r7_period',
             'r7_from',
             'r7_to',
-            'r7_asof'
+            'r7_asof',
+            'r8_include_recalled'
         ));
     }
 
@@ -897,6 +920,7 @@ class PlantillaController extends Controller
             4 => Report4Export::class,
             5 => Report5Export::class,
             6 => Report6Export::class,
+            8 => Report8Export::class,
         ];
 
         $exportClass = $exportClasses[$report] ?? Report1Export::class;
@@ -1122,6 +1146,17 @@ class PlantillaController extends Controller
         }
         ksort($report6);
 
+        // Report 8
+        $r8_include_recalled = $request->boolean('r8_include_recalled');
+        $report8 = DetailOrder::with('plantillaRecord')
+            ->when(!$r8_include_recalled, fn ($q) => $q->where('status', '!=', 'Recalled'))
+            ->get()
+            ->sortBy([
+                ['detailed_unit', 'asc'],
+                [fn ($o) => $o->plantillaRecord?->last_name ?? '', 'asc'],
+            ])
+            ->values();
+
         return compact(
             'report1',
             'report2',
@@ -1129,6 +1164,7 @@ class PlantillaController extends Controller
             'report4',
             'report5',
             'report6',
+            'report8',
             'asOf',
             'year',
             'month'
@@ -1211,7 +1247,28 @@ class PlantillaController extends Controller
      */
     public function show(PlantillaRecord $plantilla)
     {
-        return view('plantilla.show', compact('plantilla'));
+        // Enhancement Spec Sec. 4 — read-only 201-file feed: the immutable
+        // ledger joined with its append-only status history at read-time.
+        $violations = \App\Models\Violation::where('plantilla_record_id', $plantilla->id)
+            ->with('statusLogs')
+            ->orderByDesc('date_created')
+            ->get();
+
+        // Attach the generated notice/letter document (if any) for Leave-sourced
+        // violations, so the 201-file view can link straight to the actual letter —
+        // previously the ledger only showed the violation type/status, not the letter itself.
+        $leaveViolationIds = $violations->where('source_module', 'Leave')->pluck('source_record_id');
+        $leaveViolationsById = \App\Models\LeaveViolation::whereIn('id', $leaveViolationIds)
+            ->with('document')
+            ->get()
+            ->keyBy('id');
+        $violations->each(function ($v) use ($leaveViolationsById) {
+            $v->letterDocument = $v->source_module === 'Leave'
+                ? $leaveViolationsById->get($v->source_record_id)?->document
+                : null;
+        });
+
+        return view('plantilla.show', compact('plantilla', 'violations'));
     }
 
     /**
@@ -1228,7 +1285,13 @@ class PlantillaController extends Controller
         $existingItems = PlantillaRecord::select('item_no_new')
             ->distinct()->orderBy('item_no_new')
             ->pluck('item_no_new')->filter()->values();
-        return view('plantilla.edit', compact('plantilla', 'offices', 'existingItems', 'positions'));
+        // Enhancement Spec Sec. 6 — candidates for "Originating Disciplinary Case"
+        // on Termination; this employee's own cases plus any still open.
+        $disciplinaryCases = \App\Models\DisciplinaryCase::where('personnel_id', $plantilla->id)
+            ->orWhere('status', '!=', 'closed')
+            ->orderByDesc('id')
+            ->get();
+        return view('plantilla.edit', compact('plantilla', 'offices', 'existingItems', 'positions', 'disciplinaryCases'));
     }
 
     /**
@@ -1362,25 +1425,33 @@ class PlantillaController extends Controller
     }
 
     /**
-     * Generate CSC Form 9 (Publication of Vacant Positions)
+     * Generate CSC Form 9 (Publication of Vacant Positions).
+     * ?office=exact office_department name — omit for all offices (default, unchanged from before).
      */
-    public function generateForm9()
+    public function generateForm9(Request $request)
     {
         ini_set('memory_limit', '2048M');
         set_time_limit(600);
 
+        $office = $request->input('office');
+
         $vacantRecords = PlantillaRecord::where('is_vacant', true)
             ->where('abolished', false)
             ->where('dissolved', false)
+            ->when($office, fn ($q) => $q->where('office_department', $office))
             ->orderBy('office_department')
             ->orderBy('position_title')
             ->get();
 
         // Legal landscape is often used for CSC Form 9 since it has many columns
-        $pdf = Pdf::loadView('plantilla.pdf.form9', compact('vacantRecords'))
+        $pdf = Pdf::loadView('plantilla.pdf.form9', compact('vacantRecords', 'office'))
             ->setPaper('legal', 'landscape');
 
-        return $pdf->download('CSC_Form_9_Vacant_Positions.pdf');
+        $filename = $office
+            ? 'CSC_Form_9_Vacant_Positions_' . \Illuminate\Support\Str::slug($office) . '.pdf'
+            : 'CSC_Form_9_Vacant_Positions.pdf';
+
+        return $pdf->download($filename);
     }
 
     /**
@@ -1586,6 +1657,8 @@ class PlantillaController extends Controller
             'nature_of_appointment' => 'nullable|string|max:100',
             'nature_of_separation' => 'nullable|string|max:100',
             'date_separated' => 'nullable|date',
+            'basis_reference' => 'nullable|string|max:255',
+            'originating_admin_case_id' => 'nullable|exists:disciplinary_cases,id',
             'employee_code' => 'nullable|string|max:20|unique:plantilla_records,employee_code' . ($exceptId ? ",{$exceptId}" : ''),
         ]);
     }
@@ -1625,5 +1698,88 @@ class PlantillaController extends Controller
         }
 
         return back()->with('success', "Renewal cleared for {$plantilla->last_name}, {$plantilla->first_name}.");
+    }
+
+    public function lbpForm3Options(Request $request)
+    {
+        $offices = PlantillaRecord::select('office_department')
+            ->whereNotNull('office_department')
+            ->where('office_department', '!=', '')
+            ->distinct()
+            ->orderBy('office_department')
+            ->pluck('office_department');
+
+        return view('plantilla.lbp-form-3-options', compact('offices'));
+    }
+
+    public function exportLbpForm3Excel(Request $request)
+    {
+        $request->validate([
+            'employment_type' => 'required|in:Permanent,Casual',
+            'office' => 'nullable|string',
+            'year' => 'required|numeric',
+        ]);
+
+        $employmentType = $request->input('employment_type');
+        $office = $request->input('office');
+        $year = $request->input('year');
+        $preparedBy = $request->input('prepared_by') ?: 'AIDA B. LOVERES';
+        $reviewedBy = $request->input('reviewed_by') ?: 'MAYFE P. ALERTA';
+        $approvedBy = $request->input('approved_by') ?: 'ROGELIO NEIL P. ROQUE';
+        $currentTranche = $request->input('current_tranche') ?: 'LBC #165<br>2nd Tranche<br>Amount';
+        $proposedTranche = $request->input('proposed_tranche') ?: 'EO #64<br>3rd Tranche<br>Amount';
+        
+        $filename = "LBP_FORM_3_" . str_replace(' ', '_', $employmentType) . "_{$year}_" . now()->format('YmdHis') . ".xlsx";
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\LbpForm3Export($employmentType, $office, $year, $preparedBy, $reviewedBy, $approvedBy, $currentTranche, $proposedTranche),
+            $filename
+        );
+    }
+
+    public function exportLbpForm3Pdf(Request $request)
+    {
+        ini_set('memory_limit', '2048M');
+        set_time_limit(600);
+
+        $request->validate([
+            'employment_type' => 'required|in:Permanent,Casual',
+            'office' => 'nullable|string',
+            'year' => 'required|numeric',
+        ]);
+
+        $employmentType = $request->input('employment_type');
+        $office = $request->input('office');
+        $year = $request->input('year');
+        $preparedBy = $request->input('prepared_by') ?: 'AIDA B. LOVERES';
+        $reviewedBy = $request->input('reviewed_by') ?: 'MAYFE P. ALERTA';
+        $approvedBy = $request->input('approved_by') ?: 'ROGELIO NEIL P. ROQUE';
+        $currentTranche = $request->input('current_tranche') ?: 'LBC #165<br>2nd Tranche<br>Amount';
+        $proposedTranche = $request->input('proposed_tranche') ?: 'EO #64<br>3rd Tranche<br>Amount';
+
+        $query = PlantillaRecord::query()->where('abolished', false);
+
+        if ($employmentType === 'Permanent') {
+            $query->whereIn('employment_status', ['P', 'Permanent']);
+        } elseif ($employmentType === 'Casual') {
+            $query->whereIn('employment_status', ['Casual', 'CASUAL', 'C']);
+        }
+
+        if (!empty($office)) {
+            $query->where('office_department', $office);
+        }
+
+        $records = $query->orderBy('office_department')
+            ->orderBy('item_no_new')
+            ->get();
+
+        $groupedRecords = $records->groupBy('office_department');
+
+        $pdf = Pdf::loadView('plantilla.exports.lbp-form-3', compact(
+            'groupedRecords', 'employmentType', 'office', 'year', 'preparedBy', 'reviewedBy', 'approvedBy', 'currentTranche', 'proposedTranche'
+        ))->setPaper([0, 0, 612, 936], 'portrait');
+
+        $filename = "LBP_FORM_3_" . str_replace(' ', '_', $employmentType) . "_{$year}_" . now()->format('YmdHis') . ".pdf";
+        return $pdf->download($filename);
     }
 }

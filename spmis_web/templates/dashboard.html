@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block body %}
+<h1>Dashboard</h1>
+<div class="cards">
+  <div class="card"><div class="num">{{ stats.employees }}</div><div>Active Employees</div></div>
+  <div class="card"><div class="num">{{ stats.ipcr }}</div><div>IPCR Records</div></div>
+  <div class="card"><div class="num">{{ stats.rated }}</div><div>Rated (computed)</div></div>
+  <div class="card warn"><div class="num">{{ stats.late }}</div><div>Overdue / Not Submitted</div></div>
+</div>
+<div class="panel"><h2>Workflow (SPMS four-stage cycle)</h2>
+<ol class="flow">
+  <li><b>Plan &amp; Commit</b> &mdash; register Employees &amp; Rating Periods; create IPCRs (cascade from OPCR/DPCR).</li>
+  <li><b>Monitor &amp; Coach</b> &mdash; log submissions in Monitoring; late/non-submission flags raise automatically.</li>
+  <li><b>Review &amp; Evaluate</b> &mdash; enter Q/E/T and cross-rating on each IPCR, then <b>Compute</b> (70/30 engine).</li>
+  <li><b>Reward &amp; Develop</b> &mdash; Summary List, OPCR roll-up (teamwork cap), Export Consolidated IPRR for CSC.</li>
+</ol></div>
+{% endblock %}

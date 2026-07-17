@@ -887,7 +887,7 @@
             <select name="office[]" class="cas-select" id="office-select" multiple="multiple" style="min-width:250px;" title="Office">
                 @php $selectedOffices = (array) request('office', []); @endphp
                 <option value="" disabled>— Office —</option>
-                @foreach($offices as $office)
+                @foreach(($globalOffices ?? collect([]))->pluck('name')->filter()->unique() as $office)
                     <option value="{{ $office }}" {{ in_array($office, $selectedOffices) ? 'selected' : '' }}>{{ Str::limit($office, 45) }}</option>
                 @endforeach
             </select>
@@ -982,6 +982,8 @@
         </div>
     @endif
 
+    @include('partials.table-column-controls', ['tabKey' => 'all-data'])
+
     {{-- Table --}}
     <div class="table-wrap">
         <div class="table-scroll" id="ad-table-scroll">
@@ -994,21 +996,21 @@
                             </th>
                         @endif
                         <th rowspan="2" style="width: 40px; text-align: center;">#</th>
-                        <th rowspan="2">OFFICE</th>
+                        <th rowspan="2" data-col="office_department" data-sort data-label="OFFICE"><x-sort-link column="office_department">OFFICE</x-sort-link></th>
                         <th colspan="4" style="text-align:center;">NAME</th>
-                        <th rowspan="2">POSITION</th>
-                        <th rowspan="2" style="text-align:center;">DATE OF BIRTH</th>
-                        <th rowspan="2" style="text-align:center;">SEX</th>
-                        <th rowspan="2" style="text-align:center;">STATUS</th>
+                        <th rowspan="2" data-col="position_title" data-sort data-label="POSITION"><x-sort-link column="position_title">POSITION</x-sort-link></th>
+                        <th rowspan="2" style="text-align:center;" data-col="date_of_birth" data-sort data-label="DATE OF BIRTH"><x-sort-link column="date_of_birth">DATE OF BIRTH</x-sort-link></th>
+                        <th rowspan="2" style="text-align:center;" data-col="sex" data-sort data-label="SEX"><x-sort-link column="sex">SEX</x-sort-link></th>
+                        <th rowspan="2" style="text-align:center;" data-col="employment_status" data-sort data-label="STATUS"><x-sort-link column="employment_status">STATUS</x-sort-link></th>
                         @if(auth()->user()?->isSuperAdmin() || auth()->user()?->isInventoryAdmin())
                             <th rowspan="2" style="text-align:center;">ACTIONS</th>
                         @endif
                     </tr>
                     <tr class="sub-header">
-                        <th>LAST NAME</th>
-                        <th>FIRST NAME</th>
-                        <th>MIDDLE NAME</th>
-                        <th>SUFFIX</th>
+                        <th data-col="last_name" data-sort data-label="LAST NAME"><x-sort-link column="last_name">LAST NAME</x-sort-link></th>
+                        <th data-col="first_name" data-sort data-label="FIRST NAME"><x-sort-link column="first_name">FIRST NAME</x-sort-link></th>
+                        <th data-col="middle_name" data-sort data-label="MIDDLE NAME"><x-sort-link column="middle_name">MIDDLE NAME</x-sort-link></th>
+                        <th data-col="name_extension" data-label="SUFFIX">SUFFIX</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1026,10 +1028,10 @@
                             </td>
 
                             {{-- Organizational Unit --}}
-                            <td title="{{ $r->office_department }}">{{ $r->office_department }}</td>
+                            <td data-col="office_department" title="{{ $r->office_department }}">{{ $r->office_department }}</td>
 
                             {{-- Last Name --}}
-                            <td style="font-weight:700;text-transform:uppercase;color:#0f172a;">
+                            <td data-col="last_name" style="font-weight:700;text-transform:uppercase;color:#0f172a;">
                                 @if($r->is_vacant)
                                     <span style="color:#dc2626;font-style:italic;font-size:12px;">VACANT</span>
                                 @else
@@ -1038,26 +1040,26 @@
                             </td>
 
                             {{-- First Name --}}
-                            <td>{{ $r->first_name ?: '—' }}</td>
+                            <td data-col="first_name">{{ $r->first_name ?: '—' }}</td>
 
                             {{-- Middle Name --}}
-                            <td style="color:#6b7280;">{{ $r->middle_name ?: '—' }}</td>
+                            <td data-col="middle_name" style="color:#6b7280;">{{ $r->middle_name ?: '—' }}</td>
 
                             {{-- Extension --}}
-                            <td style="color:#6b7280;">{{ $r->name_extension ?: '—' }}</td>
+                            <td data-col="name_extension" style="color:#6b7280;">{{ $r->name_extension ?: '—' }}</td>
 
                             {{-- Position Title --}}
-                            <td title="{{ $r->position_title }}" style="font-weight:600;color:#0f172a;">
+                            <td data-col="position_title" title="{{ $r->position_title }}" style="font-weight:600;color:#0f172a;">
                                 {{ $r->position_title }}
                             </td>
 
                             {{-- Birthday --}}
-                            <td style="color:#6b7280;text-align:center;font-size:13px;">
+                            <td data-col="date_of_birth" style="color:#6b7280;text-align:center;font-size:13px;">
                                 {{ $r->date_of_birth ? \Carbon\Carbon::parse($r->date_of_birth)->format('M d, Y') : '—' }}
                             </td>
 
                             {{-- Sex --}}
-                            <td style="text-align:center;font-weight:600;">
+                            <td data-col="sex" style="text-align:center;font-weight:600;">
                                 @if(strtoupper($r->sex) == 'M')
                                     <span style="color:#2563eb;">M</span>
                                 @elseif(strtoupper($r->sex) == 'F')
@@ -1068,7 +1070,7 @@
                             </td>
 
                             {{-- Employment Status --}}
-                            <td>
+                            <td data-col="employment_status">
                                 @php
                                     $s = $r->employment_status;
                                     $badge = match (true) {
@@ -1236,7 +1238,7 @@
                                     'position_title' => 'POSITION TITLE',
                                     'salary_grade' => 'SALARY GRADE',
                                     'authorized_annual_salary' => 'AUTHORIZED ANNUAL SALARY',
-                                    'base_salary_amount' => 'ACTUAL ANNUAL SALARY',
+                                    'base_salary_amount' => 'ACTUAL MONTHLY SALARY',
                                     'step' => 'STEP',
                                     'area_code' => 'AREA CODE',
                                     'area_type' => 'AREA TYPE',

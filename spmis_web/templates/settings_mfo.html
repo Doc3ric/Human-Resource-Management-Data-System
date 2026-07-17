@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block body %}
+<p><a href="{{ url_for('settings') }}">&larr; Settings</a></p>
+<h1>Major Final Outputs (Pillars)</h1>
+<table><tr><th style="width:80px">No.</th><th>MFO name</th><th style="width:150px">Action</th></tr>
+{% for r in rows %}
+<tr><form method="post"><input type="hidden" name="id" value="{{r.id}}">
+  <td><input name="no" type="number" value="{{r.no}}" style="width:60px"></td>
+  <td><input name="name" value="{{r.name}}"></td>
+  <td><button name="action" value="update">Save</button>
+      <button name="action" value="delete" class="ghost" onclick="return confirm('Delete MFO?')">Del</button></td>
+</form></tr>{% endfor %}
+<tr><form method="post">
+  <td><input name="no" type="number" placeholder="8" style="width:60px"></td>
+  <td><input name="name" placeholder="New MFO / Pillar"></td>
+  <td><button name="action" value="add">Add</button></td>
+</form></tr>
+</table>
+{% endblock %}

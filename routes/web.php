@@ -19,6 +19,7 @@ use App\Http\Controllers\JobOrderController;
 use App\Http\Controllers\CasualController;
 use App\Http\Controllers\PermanentController;
 use App\Http\Controllers\EmployeeCodeController;
+use App\Http\Controllers\PolicyBulletinController;
 use Illuminate\Support\Facades\Route;
 
 // ============================================
@@ -78,6 +79,12 @@ Route::middleware('auth')->group(function () {
     // Activity Logs
     Route::get('/activity-logs', [\App\Http\Controllers\ActivityLogController::class, 'index'])
         ->name('activity-logs.index');
+
+    // ── Table Column-Visibility Preferences (Enhancement Spec Sec. 1) ──────
+    Route::prefix('table-preferences')->name('table-preferences.')->group(function () {
+        Route::get('/{tabKey}', [\App\Http\Controllers\TablePreferenceController::class, 'show'])->name('show');
+        Route::post('/{tabKey}', [\App\Http\Controllers\TablePreferenceController::class, 'store'])->name('store');
+    });
     Route::post('/activity-logs/{log}/undo', [\App\Http\Controllers\ActivityLogController::class, 'undo'])
         ->name('activity-logs.undo');
     Route::post('/activity-logs/mark-read', [\App\Http\Controllers\ActivityLogController::class, 'markAsRead'])
@@ -130,6 +137,9 @@ Route::middleware('auth')->group(function () {
         Route::get('plantilla/vacant-unfunded/detail', [PlantillaController::class, 'vacantUnfundedDetail'])->name('plantilla.vacant-unfunded.detail');
         Route::get('plantilla/vacant-unfunded/detail/export/excel', [PlantillaController::class, 'exportVacantUnfundedDetailExcel'])->name('plantilla.vacant-unfunded.detail.export.excel');
         Route::get('plantilla/vacant-unfunded/detail/export/pdf', [PlantillaController::class, 'exportVacantUnfundedDetailPdf'])->name('plantilla.vacant-unfunded.detail.export.pdf');
+        Route::get('plantilla/lbp-form-3', [PlantillaController::class, 'lbpForm3Options'])->name('plantilla.lbp-form-3');
+        Route::get('plantilla/lbp-form-3/export/excel', [PlantillaController::class, 'exportLbpForm3Excel'])->name('plantilla.lbp-form-3.export.excel');
+        Route::get('plantilla/lbp-form-3/export/pdf', [PlantillaController::class, 'exportLbpForm3Pdf'])->name('plantilla.lbp-form-3.export.pdf');
         Route::get('plantilla/form9', [PlantillaController::class, 'generateForm9'])->name('plantilla.form9');
         Route::get('plantilla/{plantilla}/service-record', [PlantillaController::class, 'generateServiceRecord'])->name('plantilla.service-record');
         Route::get('plantilla/{plantilla}/form33', [PlantillaController::class, 'generateForm33'])->name('plantilla.form33');
@@ -241,6 +251,12 @@ Route::middleware('auth')->group(function () {
         ->group(function () {
             Route::get('/export/excel', [PermanentController::class, 'exportExcel'])->name('export.excel');
             Route::get('/export/pdf',   [PermanentController::class, 'exportPdf'])->name('export.pdf');
+            Route::get('/template', [PermanentController::class, 'downloadTemplate'])->middleware('permission:add Permanent Employees')->name('template');
+            Route::get('/import-history', [PermanentController::class, 'importHistory'])->middleware('permission:add Permanent Employees')->name('import.history');
+            Route::delete('/import-history/{id}/undo', [PermanentController::class, 'undoImport'])->middleware('permission:delete Permanent Employees')->name('import.undo');
+            Route::post('/import', [PermanentController::class, 'importExcel'])->middleware('permission:add Permanent Employees')->name('import');
+            Route::get('/create', [PermanentController::class, 'create'])->middleware('permission:add Permanent Employees')->name('create');
+            Route::post('/', [PermanentController::class, 'store'])->middleware('permission:add Permanent Employees')->name('store');
             Route::get('/', [PermanentController::class, 'index'])->name('index');
             Route::delete('/delete-all', [PermanentController::class, 'deleteAll'])->middleware('role:super_admin')->name('delete-all');
         });
@@ -314,6 +330,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/office-report/export-pdf', [StepIncrementController::class, 'exportOfficeReportPdf'])->name('office-report.export-pdf');
             Route::get('/office-report/export-excel-by-office', [StepIncrementController::class, 'exportOfficeReportExcelByOffice'])->name('office-report.export-excel-by-office');
             Route::get('/office-report/export-pdf-by-office', [StepIncrementController::class, 'exportOfficeReportPdfByOffice'])->name('office-report.export-pdf-by-office');
+            Route::get('/office-report/{plantilla}/export-pdf-individual', [StepIncrementController::class, 'exportOfficeReportPdfIndividual'])->name('office-report.export-pdf-individual');
             Route::post('/{plantilla}/process', [StepIncrementController::class, 'process'])->name('process');
             Route::post('/{plantilla}/process/magna-carta', [StepIncrementController::class, 'processMagnaCarta'])->name('process-magna-carta');
             Route::get('/pdf/nosi/bulk', [\App\Http\Controllers\NoticeController::class, 'generateNosiBulk'])->name('pdf.nosi-bulk');
@@ -333,6 +350,9 @@ Route::middleware('auth')->group(function () {
             Route::delete('/loyalty-incentive-settings/{id}', [\App\Http\Controllers\LoyaltyIncentiveSettingController::class, 'destroy'])->name('loyalty-incentive-settings.destroy');
             Route::post('/{plantilla}/dismiss-loyalty', [StepIncrementController::class, 'dismissLoyalty'])->name('dismiss-loyalty');
             Route::post('/{plantilla}/restore-loyalty', [StepIncrementController::class, 'restoreLoyalty'])->name('restore-loyalty');
+            Route::get('/salary-alignment', [StepIncrementController::class, 'salaryAlignment'])->name('salary-alignment');
+            Route::post('/{plantilla}/reconcile-salary', [StepIncrementController::class, 'reconcileSalary'])->name('reconcile-salary');
+            Route::post('/reconcile-salary/selected', [StepIncrementController::class, 'reconcileSalarySelected'])->name('reconcile-salary.selected');
         });
 
     // ── Salary Grade Management (salary_admin + super_admin) ─────────────
@@ -384,6 +404,14 @@ Route::middleware('auth')->group(function () {
         ->post('/employee-codes/generate-all', [EmployeeCodeController::class, 'generateAll'])
         ->name('employee-codes.generate-all');
 
+    // HR Policy Bulletins
+    Route::get('/policy-bulletins', [PolicyBulletinController::class, 'index'])->name('policy-bulletins.index');
+    Route::post('/policy-bulletins/{bulletin}/acknowledge', [PolicyBulletinController::class, 'acknowledge'])->name('policy-bulletins.acknowledge');
+
+    // ── Offices / Organizational Units ───────────────────────────────────────
+    Route::middleware('role:System & Administration|super_admin')
+        ->resource('organizational-units', \App\Http\Controllers\OrganizationalUnitController::class);
+
     // ── User Management (super_admin + inventory_admin) ───────────────────
     Route::middleware('role:super_admin,inventory_admin')
         ->prefix('users')
@@ -408,6 +436,13 @@ Route::middleware('auth')->group(function () {
         ->get('/administration', function () {
             return view('administration.index');
         })->name('administration.index');
+
+    Route::middleware('role:super_admin,inventory_admin')
+        ->prefix('system')
+        ->name('system.')
+        ->group(function () {
+            Route::resource('qualification-standards', \App\Http\Controllers\SystemAdmin\QualificationStandardController::class)->except(['show']);
+        });
 
     // ── Archives / Recycle Bin (super_admin + inventory_admin) ───────────
     Route::middleware('role:super_admin,inventory_admin')
@@ -507,7 +542,10 @@ Route::middleware('auth')->group(function () {
         ->group(function () {
             Route::get('/', [\App\Http\Controllers\PerformanceController::class, 'index'])->name('index');
             Route::get('/employees', [\App\Http\Controllers\PerformanceController::class, 'getEmployees'])->name('employees');
+            Route::get('/detailed-units', [\App\Http\Controllers\PerformanceController::class, 'getDetailedUnits'])->name('detailed-units');
+            Route::post('/detailed-units', [\App\Http\Controllers\PerformanceController::class, 'addDetailedUnit'])->middleware('role:super_admin,inventory_admin,performance_admin')->name('detailed-units.add');
             Route::post('/save', [\App\Http\Controllers\PerformanceController::class, 'saveRating'])->middleware('role:super_admin,inventory_admin,performance_admin')->name('save');
+            Route::post('/delete-rating', [\App\Http\Controllers\PerformanceController::class, 'deleteRating'])->middleware('role:super_admin,inventory_admin,performance_admin')->name('delete');
             Route::post('/batch-save', [\App\Http\Controllers\PerformanceController::class, 'batchSave'])->middleware('role:super_admin,inventory_admin,performance_admin')->name('batch-save');
             Route::post('/settings', [\App\Http\Controllers\PerformanceController::class, 'saveSettings'])->middleware('role:super_admin,inventory_admin,performance_admin')->name('settings.save');
             Route::post('/export', [\App\Http\Controllers\PerformanceController::class, 'export'])->name('export');
@@ -530,11 +568,13 @@ Route::middleware('auth')->group(function () {
 
             // Admin Only Routes
             Route::middleware('role:super_admin,inventory_admin,appointment_admin')->group(function () {
-                Route::post('/report', [\App\Http\Controllers\RecruitmentController::class, 'generateReport'])->name('report');
+                Route::match(['get', 'post'], '/report', [\App\Http\Controllers\RecruitmentController::class, 'generateReport'])->name('report');
                 Route::post('/import', [\App\Http\Controllers\RecruitmentController::class, 'importCsv'])->name('import');
                 Route::get('/import-excel', [\App\Http\Controllers\RecruitmentController::class, 'importExcelForm'])->name('import-excel');
                 Route::post('/import-excel/map', [\App\Http\Controllers\RecruitmentController::class, 'importExcelMap'])->name('import-excel.map');
                 Route::post('/import-excel/process', [\App\Http\Controllers\RecruitmentController::class, 'importExcelProcess'])->name('import-excel.process');
+                Route::get('/pre-evaluate', [\App\Http\Controllers\RecruitmentController::class, 'preEvaluate'])->name('pre-evaluate');
+                Route::post('/pre-evaluate', [\App\Http\Controllers\RecruitmentController::class, 'bulkSaveEvaluation'])->name('bulk-evaluate');
                 Route::post('/{id}/evaluate', [\App\Http\Controllers\RecruitmentController::class, 'saveEvaluation'])->name('evaluate');
             });
 
@@ -594,9 +634,13 @@ Route::middleware('auth')->group(function () {
                 Route::get('/deliberation/agenda/create', [\App\Http\Controllers\DeliberationAgendaController::class, 'create'])->name('deliberation.agenda.create');
                 Route::post('/deliberation/agenda/store', [\App\Http\Controllers\DeliberationAgendaController::class, 'store'])->name('deliberation.agenda.store');
 
-                Route::get('/deliberation/{applicant}', [\App\Http\Controllers\DeliberationController::class, 'show'])->name('deliberation.show');
-                Route::post('/deliberation/{applicant}/phase', [\App\Http\Controllers\DeliberationController::class, 'updatePhase'])->name('deliberation.phase');
-                Route::get('/deliberation/{applicant}/monitoring', [\App\Http\Controllers\DeliberationMonitoringController::class, 'status'])->name('deliberation.monitoring');
+                Route::get('/deliberation-list', [\App\Http\Controllers\DeliberationController::class, 'show'])->name('deliberation.list');
+
+                Route::middleware([\App\Http\Middleware\CheckDeliberationSessionAccess::class])->group(function () {
+                    Route::get('/deliberation/{applicant}', [\App\Http\Controllers\DeliberationController::class, 'show'])->name('deliberation.show');
+                    Route::post('/deliberation/{applicant}/phase', [\App\Http\Controllers\DeliberationController::class, 'updatePhase'])->name('deliberation.phase');
+                    Route::get('/deliberation/{applicant}/monitoring', [\App\Http\Controllers\DeliberationMonitoringController::class, 'status'])->name('deliberation.monitoring');
+                });
                 
                 // Module 8 Exports
                 Route::get('/deliberation/{applicant}/export/layout-a', [\App\Http\Controllers\DeliberationExportController::class, 'layoutA'])->name('deliberation.export.layout-a');
@@ -615,6 +659,10 @@ Route::middleware('auth')->group(function () {
                 Route::get('/exam-routing', [\App\Http\Controllers\ExamRoutingController::class, 'index'])->name('exam-routing.index');
                 Route::post('/exam-routing/generate', [\App\Http\Controllers\ExamRoutingController::class, 'generate'])->name('exam-routing.generate');
                 Route::post('/exam-routing/{applicant}/toggle-exempt', [\App\Http\Controllers\ExamRoutingController::class, 'toggleExempt'])->name('exam-routing.toggle-exempt');
+                
+                // Examination Layout Exports
+                Route::get('/exam-routing/export/layout-a/{classification}/{date}/{room}/{time}', [\App\Http\Controllers\ExamExportController::class, 'layoutA'])->name('exam-routing.export.layout-a');
+                Route::get('/exam-routing/export/layout-b/{classification}/{date}/{room}/{time}', [\App\Http\Controllers\ExamExportController::class, 'layoutB'])->name('exam-routing.export.layout-b');
             });
 
             // Shared View Routes – SA, IA, Appointment Admin, Appointment Encoder
@@ -623,6 +671,41 @@ Route::middleware('auth')->group(function () {
                 Route::get('/{id}/receipt', [\App\Http\Controllers\RecruitmentController::class, 'printReceipt'])->name('receipt');
                 Route::post('/{id}/sync-ipcr', [\App\Http\Controllers\RecruitmentController::class, 'syncIpcr'])->name('sync-ipcr');
             });
+        });
+
+        // ── VPPM: Vacant Position Publication & Monitoring (RA 7041 / 2025 ORAOHRA Sec.26/30/31) ──
+        // 'viewer' is included here (not just SA/IA/Appointment Admin) because
+        // signature/submission authority for this module is granted per-user
+        // via a direct permission override (see 2026_07_10_000005 migration —
+        // the Department Head signer's role in this system is Viewer, not an
+        // Appointment-family role), enforced inside VacantPositionController,
+        // not at the route/middleware layer.
+        Route::prefix('vppm')->name('vppm.')->middleware('role:super_admin,inventory_admin,appointment_admin,viewer')->group(function () {
+            Route::get('/', [\App\Http\Controllers\VacantPositionController::class, 'index'])->name('index');
+            Route::get('/vacancies/api/plantilla-details/{id}', [\App\Http\Controllers\VacantPositionController::class, 'apiGetPlantillaDetails'])->name('vacancies.api.plantilla-details');
+
+            Route::get('/vacancies/create', [\App\Http\Controllers\VacantPositionController::class, 'vacancyCreate'])->name('vacancies.create');
+            Route::post('/vacancies', [\App\Http\Controllers\VacantPositionController::class, 'vacancyStore'])->name('vacancies.store');
+            Route::get('/vacancies/{vacancy}', [\App\Http\Controllers\VacantPositionController::class, 'vacancyShow'])->name('vacancies.show');
+            Route::get('/vacancies/{vacancy}/edit', [\App\Http\Controllers\VacantPositionController::class, 'vacancyEdit'])->name('vacancies.edit');
+            Route::put('/vacancies/{vacancy}', [\App\Http\Controllers\VacantPositionController::class, 'vacancyUpdate'])->name('vacancies.update');
+            Route::post('/vacancies/{vacancy}/publication-requests', [\App\Http\Controllers\VacantPositionController::class, 'requestStore'])->name('requests.store');
+
+            Route::get('/requests/{publicationRequest}', [\App\Http\Controllers\VacantPositionController::class, 'requestShow'])->name('requests.show');
+            Route::post('/requests/{publicationRequest}/pending-signature', [\App\Http\Controllers\VacantPositionController::class, 'requestPendingSignature'])->name('requests.pending-signature');
+            Route::post('/requests/{publicationRequest}/sign', [\App\Http\Controllers\VacantPositionController::class, 'requestSign'])->name('requests.sign');
+            Route::post('/requests/{publicationRequest}/submit-to-csc-fo', [\App\Http\Controllers\VacantPositionController::class, 'requestSubmitCscFo'])->name('requests.submit-csc-fo');
+            Route::post('/requests/{publicationRequest}/posting-sites', [\App\Http\Controllers\VacantPositionController::class, 'postingSiteStore'])->name('requests.posting-sites.store');
+            Route::post('/requests/{publicationRequest}/republish', [\App\Http\Controllers\VacantPositionController::class, 'requestRepublish'])->name('requests.republish');
+            Route::post('/requests/{publicationRequest}/exempt-edit', [\App\Http\Controllers\VacantPositionController::class, 'requestExemptEdit'])->name('requests.exempt-edit');
+            Route::post('/requests/{publicationRequest}/mark-filled', [\App\Http\Controllers\VacantPositionController::class, 'requestMarkFilled'])->name('requests.mark-filled');
+            Route::post('/requests/{publicationRequest}/cancel', [\App\Http\Controllers\VacantPositionController::class, 'requestCancel'])->name('requests.cancel');
+            Route::get('/requests/{publicationRequest}/cs-form-9', [\App\Http\Controllers\VacantPositionController::class, 'csForm9Pdf'])->name('requests.cs-form-9');
+
+            Route::get('/reports/batch', [\App\Http\Controllers\VacantPositionController::class, 'reportBatch'])->name('reports.batch');
+            Route::get('/reports/compliance', [\App\Http\Controllers\VacantPositionController::class, 'reportCompliance'])->name('reports.compliance');
+            Route::get('/reports/expiry-forecast', [\App\Http\Controllers\VacantPositionController::class, 'reportExpiryForecast'])->name('reports.expiry-forecast');
+            Route::get('/reports/anticipated-pipeline', [\App\Http\Controllers\VacantPositionController::class, 'reportAnticipatedPipeline'])->name('reports.anticipated-pipeline');
         });
 
 
@@ -665,6 +748,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/', [ProfileController::class, 'destroy'])->name('profile.destroy');
+        Route::post('/theme', [ProfileController::class, 'theme'])->name('profile.theme');
     });
 
     // ── Panel Member Management (super_admin / inventory_admin only) ────────
@@ -720,8 +804,18 @@ Route::middleware('auth')->group(function () {
             ->middleware('permission:view Incident Reports')->name('index');
         Route::post('/', [\App\Http\Controllers\IncidentReportController::class, 'store'])
             ->middleware('permission:add Incident Reports')->name('store');
+        Route::get('/employees/search', [\App\Http\Controllers\IncidentReportController::class, 'searchEmployees'])
+            ->middleware('permission:view Incident Reports')->name('employees.search');
         Route::get('/{incident}', [\App\Http\Controllers\IncidentReportController::class, 'show'])
             ->middleware('permission:view Incident Reports')->name('show');
+        Route::get('/{incident}/edit', [\App\Http\Controllers\IncidentReportController::class, 'edit'])
+            ->middleware('permission:edit Incident Reports')->name('edit');
+        Route::put('/{incident}', [\App\Http\Controllers\IncidentReportController::class, 'update'])
+            ->middleware('permission:edit Incident Reports')->name('update');
+        Route::delete('/{incident}', [\App\Http\Controllers\IncidentReportController::class, 'destroy'])
+            ->middleware('permission:delete Incident Reports')->name('destroy');
+        Route::get('/{incident}/report', [\App\Http\Controllers\IncidentReportController::class, 'downloadReport'])
+            ->middleware('permission:view Incident Reports')->name('report');
         Route::post('/{incident}/advisory', [\App\Http\Controllers\IncidentReportController::class, 'generateAdvisory'])
             ->name('advisory');
         Route::post('/{incident}/finalize', [\App\Http\Controllers\IncidentReportController::class, 'finalize'])
@@ -767,7 +861,16 @@ Route::middleware('auth')->group(function () {
     Route::prefix('leave-violations')->name('leave-violations.')->group(function () {
         // Redirect old index to new recorded-entries
         Route::redirect('/', '/leave-violations/recorded-entries')->name('index');
-        
+
+        // Module 2B.3 — dynamic watchlist covering every violation type
+        // (recorded-entries above stays the manual LWOP/tardiness ledger).
+        Route::get('/watchlist', [\App\Http\Controllers\LeaveViolationController::class, 'watchlist'])
+            ->middleware('permission:view Leave Violations')->name('watchlist');
+        Route::get('/watchlist/export-csv', [\App\Http\Controllers\LeaveViolationController::class, 'exportWatchlistCsv'])
+            ->middleware('permission:view Leave Violations')->name('watchlist.export-csv');
+        Route::post('/{violation}/respond', [\App\Http\Controllers\LeaveViolationController::class, 'markResponded'])
+            ->middleware('permission:edit Leave Violations')->name('respond');
+
         // LWOP & Recorded Entries
         Route::get('/recorded-entries', [\App\Http\Controllers\LeaveViolationController::class, 'recordedEntries'])
             ->middleware('permission:view Leave Violations')->name('recorded-entries');
@@ -775,6 +878,10 @@ Route::middleware('auth')->group(function () {
             ->middleware('permission:add Leave Violations')->name('recorded-entries.create');
         Route::post('/recorded-entries', [\App\Http\Controllers\LeaveViolationController::class, 'storeRecord'])
             ->middleware('permission:add Leave Violations')->name('recorded-entries.store');
+        Route::put('/recorded-entries/{violation}', [\App\Http\Controllers\LeaveViolationController::class, 'updateRecord'])
+            ->middleware('permission:edit Leave Violations')->name('recorded-entries.update');
+        Route::delete('/recorded-entries/{violation}', [\App\Http\Controllers\LeaveViolationController::class, 'destroyRecord'])
+            ->middleware('permission:edit Leave Violations')->name('recorded-entries.destroy');
         Route::post('/recorded-entries/generate-report', [\App\Http\Controllers\LeaveViolationController::class, 'generateReportPdf'])
             ->middleware('permission:view Leave Violations')->name('recorded-entries.generate-report');
         Route::get('/recorded-entries/export-pdf', [\App\Http\Controllers\LeaveViolationController::class, 'exportRecordedEntriesPdf'])
@@ -801,12 +908,36 @@ Route::middleware('auth')->group(function () {
             ->middleware('permission:add Leave Violations')->name('create-reprimand');
         Route::post('/letters/store-reprimand', [\App\Http\Controllers\LeaveViolationController::class, 'storeReprimand'])
             ->middleware('permission:add Leave Violations')->name('store-reprimand');
+        Route::get('/letters/create-show-cause', [\App\Http\Controllers\LeaveViolationController::class, 'createShowCause'])
+            ->middleware('permission:add Leave Violations')->name('create-show-cause');
+        Route::post('/letters/store-show-cause', [\App\Http\Controllers\LeaveViolationController::class, 'storeShowCause'])
+            ->middleware('permission:add Leave Violations')->name('store-show-cause');
+        Route::get('/letters/create-payroll-coordination', [\App\Http\Controllers\LeaveViolationController::class, 'createPayrollCoordination'])
+            ->middleware('permission:add Leave Violations')->name('create-payroll-coordination');
+        Route::post('/letters/store-payroll-coordination', [\App\Http\Controllers\LeaveViolationController::class, 'issuePayrollCoordination'])
+            ->middleware('permission:add Leave Violations')->name('store-payroll-coordination');
         Route::get('/letters/{violation}/edit', [\App\Http\Controllers\LeaveViolationController::class, 'editLetter'])
             ->middleware('permission:edit Leave Violations')->name('edit-letter');
         Route::put('/letters/{violation}', [\App\Http\Controllers\LeaveViolationController::class, 'updateLetter'])
             ->middleware('permission:edit Leave Violations')->name('update-letter');
         Route::delete('/letters/{violation}', [\App\Http\Controllers\LeaveViolationController::class, 'destroyLetter'])
             ->middleware('permission:edit Leave Violations')->name('destroy-letter');
+    });
+
+    // ── Detail Orders — 1-Year Tracking & Auto-Drafted Recall Letter (Enhancement Spec Sec. 3) ──
+    Route::prefix('detail-orders')->name('detail-orders.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\DetailOrderController::class, 'index'])
+            ->middleware('permission:view Detail Orders')->name('index');
+        Route::get('/create', [\App\Http\Controllers\DetailOrderController::class, 'create'])
+            ->middleware('permission:add Detail Orders')->name('create');
+        Route::post('/', [\App\Http\Controllers\DetailOrderController::class, 'store'])
+            ->middleware('permission:add Detail Orders')->name('store');
+        Route::post('/{detailOrder}/recall', [\App\Http\Controllers\DetailOrderController::class, 'markRecalled'])
+            ->middleware('permission:edit Detail Orders')->name('recall');
+        Route::post('/{detailOrder}/extend', [\App\Http\Controllers\DetailOrderController::class, 'markExtended'])
+            ->middleware('permission:edit Detail Orders')->name('extend');
+        Route::get('/{detailOrder}/recall-letter', [\App\Http\Controllers\DetailOrderController::class, 'downloadRecallLetter'])
+            ->middleware('permission:view Detail Orders')->name('recall-letter');
     });
 
     // ── System Activity Logs ────────────────────────────────────────────────

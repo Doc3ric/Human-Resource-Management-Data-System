@@ -12,7 +12,8 @@ class StepIncrementHistory extends Model
 
     protected $fillable = [
         'plantilla_record_id',
-        'type', // NOSI, NOLP, NOSA
+        'salary_schedule_id',
+        'type', // NOSI, NOLP, NOSA, SSL_ADJUSTMENT
         'previous_step',
         'new_step',
         'previous_salary_grade',
@@ -30,6 +31,7 @@ class StepIncrementHistory extends Model
         'new_step' => 'integer',
         'previous_salary_grade' => 'integer',
         'new_salary_grade' => 'integer',
+        'salary_schedule_id' => 'integer',
     ];
 
     /**
@@ -38,5 +40,11 @@ class StepIncrementHistory extends Model
     public function plantillaRecord(): BelongsTo
     {
         return $this->belongsTo(PlantillaRecord::class, 'plantilla_record_id');
+    }
+
+    /** The Salary Schedule this row's SSL_ADJUSTMENT was reconciled against (null for NOSI/NOLP/NOSA). */
+    public function salarySchedule(): BelongsTo
+    {
+        return $this->belongsTo(SalarySchedule::class, 'salary_schedule_id');
     }
 }

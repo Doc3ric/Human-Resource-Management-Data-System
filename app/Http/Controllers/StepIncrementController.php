@@ -119,6 +119,7 @@ class StepIncrementController extends Controller
             'upcoming_nosi'=> $upcomingNosiIds->count(),
             'maxStep'      => PlantillaRecord::filled()->where('step', 8)->count(),
             'magna_carta'  => $magnaCartaDue->total(),
+            'salary_misaligned' => $this->salaryAlignmentCounts()['misaligned'],
         ];
 
         return view('step-increment.index', compact(
@@ -145,17 +146,8 @@ class StepIncrementController extends Controller
             ->whereNotNull('date_original_appointment')->get()
             ->filter(fn($r) => ($d = $r->next_step_due_date) && $d->gt(now()) && $d->lte($sixMonthsFromNow))->count();
 
-        $loyaltyCount = PlantillaRecord::filled()
-            ->where('employment_status', 'P')
-            ->whereNotNull('date_original_appointment')
-            ->whereNull('loyalty_dismissed_at')
-            ->get()
-            ->filter(function ($r) {
-                $years = (int) $r->date_original_appointment->diffInYears(now());
-                if ($years < 10) return false;
-                if ($years === 10) return true;
-                return ($years - 10) % 5 === 0;
-            })->count();
+        $loyaltyCount = PlantillaRecord::loyaltyDue()->get()
+            ->filter(fn($r) => $r->is_loyalty_due)->count();
 
         $magnaCartaCount = PlantillaRecord::magnaCartaNosaDue()->count();
 
@@ -163,11 +155,36 @@ class StepIncrementController extends Controller
         $filledCount    = PlantillaRecord::filled()->count();
         $vacantCount    = PlantillaRecord::vacant()->count();
 
+        $salaryMisalignedCount = $this->salaryAlignmentCounts()['misaligned'];
+
         return view('step-increment.hub', compact(
             'overdueCount', 'dueCount', 'upcomingCount',
             'loyaltyCount', 'magnaCartaCount',
-            'totalPositions', 'filledCount', 'vacantCount'
+            'totalPositions', 'filledCount', 'vacantCount',
+            'salaryMisalignedCount'
         ));
+    }
+
+    /**
+     * Bucket every in-scope (P/CT) record into aligned/misaligned/unresolvable against
+     * the active Salary Schedule. Shared by hub()'s stat tile and salaryAlignment() so the
+     * bucketing logic isn't duplicated a third time (the same duplication being fixed for
+     * loyalty above).
+     */
+    private function salaryAlignmentCounts(): array
+    {
+        $counts = ['aligned' => 0, 'misaligned' => 0, 'unresolvable' => 0];
+        foreach (PlantillaRecord::sslInScope()->get() as $r) {
+            $status = $r->salary_alignment_status;
+            if ($status === 'aligned') {
+                $counts['aligned']++;
+            } elseif ($status === 'unresolvable') {
+                $counts['unresolvable']++;
+            } else {
+                $counts['misaligned']++;
+            }
+        }
+        return $counts;
     }
 
     /**
@@ -175,19 +192,8 @@ class StepIncrementController extends Controller
      */
     public function loyalty(Request $request)
     {
-        $loyaltyRecords = PlantillaRecord::filled()
-            ->where('employment_status', 'P')
-            ->whereNotNull('date_original_appointment')
-            ->whereNull('loyalty_dismissed_at')
-            ->get()
-            ->filter(function ($r) {
-                if (!$r->date_original_appointment) return false;
-                $years = (int) $r->date_original_appointment->diffInYears(now());
-                if ($years < 10) return false;
-                if ($years === 10) return true;
-                $afterTen = $years - 10;
-                return $afterTen % 5 === 0;
-            })
+        $loyaltyRecords = PlantillaRecord::loyaltyDue()->get()
+            ->filter(fn($r) => $r->is_loyalty_due)
             ->sortBy('office_department');
 
         $loyaltyIds = $loyaltyRecords->pluck('id');
@@ -217,8 +223,11 @@ class StepIncrementController extends Controller
 
         // Previous schedule: The most recent schedule prior to the active one based on effective date
         $previousSchedule = null;
-        if ($activeSchedule) {
+        if ($activeSchedule && $activeSchedule->effective_date) {
+            // Must be chronologically BEFORE the active schedule — a later/reserve
+            // tranche (e.g. a future 3rd Tranche) is never a valid "previous" baseline.
             $previousSchedule = \App\Models\SalarySchedule::where('id', '!=', $activeSchedule->id)
+                ->where('effective_date', '<', $activeSchedule->effective_date)
                 ->orderByDesc('effective_date')
                 ->orderByDesc('id')
                 ->first();
@@ -234,7 +243,7 @@ class StepIncrementController extends Controller
         })
         ->where('abolished', false)
         ->orderBy('office_department')
-        ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item,''), '[^0-9]', '') AS UNSIGNED)");
+        ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item_no_new,''), '[^0-9]', '') AS UNSIGNED)");
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -293,8 +302,11 @@ class StepIncrementController extends Controller
 
         $activeSchedule   = \App\Models\SalarySchedule::getActive();
         $previousSchedule = null;
-        if ($activeSchedule) {
+        if ($activeSchedule && $activeSchedule->effective_date) {
+            // Must be chronologically BEFORE the active schedule — a later/reserve
+            // tranche (e.g. a future 3rd Tranche) is never a valid "previous" baseline.
             $previousSchedule = \App\Models\SalarySchedule::where('id', '!=', $activeSchedule->id)
+                ->where('effective_date', '<', $activeSchedule->effective_date)
                 ->orderByDesc('effective_date')
                 ->orderByDesc('id')
                 ->first();
@@ -309,7 +321,7 @@ class StepIncrementController extends Controller
             }
         })
         ->where('abolished', false)
-        ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item,''), '[^0-9]', '') AS UNSIGNED)");
+        ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item_no_new,''), '[^0-9]', '') AS UNSIGNED)");
 
         if ($officeName) {
             $query->where('office_department', $officeName);
@@ -332,7 +344,10 @@ class StepIncrementController extends Controller
         ])->setPaper([0, 0, 612.00, 936.00], 'landscape');
 
         $safeFilename = preg_replace('/[^a-z0-9_\-]/i', '_', $officeName ?: 'All');
-        return $pdf->download('NOSA_' . $safeFilename . '_' . now()->format('Ymd') . '.pdf');
+        if ($request->has('download')) {
+            return $pdf->download('NOSA_' . $safeFilename . '_' . now()->format('Ymd') . '.pdf');
+        }
+        return $pdf->stream('NOSA_' . $safeFilename . '_' . now()->format('Ymd') . '.pdf');
     }
 
     /**
@@ -499,7 +514,7 @@ class StepIncrementController extends Controller
             })
             ->where('abolished', false)
             ->orderBy('office_department')
-            ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item,''), '[^0-9]', '') AS UNSIGNED)");
+            ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item_no_new,''), '[^0-9]', '') AS UNSIGNED)");
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -562,7 +577,7 @@ class StepIncrementController extends Controller
             })
             ->where('abolished', false)
             ->orderBy('office_department')
-            ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item,''), '[^0-9]', '') AS UNSIGNED)")
+            ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item_no_new,''), '[^0-9]', '') AS UNSIGNED)")
             ->get();
 
         $grouped = [];
@@ -572,9 +587,17 @@ class StepIncrementController extends Controller
         }
         ksort($grouped);
 
+        $preparedBy = 'AIDA B. LOVERES';
+        $reviewedBy = 'MAYFE P. ALERTA';
+        $approvedBy = 'ROGELIO NEIL P. ROQUE';
+        $currentTranche = 'LBC # ___ 1st Tranche';
+        $proposedTranche = 'EO #64 3rd Tranche';
+        $year = now()->year + 1;
+        $employmentType = $type === 'casual' ? 'Casual' : 'Permanent';
+
         return \Excel::download(
-            new \App\Exports\PlantillaReportExport($grouped),
-            'Plantilla_of_Personnel_' . now()->format('Ymd') . '.xlsx'
+            new \App\Exports\LbpForm3Export($employmentType, null, $year, $preparedBy, $reviewedBy, $approvedBy, $currentTranche, $proposedTranche),
+            'LBP_FORM_3_All_Offices_' . now()->format('Ymd') . '.xlsx'
         );
     }
 
@@ -600,7 +623,7 @@ class StepIncrementController extends Controller
             })
             ->where('abolished', false)
             ->orderBy('office_department')
-            ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item,''), '[^0-9]', '') AS UNSIGNED)")
+            ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item_no_new,''), '[^0-9]', '') AS UNSIGNED)")
             ->get();
 
         $grouped = [];
@@ -610,14 +633,30 @@ class StepIncrementController extends Controller
         }
         ksort($grouped);
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('step-increment.plantilla-report-pdf', [
-            'grouped'    => $grouped,
-            'officeName' => null,
-            'mode'       => $request->input('mode', 'annual'),
-            'type'       => $type,
-        ])->setPaper([0, 0, 612.00, 936.00], 'landscape');
+        $preparedBy = 'AIDA B. LOVERES';
+        $reviewedBy = 'MAYFE P. ALERTA';
+        $approvedBy = 'ROGELIO NEIL P. ROQUE';
+        $currentTranche = 'LBC # ___ 1st Tranche';
+        $proposedTranche = 'EO #64 3rd Tranche';
+        $year = now()->year + 1;
+        $employmentType = $type === 'casual' ? 'Casual' : 'Permanent';
 
-        return $pdf->download('Plantilla_of_Personnel_' . now()->format('Ymd') . '.pdf');
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('plantilla.exports.lbp-form-3', [
+            'groupedRecords'  => $grouped,
+            'employmentType'  => $employmentType,
+            'office'          => null,
+            'year'            => $year,
+            'preparedBy'      => $preparedBy,
+            'reviewedBy'      => $reviewedBy,
+            'approvedBy'      => $approvedBy,
+            'currentTranche'  => $currentTranche,
+            'proposedTranche' => $proposedTranche
+        ])->setPaper([0, 0, 612.00, 936.00], 'portrait');
+
+        if ($request->has('download')) {
+            return $pdf->download('LBP_FORM_3_All_Offices_' . now()->format('Ymd') . '.pdf');
+        }
+        return $pdf->stream('LBP_FORM_3_All_Offices_' . now()->format('Ymd') . '.pdf');
     }
 
     /**
@@ -640,7 +679,7 @@ class StepIncrementController extends Controller
                 }
             })
             ->where('abolished', false)
-            ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item,''), '[^0-9]', '') AS UNSIGNED)");
+            ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item_no_new,''), '[^0-9]', '') AS UNSIGNED)");
         if ($officeName) {
             $query->where('office_department', $officeName);
         }
@@ -652,10 +691,18 @@ class StepIncrementController extends Controller
             $grouped[$office][] = $record;
         }
 
+        $preparedBy = 'AIDA B. LOVERES';
+        $reviewedBy = 'MAYFE P. ALERTA';
+        $approvedBy = 'ROGELIO NEIL P. ROQUE';
+        $currentTranche = 'LBC # ___ 1st Tranche';
+        $proposedTranche = 'EO #64 3rd Tranche';
+        $year = now()->year + 1;
+        $employmentType = $type === 'casual' ? 'Casual' : 'Permanent';
+
         $safeFilename = preg_replace('/[^a-z0-9_\-]/i', '_', $officeName ?: 'All');
         return \Excel::download(
-            new \App\Exports\PlantillaReportExport($grouped, $officeName ?: null),
-            'Plantilla_' . $safeFilename . '_' . now()->format('Ymd') . '.xlsx'
+            new \App\Exports\LbpForm3Export($employmentType, $officeName ?: null, $year, $preparedBy, $reviewedBy, $approvedBy, $currentTranche, $proposedTranche),
+            'LBP_FORM_3_' . $safeFilename . '_' . now()->format('Ymd') . '.xlsx'
         );
     }
 
@@ -682,7 +729,7 @@ class StepIncrementController extends Controller
                 }
             })
             ->where('abolished', false)
-            ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item,''), '[^0-9]', '') AS UNSIGNED)");
+            ->orderByRaw("CAST(REGEXP_REPLACE(COALESCE(item_no_new,''), '[^0-9]', '') AS UNSIGNED)");
         if ($officeName) {
             $query->where('office_department', $officeName);
         }
@@ -694,15 +741,72 @@ class StepIncrementController extends Controller
             $grouped[$office][] = $record;
         }
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('step-increment.plantilla-report-pdf', [
-            'grouped'    => $grouped,
-            'officeName' => $officeName ?: null,
-            'mode'       => $request->input('mode', 'annual'),
-            'type'       => $type,
-        ])->setPaper([0, 0, 612.00, 936.00], 'landscape');
+        $preparedBy = 'AIDA B. LOVERES';
+        $reviewedBy = 'MAYFE P. ALERTA';
+        $approvedBy = 'ROGELIO NEIL P. ROQUE';
+        $currentTranche = 'LBC # ___ 1st Tranche';
+        $proposedTranche = 'EO #64 3rd Tranche';
+        $year = now()->year + 1;
+        $employmentType = $type === 'casual' ? 'Casual' : 'Permanent';
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('plantilla.exports.lbp-form-3', [
+            'groupedRecords'  => $grouped,
+            'employmentType'  => $employmentType,
+            'office'          => $officeName ?: null,
+            'year'            => $year,
+            'preparedBy'      => $preparedBy,
+            'reviewedBy'      => $reviewedBy,
+            'approvedBy'      => $approvedBy,
+            'currentTranche'  => $currentTranche,
+            'proposedTranche' => $proposedTranche
+        ])->setPaper([0, 0, 612.00, 936.00], 'portrait');
 
         $safeFilename = preg_replace('/[^a-z0-9_\-]/i', '_', $officeName ?: 'All');
-        return $pdf->download('Plantilla_' . $safeFilename . '_' . now()->format('Ymd') . '.pdf');
+        if ($request->has('download')) {
+            return $pdf->download('LBP_FORM_3_' . $safeFilename . '_' . now()->format('Ymd') . '.pdf');
+        }
+        return $pdf->stream('LBP_FORM_3_' . $safeFilename . '_' . now()->format('Ymd') . '.pdf');
+    }
+
+    /**
+     * Export a SINGLE individual's Plantilla row — PDF.
+     */
+    public function exportOfficeReportPdfIndividual(PlantillaRecord $plantilla, Request $request)
+    {
+        ini_set('max_execution_time', 300);
+        ini_set('memory_limit', '512M');
+
+        $grouped = [];
+        $office = $plantilla->office_department ?: 'Unassigned';
+        $grouped[$office][] = $plantilla;
+
+        $type = $request->input('type', 'permanent');
+
+        $preparedBy = 'AIDA B. LOVERES';
+        $reviewedBy = 'MAYFE P. ALERTA';
+        $approvedBy = 'ROGELIO NEIL P. ROQUE';
+        $currentTranche = 'LBC # ___ 1st Tranche';
+        $proposedTranche = 'EO #64 3rd Tranche';
+        $year = now()->year + 1;
+        $employmentType = $type === 'casual' ? 'Casual' : 'Permanent';
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('plantilla.exports.lbp-form-3', [
+            'groupedRecords'  => $grouped,
+            'employmentType'  => $employmentType,
+            'office'          => $office,
+            'year'            => $year,
+            'preparedBy'      => $preparedBy,
+            'reviewedBy'      => $reviewedBy,
+            'approvedBy'      => $approvedBy,
+            'currentTranche'  => $currentTranche,
+            'proposedTranche' => $proposedTranche
+        ])->setPaper([0, 0, 612.00, 936.00], 'portrait');
+
+        $safeFilename = preg_replace('/[^a-z0-9_\-]/i', '_', $plantilla->full_name);
+        if ($request->has('download')) {
+            return $pdf->download('LBP_FORM_3_Row_' . $safeFilename . '_' . now()->format('Ymd') . '.pdf');
+        }
+        return $pdf->stream('LBP_FORM_3_Row_' . $safeFilename . '_' . now()->format('Ymd') . '.pdf');
     }
 
     /**
@@ -772,6 +876,163 @@ class StepIncrementController extends Controller
         $plantilla->update(['loyalty_dismissed_at' => null]);
 
         return back()->with('success', "{$plantilla->full_name} has been restored to the Loyalty Incentive list.");
+    }
+
+    /**
+     * Salary Alignment tab: bucket in-scope (Permanent/Co-Terminous) records into
+     * aligned / misaligned / unresolvable against the active Salary Schedule.
+     */
+    public function salaryAlignment(Request $request)
+    {
+        $search       = $request->input('search');
+        $officeFilter = $request->input('office');
+        $statusFilter = $request->input('status', 'misaligned'); // misaligned | unresolvable | aligned
+
+        $activeSchedule = \App\Models\SalarySchedule::getActive();
+
+        $query = PlantillaRecord::sslInScope();
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('last_name', 'like', "%{$search}%")
+                  ->orWhere('first_name', 'like', "%{$search}%")
+                  ->orWhere('item_no_new', 'like', "%{$search}%");
+            });
+        }
+        if ($officeFilter) {
+            $query->where('office_department', $officeFilter);
+        }
+
+        $all = $query->get();
+
+        $buckets = [
+            'aligned'      => $all->filter(fn($r) => $r->salary_alignment_status === 'aligned'),
+            'misaligned'   => $all->filter(fn($r) => $r->is_salary_misaligned),
+            'unresolvable' => $all->filter(fn($r) => $r->salary_alignment_status === 'unresolvable'),
+        ];
+
+        $selected = $buckets[$statusFilter] ?? $buckets['misaligned'];
+        $ids = $selected->pluck('id');
+        $records = PlantillaRecord::whereIn('id', $ids)
+            ->orderBy('office_department')->orderBy('salary_grade')
+            ->paginate(15)->withQueryString();
+
+        $offices = PlantillaRecord::distinct()->orderBy('office_department')
+            ->pluck('office_department')->filter()->values();
+
+        return view('step-increment.salary-alignment', [
+            'records'        => $records,
+            'activeSchedule' => $activeSchedule,
+            'counts'         => [
+                'aligned'      => $buckets['aligned']->count(),
+                'misaligned'   => $buckets['misaligned']->count(),
+                'unresolvable' => $buckets['unresolvable']->count(),
+            ],
+            'statusFilter'   => $statusFilter,
+            'search'         => $search,
+            'officeFilter'   => $officeFilter,
+            'offices'        => $offices,
+        ]);
+    }
+
+    /**
+     * Reconcile one record's base_salary_amount to the active schedule's Grade/Step rate.
+     * Writes the new amount back in the SAME basis (salary_type) the record already used,
+     * so a pay fix doesn't silently change the record's storage convention as a side effect.
+     * Returns a short human-readable outcome string used by both single and bulk callers.
+     */
+    private function reconcileOne(PlantillaRecord $plantilla): string
+    {
+        if ($plantilla->is_vacant) {
+            return 'vacant';
+        }
+        if (!in_array($plantilla->employment_status, PlantillaRecord::SSL_ALIGNMENT_STATUSES, true)) {
+            return 'not_in_scope';
+        }
+        $status = $plantilla->salary_alignment_status;
+        if ($status === 'unresolvable') {
+            return 'unresolvable';
+        }
+        if ($status === 'aligned') {
+            return 'already_aligned';
+        }
+
+        $active = \App\Models\SalarySchedule::getActive();
+
+        $previousAnnual = in_array($plantilla->salary_type, PlantillaRecord::MONTHLY_BASIS_SALARY_TYPES, true)
+            ? round(((float) $plantilla->base_salary_amount) * 12, 2)
+            : (float) $plantilla->base_salary_amount;
+
+        $newMonthly = $plantilla->expected_monthly_rate;
+        $newAnnual  = round($newMonthly * 12, 2);
+
+        $newBaseSalaryAmount = in_array($plantilla->salary_type, PlantillaRecord::MONTHLY_BASIS_SALARY_TYPES, true)
+            ? round($newMonthly, 2)
+            : $newAnnual;
+
+        $plantilla->update(['base_salary_amount' => $newBaseSalaryAmount]);
+
+        StepIncrementHistory::create([
+            'plantilla_record_id'    => $plantilla->id,
+            'salary_schedule_id'     => $active?->id,
+            'type'                   => 'SSL_ADJUSTMENT',
+            'previous_step'          => $plantilla->step,
+            'new_step'               => $plantilla->step,
+            'previous_salary_grade'  => $plantilla->salary_grade,
+            'new_salary_grade'       => $plantilla->salary_grade,
+            'previous_annual_salary' => $previousAnnual,
+            'new_annual_salary'      => $newAnnual,
+            'effective_date'         => now()->toDateString(),
+        ]);
+
+        return 'reconciled';
+    }
+
+    /**
+     * Reconcile ONE employee's salary to the active schedule (human-confirmed action).
+     */
+    public function reconcileSalary(Request $request, PlantillaRecord $plantilla)
+    {
+        $newMonthly = $plantilla->expected_monthly_rate;
+        $outcome = $this->reconcileOne($plantilla);
+
+        return match ($outcome) {
+            'vacant'          => back()->with('error', 'Cannot reconcile salary for a vacant position.'),
+            'not_in_scope'    => back()->with('error', 'Salary alignment only applies to Permanent/Co-Terminous employees.'),
+            'unresolvable'    => back()->with('error', 'Cannot reconcile: no matching Grade/Step rate found in the active schedule, or salary_type/grade/step data is missing.'),
+            'already_aligned' => back()->with('info', "{$plantilla->full_name} is already aligned to the active schedule."),
+            'reconciled'      => back()->with('success', "Salary reconciled for {$plantilla->full_name}. New monthly rate: ₱" . number_format($newMonthly, 2)),
+            default           => back()->with('error', 'Unable to reconcile salary.'),
+        };
+    }
+
+    /**
+     * Reconcile a human-selected batch of employees to the active schedule — still a single
+     * confirmed click, not an unattended background job.
+     */
+    public function reconcileSalarySelected(Request $request)
+    {
+        $ids = (array) $request->input('ids', []);
+        $reconciled = 0;
+        $skipped = 0;
+
+        foreach (PlantillaRecord::whereIn('id', $ids)->get() as $plantilla) {
+            if ($this->reconcileOne($plantilla) === 'reconciled') {
+                $reconciled++;
+            } else {
+                $skipped++;
+            }
+        }
+
+        if ($reconciled === 0) {
+            return back()->with('info', 'No selected records needed reconciliation.');
+        }
+
+        $message = "Reconciled {$reconciled} employee(s) to the active schedule.";
+        if ($skipped > 0) {
+            $message .= " Skipped {$skipped} (already aligned, vacant, or unresolvable).";
+        }
+
+        return back()->with('success', $message);
     }
 
     /**

@@ -1,0 +1,358 @@
+/* Civic Blue Theme — Institutional Navy/Gold (see BlueDesign.md) */
+
+body.theme-civic-blue {
+    background-color: var(--color-page-bg) !important;
+    color: var(--color-text-primary) !important;
+}
+
+/* Sidebar and Topbar */
+body.theme-civic-blue .sidebar {
+    background-color: var(--color-sidebar-bg) !important;
+    border-right: 1px solid var(--color-border) !important;
+    background-image: none !important;
+}
+
+body.theme-civic-blue .sidebar-header {
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+}
+
+body.theme-civic-blue .topbar,
+body.theme-civic-blue .main-content>nav {
+    background-color: var(--color-topbar-bg) !important;
+    border-bottom: 1px solid var(--color-topbar-border) !important;
+    color: var(--color-topbar-text) !important;
+}
+
+body.theme-civic-blue .sidebar-title,
+body.theme-civic-blue .sidebar-logo-text,
+body.theme-civic-blue .sidebar-logo-sub,
+body.theme-civic-blue .sidebar-section-label,
+body.theme-civic-blue .sidebar-user-name {
+    color: var(--color-sidebar-text) !important;
+}
+
+body.theme-civic-blue .nav-link,
+body.theme-civic-blue .sidebar-link,
+body.theme-civic-blue .sidebar-user-role {
+    color: var(--color-sidebar-icon) !important;
+}
+
+body.theme-civic-blue .nav-link:hover,
+body.theme-civic-blue .sidebar-link:hover {
+    background-color: var(--color-sidebar-hover-bg) !important;
+    color: var(--color-sidebar-text) !important;
+}
+
+body.theme-civic-blue .nav-link.active,
+body.theme-civic-blue .sidebar-link.active {
+    background-color: var(--color-sidebar-active-bg) !important;
+    color: var(--color-sidebar-active-text) !important;
+    border-left: 3px solid var(--color-accent) !important;
+    border-radius: 0 8px 8px 0 !important;
+    box-shadow: none !important;
+}
+
+body.theme-civic-blue .sidebar-user {
+    background: var(--color-sidebar-hover-bg) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+}
+
+body.theme-civic-blue .sidebar-logo-icon {
+    background: var(--color-accent) !important;
+    color: var(--color-primary-dark) !important;
+    box-shadow: none !important;
+}
+
+/* Cards & Containers */
+body.theme-civic-blue .bg-white,
+body.theme-civic-blue [style*="background: white"],
+body.theme-civic-blue [style*="background-color: white"],
+body.theme-civic-blue .modal-card {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text-primary) !important;
+    border: 1px solid var(--color-border) !important;
+}
+
+/* Cards, per BlueDesign.md spacing spec: 6px radius */
+body.theme-civic-blue .card {
+    border-radius: 6px !important;
+    border-color: var(--color-border) !important;
+}
+
+/* Tables */
+body.theme-civic-blue table {
+    color: var(--color-text-primary) !important;
+}
+
+body.theme-civic-blue thead,
+body.theme-civic-blue th {
+    background-color: var(--color-page-bg) !important;
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-border) !important;
+}
+
+body.theme-civic-blue tbody tr {
+    border-bottom: 1px solid var(--color-border) !important;
+}
+
+body.theme-civic-blue tbody tr:hover,
+body.theme-civic-blue tbody tr:hover td {
+    background-color: var(--color-nav-active-bg) !important;
+}
+
+body.theme-civic-blue td {
+    border-color: var(--color-border) !important;
+}
+
+/* Primary Button Override */
+body.theme-civic-blue .btn-primary,
+body.theme-civic-blue a[style*="background-color: #0d6efd"] {
+    background-color: var(--color-btn-primary-bg) !important;
+    border-color: var(--color-btn-primary-bg) !important;
+    color: var(--color-btn-primary-text) !important;
+}
+
+body.theme-civic-blue .btn-primary:hover {
+    background-color: var(--color-btn-primary-hover) !important;
+    border-color: var(--color-btn-primary-hover) !important;
+}
+
+body.theme-civic-blue .btn-success {
+    background-color: var(--color-status-approved-text) !important;
+    border-color: var(--color-status-approved-text) !important;
+    color: #ffffff !important;
+}
+
+body.theme-civic-blue .btn-info {
+    background-color: var(--color-primary-light) !important;
+    border-color: var(--color-primary-light) !important;
+    color: #ffffff !important;
+}
+
+body.theme-civic-blue .btn-warning {
+    background-color: var(--color-accent) !important;
+    border-color: var(--color-accent) !important;
+    color: #1F2933 !important;
+}
+
+body.theme-civic-blue .btn-danger {
+    background-color: var(--color-danger) !important;
+    border-color: var(--color-danger) !important;
+    color: #ffffff !important;
+}
+
+body.theme-civic-blue .btn-outline-dark {
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-text-secondary) !important;
+}
+
+body.theme-civic-blue .btn-outline-dark:hover {
+    background-color: var(--color-nav-active-bg) !important;
+    color: var(--color-text-primary) !important;
+}
+
+/* Global Search Input */
+body.theme-civic-blue form[action*="search"] {
+    background: var(--color-page-bg) !important;
+    border-color: var(--color-border) !important;
+}
+body.theme-civic-blue form[action*="search"] input {
+    color: var(--color-text-primary) !important;
+}
+body.theme-civic-blue form[action*="search"] input::placeholder {
+    color: var(--color-text-secondary) !important;
+}
+body.theme-civic-blue form[action*="search"] i {
+    color: var(--color-text-secondary) !important;
+}
+
+body.theme-civic-blue .theme-toggle-header {
+    background: var(--color-sidebar-bg) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+ * Hardcoded-hex overlay — retroactively themes the ~190 page-local
+ * blade files that hardcode inline hex colors instead of using the
+ * CSS variables above, WITHOUT editing those files. Same technique
+ * theme-corona.css already uses (attribute selectors on inline
+ * `style="..."` substrings). Scoped only to colors that are structural
+ * (surface/text/border/status) — NOT touched: text-on-colored-surface
+ * pairs (e.g. white text inside a module's own colored hero/gradient,
+ * which must stay legible against that fixed background) and anything
+ * inside print/PDF export views (those never load this stylesheet).
+ * ══════════════════════════════════════════════════════════════════ */
+
+/* Surface backgrounds (white cards/panels). Boundary-anchored ("ends
+ * with" / followed by ";") rather than a bare substring match — #fff is
+ * short enough that an unbounded match would also catch unrelated tint
+ * colors that happen to start with "fff" (#fff2f2, #fff7ed, #fffbeb...). */
+body.theme-civic-blue [style*="background: #fff;"],
+body.theme-civic-blue [style*="background: #fff "],
+body.theme-civic-blue [style$="background: #fff"],
+body.theme-civic-blue [style*="background:#fff;"],
+body.theme-civic-blue [style$="background:#fff"],
+body.theme-civic-blue [style*="background-color: #fff;"],
+body.theme-civic-blue [style*="background-color: #fff "],
+body.theme-civic-blue [style$="background-color: #fff"],
+body.theme-civic-blue [style*="background-color:#fff;"],
+body.theme-civic-blue [style$="background-color:#fff"],
+body.theme-civic-blue [style*="background: white"],
+body.theme-civic-blue [style*="background-color: white"] {
+    background-color: var(--color-surface) !important;
+}
+/* #ffffff (full 6-digit) has no such collision risk — a substring match
+ * is safe since no other valid hex color can contain it as a prefix. */
+body.theme-civic-blue [style*="background: #ffffff"],
+body.theme-civic-blue [style*="background:#ffffff"],
+body.theme-civic-blue [style*="background-color: #ffffff"],
+body.theme-civic-blue [style*="background-color:#ffffff"] {
+    background-color: var(--color-surface) !important;
+}
+
+/* Page/section backgrounds (very light gray) */
+body.theme-civic-blue [style*="background: #f8fafc"],
+body.theme-civic-blue [style*="background:#f8fafc"],
+body.theme-civic-blue [style*="background: #f1f5f9"],
+body.theme-civic-blue [style*="background:#f1f5f9"],
+body.theme-civic-blue [style*="background: #f9fafb"],
+body.theme-civic-blue [style*="background:#f9fafb"],
+body.theme-civic-blue [style*="background: #f3f4f6"],
+body.theme-civic-blue [style*="background:#f3f4f6"] {
+    background-color: var(--color-page-bg) !important;
+}
+
+/* Text — primary (near-black) */
+body.theme-civic-blue [style*="color: #0f172a"],
+body.theme-civic-blue [style*="color:#0f172a"],
+body.theme-civic-blue [style*="color: #111827"],
+body.theme-civic-blue [style*="color:#111827"],
+body.theme-civic-blue [style*="color: #1f2937"],
+body.theme-civic-blue [style*="color:#1f2937"],
+body.theme-civic-blue [style*="color: #1e293b"],
+body.theme-civic-blue [style*="color:#1e293b"] {
+    color: var(--color-text-primary) !important;
+}
+
+/* Text — secondary (mid gray) */
+body.theme-civic-blue [style*="color: #374151"],
+body.theme-civic-blue [style*="color:#374151"],
+body.theme-civic-blue [style*="color: #475569"],
+body.theme-civic-blue [style*="color:#475569"],
+body.theme-civic-blue [style*="color: #4b5563"],
+body.theme-civic-blue [style*="color:#4b5563"],
+body.theme-civic-blue [style*="color: #334155"],
+body.theme-civic-blue [style*="color:#334155"] {
+    color: var(--color-text-secondary) !important;
+}
+
+/* Text — muted (light gray captions/timestamps) */
+body.theme-civic-blue [style*="color: #6b7280"],
+body.theme-civic-blue [style*="color:#6b7280"],
+body.theme-civic-blue [style*="color: #64748b"],
+body.theme-civic-blue [style*="color:#64748b"],
+body.theme-civic-blue [style*="color: #9ca3af"],
+body.theme-civic-blue [style*="color:#9ca3af"],
+body.theme-civic-blue [style*="color: #94a3b8"],
+body.theme-civic-blue [style*="color:#94a3b8"] {
+    color: var(--color-text-muted) !important;
+}
+
+/* Borders (light gray hairlines) */
+body.theme-civic-blue [style*="#e5e7eb"],
+body.theme-civic-blue [style*="#e2e8f0"],
+body.theme-civic-blue [style*="#cbd5e1"],
+body.theme-civic-blue [style*="#d1d5db"] {
+    border-color: var(--color-border) !important;
+}
+
+/* Status — Flagged/Violation/Danger (red family) */
+body.theme-civic-blue [style*="color: #dc2626"],
+body.theme-civic-blue [style*="color:#dc2626"],
+body.theme-civic-blue [style*="color: #ef4444"],
+body.theme-civic-blue [style*="color:#ef4444"],
+body.theme-civic-blue [style*="color: #991b1b"],
+body.theme-civic-blue [style*="color:#991b1b"],
+body.theme-civic-blue [style*="color: #b91c1c"],
+body.theme-civic-blue [style*="color:#b91c1c"] {
+    color: var(--color-status-flagged-text) !important;
+}
+body.theme-civic-blue [style*="background: #fef2f2"],
+body.theme-civic-blue [style*="background:#fef2f2"],
+body.theme-civic-blue [style*="background: #fee2e2"],
+body.theme-civic-blue [style*="background:#fee2e2"] {
+    background-color: var(--color-status-flagged-bg) !important;
+}
+
+/* Status — Approved/Active/Success (green family) */
+body.theme-civic-blue [style*="color: #16a34a"],
+body.theme-civic-blue [style*="color:#16a34a"],
+body.theme-civic-blue [style*="color: #166534"],
+body.theme-civic-blue [style*="color:#166534"],
+body.theme-civic-blue [style*="color: #059669"],
+body.theme-civic-blue [style*="color:#059669"],
+body.theme-civic-blue [style*="color: #065f46"],
+body.theme-civic-blue [style*="color:#065f46"],
+body.theme-civic-blue [style*="color: #15803d"],
+body.theme-civic-blue [style*="color:#15803d"] {
+    color: var(--color-status-approved-text) !important;
+}
+body.theme-civic-blue [style*="background: #f0fdf4"],
+body.theme-civic-blue [style*="background:#f0fdf4"],
+body.theme-civic-blue [style*="background: #dcfce7"],
+body.theme-civic-blue [style*="background:#dcfce7"],
+body.theme-civic-blue [style*="background: #ecfdf5"],
+body.theme-civic-blue [style*="background:#ecfdf5"] {
+    background-color: var(--color-status-approved-bg) !important;
+}
+
+/* Status — Pending/Under Review (amber family) */
+body.theme-civic-blue [style*="color: #d97706"],
+body.theme-civic-blue [style*="color:#d97706"],
+body.theme-civic-blue [style*="color: #92400e"],
+body.theme-civic-blue [style*="color:#92400e"],
+body.theme-civic-blue [style*="color: #b45309"],
+body.theme-civic-blue [style*="color:#b45309"] {
+    color: var(--color-status-pending-text) !important;
+}
+body.theme-civic-blue [style*="background: #fef3c7"],
+body.theme-civic-blue [style*="background:#fef3c7"],
+body.theme-civic-blue [style*="background: #fffbeb"],
+body.theme-civic-blue [style*="background:#fffbeb"] {
+    background-color: var(--color-status-pending-bg) !important;
+}
+
+/* Info/link blue family — closest semantic match in Civic Blue is the
+ * navy primary, so these read as "institutional blue" rather than a
+ * mismatched generic blue against the gold accent. */
+body.theme-civic-blue [style*="color: #2563eb"],
+body.theme-civic-blue [style*="color:#2563eb"],
+body.theme-civic-blue [style*="color: #3b82f6"],
+body.theme-civic-blue [style*="color:#3b82f6"],
+body.theme-civic-blue [style*="color: #1d4ed8"],
+body.theme-civic-blue [style*="color:#1d4ed8"],
+body.theme-civic-blue [style*="color: #1e40af"],
+body.theme-civic-blue [style*="color:#1e40af"],
+body.theme-civic-blue [style*="color: #4338ca"],
+body.theme-civic-blue [style*="color:#4338ca"] {
+    color: var(--color-primary) !important;
+}
+body.theme-civic-blue [style*="background: #eff6ff"],
+body.theme-civic-blue [style*="background:#eff6ff"],
+body.theme-civic-blue [style*="background: #dbeafe"],
+body.theme-civic-blue [style*="background:#dbeafe"],
+body.theme-civic-blue [style*="background: #e0e7ff"],
+body.theme-civic-blue [style*="background:#e0e7ff"],
+body.theme-civic-blue [style*="background: #e0f2fe"],
+body.theme-civic-blue [style*="background:#e0f2fe"] {
+    background-color: var(--color-nav-active-bg) !important;
+}
+
+/* Bootstrap's own default blue, hardcoded inline in a few places instead
+ * of via the .btn-primary class */
+body.theme-civic-blue [style*="background-color: #0d6efd"] {
+    background-color: var(--color-btn-primary-bg) !important;
+    border-color: var(--color-btn-primary-bg) !important;
+    color: var(--color-btn-primary-text) !important;
+}

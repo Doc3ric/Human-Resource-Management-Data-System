@@ -48,9 +48,20 @@
                 <tr class="office-row">
                     <td colspan="3">Office: {{ $office }}</td>
                 </tr>
-                @foreach($positions as $pos => $applicants)
+                @foreach($positions as $pos => $details)
+                    @php
+                        $isNewFormat = isset($details['applicants']);
+                        $applicants = $isNewFormat ? $details['applicants'] : $details;
+                    @endphp
                     <tr class="vacancy-row">
-                        <td colspan="3">Vacancy: {{ $pos }}</td>
+                        <td colspan="3">
+                            Vacancy: {{ $pos }}
+                            @if($isNewFormat)
+                                <span style="font-size:10px; color:#555; margin-left: 10px;">
+                                    (Item No: {{ $details['item_no'] ?? 'N/A' }} | SG-{{ $details['sg'] ?? 'N/A' }} | ₱ {{ number_format((float)($details['rate'] ?? 0), 2) }})
+                                </span>
+                            @endif
+                        </td>
                     </tr>
                     @foreach($applicants as $app)
                         <tr>

@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<x-dashboard-app>
 <style>
     .page-title { font-size: 24px; font-weight: 700; color: #111827; margin: 0; }
     .page-subtitle { font-size: 14px; color: #6b7280; margin: 4px 0 24px; }
@@ -30,27 +28,33 @@
     <div x-data="{
         employees: {{ Js::from($employees) }},
         priorWarnings: {{ Js::from($priorWarnings) }},
-        employeeIdsWithWarnings: {{ Js::from($employeeIdsWithWarnings) }},
         selectedId: '',
-        selectedWarningId: '',
+        selectedWarningIds: [],
         employee: null,
         filteredWarnings: [],
-        selectedWarning: null
+        selectedWarnings: []
     }" x-init="
+        $nextTick(() => {
+            lvWireEmployeeCombobox($refs.employeeSearch, $refs.employeeDatalist, $refs.employeeIdInput, employees, id => selectedId = id);
+        });
         $watch('selectedId', id => {
             employee = employees.find(e => e.id == id);
             filteredWarnings = priorWarnings.filter(w => w.plantilla_record_id == id);
-            selectedWarningId = '';
-            selectedWarning = null;
+            selectedWarningIds = [];
+            selectedWarnings = [];
+            lvPopulateWarningCheckboxes($refs.warningsContainer, filteredWarnings, () => {
+                selectedWarningIds = lvCheckedWarningIds($refs.warningsContainer);
+            });
         });
-        $watch('selectedWarningId', id => {
-            selectedWarning = filteredWarnings.find(w => w.id == id) || null;
+        $watch('selectedWarningIds', ids => {
+            selectedWarnings = ids.map(id => filteredWarnings.find(w => w.id == id)).filter(w => w);
         });
     ">
-    
-        <form method="POST" action="{{ route('leave-violations.store-reprimand') }}">
+
+        <form method="POST" action="{{ route('leave-violations.store-reprimand') }}"
+            @submit="if (selectedWarningIds.length === 0) { $event.preventDefault(); alert('Please check at least one prior warning to reference in this reprimand.'); }">
             @csrf
-            
+
             <!-- Employee Info Card -->
             <div class="form-card">
                 <div class="form-card-header">
@@ -60,14 +64,10 @@
                 <div class="form-card-body">
                     <div style="margin-bottom: 20px;">
                         <label class="form-label">Employee Name <span>*</span></label>
-                        <select name="plantilla_record_id" x-model="selectedId" class="form-control" required>
-                            <option value="">Select employee with prior warning...</option>
-                            <template x-for="emp in employees" :key="emp.id">
-                                <option :value="emp.id" x-text="emp.last_name + ', ' + emp.first_name"
-                                    :style="employeeIdsWithWarnings.includes(emp.id) ? 'font-weight:600;' : 'color:#9ca3af;'"></option>
-                            </template>
-                        </select>
-                        <div class="help-text">Employees with prior warnings are shown in bold.</div>
+                        <input type="text" x-ref="employeeSearch" list="reprimandEmployeeList" class="form-control" placeholder="Type or select employee name..." autocomplete="off" required>
+                        <datalist x-ref="employeeDatalist" id="reprimandEmployeeList"></datalist>
+                        <input type="hidden" name="plantilla_record_id" x-ref="employeeIdInput">
+                        <div class="help-text">Only employees with a recorded prior warning are listed.</div>
                     </div>
                     
                     <div style="margin-bottom: 20px;">
@@ -102,22 +102,19 @@
                 </div>
                 <div class="form-card-body">
                     <div style="margin-bottom: 16px;">
-                        <label class="form-label">Select the Prior Warning <span>*</span></label>
-                        <select name="prior_warning_id" x-model="selectedWarningId" class="form-control" required>
-                            <option value="">Select the prior warning to reference...</option>
-                            <template x-for="w in filteredWarnings" :key="w.id">
-                                <option :value="w.id" x-text="w.type_label + ' — ' + w.month + ' ' + w.year + ' (Issued: ' + w.issued_at + ')'"></option>
-                            </template>
-                        </select>
-                        <div class="help-text">This links the reprimand to the specific prior warning. Only warnings for the selected employee are shown.</div>
+                        <label class="form-label">Select Prior Warning(s) <span>*</span></label>
+                        <div x-ref="warningsContainer" class="form-control" style="height:auto; min-height:80px; max-height:180px; overflow-y:auto;">
+                            <div class="text-muted" style="font-size:13px;">Select an employee above first.</div>
+                        </div>
+                        <div class="help-text">Check every prior warning this reprimand should reference — all checked warnings will be listed in the generated letter with their reference number and date.</div>
                     </div>
 
-                    <div class="prior-warning-info" :class="{ 'visible': selectedWarning }">
+                    <div class="prior-warning-info" :class="{ 'visible': selectedWarningIds.length > 0 }">
                         <i class="bi bi-info-circle-fill"></i>
-                        <span x-text="selectedWarning ? 'Prior warning for ' + selectedWarning.type_label + ' (' + selectedWarning.month + ' ' + selectedWarning.year + ') was issued on ' + selectedWarning.issued_at + '. This date will appear in the reprimand letter.' : ''"></span>
+                        <span x-text="selectedWarningIds.length > 0 ? selectedWarningIds.length + ' prior warning(s) selected.' : ''"></span>
                     </div>
 
-                    <input type="hidden" name="base_violation_type" :value="selectedWarning ? (selectedWarning.violation_type) : ''">
+                    <input type="hidden" name="base_violation_type" :value="selectedWarnings.length > 0 ? selectedWarnings[0].violation_type.replace('REPRIMAND_', '') : ''">
                 </div>
             </div>
             
@@ -179,4 +176,67 @@
         </form>
     </div>
 </div>
-@endsection
+<script>
+    // A single type-to-filter control for Employee Name: a text input backed by a
+    // <datalist> (native browser suggestion list) plus a hidden field carrying the
+    // resolved plantilla_record_id. Replaces a separate search box + <select> pair —
+    // one control the user can both type into and pick from.
+    function lvWireEmployeeCombobox(textInputEl, datalistEl, hiddenIdInputEl, employees, onChange) {
+        if (!textInputEl || !datalistEl || !hiddenIdInputEl) return;
+        var byName = {};
+        employees.forEach(function (emp) {
+            var label = emp.last_name + ', ' + emp.first_name;
+            var opt = document.createElement('option');
+            opt.value = label;
+            datalistEl.appendChild(opt);
+            byName[label] = emp.id;
+        });
+        textInputEl.addEventListener('input', function () {
+            var id = byName[this.value] || '';
+            hiddenIdInputEl.value = id;
+            if (onChange) onChange(id);
+        });
+    }
+
+    // Renders one checkbox per prior warning — obvious multi-select, unlike a native
+    // <select multiple> which silently requires holding Ctrl/Cmd to pick more than one.
+    function lvPopulateWarningCheckboxes(containerEl, warnings, onChange) {
+        if (!containerEl) return;
+        containerEl.innerHTML = '';
+        if (warnings.length === 0) {
+            containerEl.innerHTML = '<div class="text-muted" style="font-size:13px;">No prior warnings found for this employee.</div>';
+            return;
+        }
+        warnings.forEach(function (w) {
+            var wrapper = document.createElement('div');
+            wrapper.style.marginBottom = '8px';
+
+            var checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'prior_warning_ids[]';
+            checkbox.value = w.id;
+            checkbox.id = 'pw-' + w.id;
+            checkbox.style.marginRight = '8px';
+            checkbox.addEventListener('change', onChange);
+
+            var label = document.createElement('label');
+            label.htmlFor = checkbox.id;
+            label.style.fontSize = '13px';
+            label.style.cursor = 'pointer';
+            label.textContent = w.type_label + ' — ' + w.month + ' ' + w.year + ' (Issued: ' + w.issued_at + ')';
+
+            wrapper.appendChild(checkbox);
+            wrapper.appendChild(label);
+            containerEl.appendChild(wrapper);
+        });
+    }
+
+    function lvCheckedWarningIds(containerEl) {
+        if (!containerEl) return [];
+        return Array.from(containerEl.querySelectorAll('input[type=checkbox]:checked')).map(function (cb) {
+            return cb.value;
+        });
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</x-dashboard-app>

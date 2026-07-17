@@ -7,6 +7,7 @@ use App\Models\HrmpsbPanelMember;
 use App\Models\InterviewEvaluation;
 use App\Models\TwgScore;
 use App\Models\TwgScoreSubmission;
+use App\Models\PreEvaluationResult;
 use App\Support\BlindScoringId;
 use Illuminate\Http\Request;
 
@@ -16,33 +17,44 @@ class DeliberationMonitoringController extends Controller
     {
         $position = $applicant->position_applied;
 
-        // 1. Get all assigned panel members for this position
         $assignedMembers = HrmpsbPanelMember::with(['panelMember', 'user'])
             ->where('position_applied', $position)
             ->where('is_active', true)
             ->get();
 
-        // 2. Get all applicants for this position
-        // date_of_birth + item_no are required by BlindScoringId::forApplicant()
-        // below — without them every applicant would mask to the same fallback ID.
         $applicants = Applicant::where('position_applied', $position)
             ->orderBy('last_name')
-            ->get(['id', 'last_name', 'first_name', 'date_of_birth', 'item_no']);
+            ->get(['id', 'last_name', 'first_name', 'date_of_birth', 'item_no', 'deliberation_phase']);
 
-        // Pre-fetch scores to avoid N+1
         $applicantIds = $applicants->pluck('id');
         
         $twgScores = TwgScore::whereIn('applicant_id', $applicantIds)->get();
         $twgSubmissions = TwgScoreSubmission::whereIn('applicant_id', $applicantIds)->get()->keyBy('applicant_id');
         $hrmpsbEvaluations = InterviewEvaluation::whereIn('applicant_id', $applicantIds)->get();
+        $preEvaluations = PreEvaluationResult::whereIn('applicant_id', $applicantIds)->get()->keyBy('applicant_id');
 
         $matrix = [];
         $membersData = [];
 
+        // Also compile stage-level progress for the Dashboard Strip
+        $stageProgress = [
+            'screening' => ['completed' => 0, 'in_progress' => 0, 'not_started' => 0],
+            'twg_evaluation' => ['completed' => 0, 'in_progress' => 0, 'not_started' => 0],
+            'hrmpsb_deliberation' => ['completed' => 0, 'in_progress' => 0, 'not_started' => 0],
+        ];
+
+        // 1. Screening Progress
+        foreach ($applicants as $app) {
+            if ($preEvaluations->has($app->id)) {
+                $stageProgress['screening']['completed']++;
+            } else {
+                $stageProgress['screening']['not_started']++;
+            }
+        }
+
+        // 2. Member Matrix (TWG & HRMPSB)
         foreach ($assignedMembers as $memberLink) {
-            // Determine name and type
             $name = $memberLink->panelMember ? $memberLink->panelMember->name : ($memberLink->user ? $memberLink->user->name : 'Unknown');
-            // If they are a PanelMember, their type is 'hrmpsb' or 'twg'. If user, assume 'twg' for fallback.
             $type = $memberLink->panelMember ? $memberLink->panelMember->type : 'twg';
             $memberKey = 'member_' . $memberLink->id;
 
@@ -65,9 +77,11 @@ class DeliberationMonitoringController extends Controller
                                                       ->first();
                     if ($hasEvaluated) {
                         $state = 'Scored';
+                        $stageProgress['hrmpsb_deliberation']['completed']++;
+                    } else {
+                        $stageProgress['hrmpsb_deliberation']['not_started']++;
                     }
                 } else {
-                    // TWG evaluation via user_id
                     if ($memberLink->user_id) {
                         $hasAssessed = $twgScores->where('applicant_id', $appId)
                                                  ->where('assessed_by', $memberLink->user_id)
@@ -77,8 +91,12 @@ class DeliberationMonitoringController extends Controller
 
                         if ($hasAssessed && $isLocked) {
                             $state = 'Scored';
+                            $stageProgress['twg_evaluation']['completed']++;
                         } elseif ($hasAssessed) {
                             $state = 'In Progress';
+                            $stageProgress['twg_evaluation']['in_progress']++;
+                        } else {
+                            $stageProgress['twg_evaluation']['not_started']++;
                         }
                     }
                 }
@@ -87,13 +105,11 @@ class DeliberationMonitoringController extends Controller
             }
         }
 
-        // Module 6A.5 — never raw names, states only. The masked ID is the
-        // ONLY identifier this endpoint may return; a raw name here would
-        // leak identity into a board every panel member can see mid-deliberation.
         $applicantsData = $applicants->map(function ($app) {
             return [
                 'id' => $app->id,
                 'masked_id' => BlindScoringId::forApplicant($app),
+                'phase' => $app->deliberation_phase
             ];
         });
 
@@ -102,6 +118,7 @@ class DeliberationMonitoringController extends Controller
             'members' => $membersData,
             'applicants' => $applicantsData,
             'matrix' => $matrix,
+            'progress' => $stageProgress,
         ]);
     }
 }

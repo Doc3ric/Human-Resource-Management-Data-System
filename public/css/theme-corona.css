@@ -1,26 +1,26 @@
 /* Corona Theme - Elegant Dark Theme */
 
 body.theme-corona {
-    background-color: #14161C !important;
-    color: #e5e7eb !important;
+    background-color: var(--color-page-bg) !important;
+    color: var(--color-text-primary) !important;
 }
 
 /* Sidebar and Topbar */
 body.theme-corona .sidebar {
-    background-color: #191C24 !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    background-color: var(--color-sidebar-bg) !important;
+    border-right: 1px solid var(--color-border) !important;
     background-image: none !important;
 }
 
 body.theme-corona .sidebar-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-bottom: 1px solid var(--color-border) !important;
 }
 
 body.theme-corona .topbar,
 body.theme-corona .main-content>nav {
-    background-color: #191C24 !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-    color: #ffffff !important;
+    background-color: var(--color-topbar-bg) !important;
+    border-bottom: 1px solid var(--color-topbar-border) !important;
+    color: var(--color-topbar-text) !important;
 }
 
 body.theme-corona .sidebar-title,
@@ -28,38 +28,38 @@ body.theme-corona .sidebar-logo-text,
 body.theme-corona .sidebar-logo-sub,
 body.theme-corona .sidebar-section-label,
 body.theme-corona .sidebar-user-name {
-    color: #ffffff !important;
+    color: var(--color-sidebar-text) !important;
 }
 
 body.theme-corona .nav-link,
 body.theme-corona .sidebar-link,
 body.theme-corona .sidebar-user-role {
-    color: #6c7293 !important;
+    color: var(--color-sidebar-icon) !important;
 }
 
 body.theme-corona .nav-link:hover,
 body.theme-corona .sidebar-link:hover {
-    background-color: #0f1015 !important;
-    color: #ffffff !important;
+    background-color: var(--color-sidebar-hover-bg) !important;
+    color: var(--color-sidebar-text) !important;
 }
 
 body.theme-corona .nav-link.active,
 body.theme-corona .sidebar-link.active {
-    background-color: #0f1015 !important;
-    color: #ffffff !important;
-    border-left: 3px solid #AF1763 !important;
+    background-color: var(--color-sidebar-active-bg) !important;
+    color: var(--color-sidebar-active-text) !important;
+    border-left: 3px solid var(--color-accent) !important;
     border-radius: 0 8px 8px 0 !important;
     box-shadow: none !important;
 }
 
 body.theme-corona .sidebar-user {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: var(--color-sidebar-hover-bg) !important;
+    border: 1px solid var(--color-border) !important;
 }
 
 body.theme-corona .sidebar-logo-icon {
-    background: #AF1763 !important;
-    color: #ffffff !important;
+    background: var(--color-accent) !important;
+    color: var(--color-text-primary) !important;
     box-shadow: none !important;
 }
 
@@ -68,8 +68,8 @@ body.theme-corona .bg-white,
 body.theme-corona [style*="background: white"],
 body.theme-corona [style*="background-color: white"],
 body.theme-corona .modal-card {
-    background-color: #191C24 !important;
-    color: #ffffff !important;
+    background-color: var(--color-surface) !important;
+    color: var(--color-text-primary) !important;
     border: none !important;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
 }
@@ -84,47 +84,52 @@ body.theme-corona h6,
 body.theme-corona .text-gray-900,
 body.theme-corona .text-gray-800,
 body.theme-corona [style*="color: #111827"] {
-    color: #ffffff !important;
+    color: var(--color-text-primary) !important;
 }
 
 body.theme-corona p,
 body.theme-corona .text-gray-700,
 body.theme-corona .text-gray-600,
 body.theme-corona [style*="color: #6b7280"] {
-    color: #6c7293 !important;
+    color: var(--color-text-secondary) !important;
 }
 
 /* Tables */
 body.theme-corona table {
-    color: #e5e7eb !important;
+    color: var(--color-text-primary) !important;
 }
 
 body.theme-corona thead,
 body.theme-corona th {
-    background-color: #0f1015 !important;
-    color: #ffffff !important;
-    border-color: rgba(255, 255, 255, 0.05) !important;
+    background-color: var(--color-page-bg) !important;
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-border) !important;
 }
 
 body.theme-corona tbody tr {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-bottom: 1px solid var(--color-border) !important;
 }
 
 body.theme-corona tbody tr:hover,
 body.theme-corona tbody tr:hover td {
-    background-color: rgba(255, 255, 255, 0.02) !important;
+    background-color: var(--color-sidebar-hover-bg) !important;
 }
 
 body.theme-corona td {
-    border-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: var(--color-border) !important;
 }
 
 /* Primary Button Override */
 body.theme-corona .btn-primary,
 body.theme-corona a[style*="background-color: #0d6efd"] {
-    background-color: #0D6EFD !important;
-    border-color: #0D6EFD !important;
-    color: #ffffff !important;
+    background-color: var(--color-btn-primary-bg) !important;
+    border-color: var(--color-btn-primary-bg) !important;
+    color: var(--color-btn-primary-text) !important;
+}
+
+body.theme-corona .btn-primary:hover {
+    background-color: var(--color-btn-primary-hover) !important;
+    border-color: var(--color-btn-primary-hover) !important;
 }
 
 body.theme-corona .btn-success {
@@ -146,9 +151,34 @@ body.theme-corona .btn-warning {
 }
 
 body.theme-corona .btn-danger {
-    background-color: #AB2E3C !important;
-    border-color: #AB2E3C !important;
+    background-color: var(--color-danger) !important;
+    border-color: var(--color-danger) !important;
     color: #ffffff !important;
+}
+
+body.theme-corona .btn-outline-dark {
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-text-secondary) !important;
+}
+
+body.theme-corona .btn-outline-dark:hover {
+    background-color: var(--color-sidebar-hover-bg) !important;
+    color: var(--color-text-primary) !important;
+}
+
+/* Global Search Input */
+body.theme-corona form[action*="search"] {
+    background: var(--color-page-bg) !important;
+    border-color: var(--color-border) !important;
+}
+body.theme-corona form[action*="search"] input {
+    color: var(--color-text-primary) !important;
+}
+body.theme-corona form[action*="search"] input::placeholder {
+    color: var(--color-text-secondary) !important;
+}
+body.theme-corona form[action*="search"] i {
+    color: var(--color-text-secondary) !important;
 }
 
 /* Dashboard Top Cards Colors */
@@ -162,11 +192,11 @@ body.theme-corona .container-fluid>div>div>div>div[style*="background: #fff3cd"]
 body.theme-corona .container-fluid>div>div>div>div[style*="background: #e8f7f9"],
 body.theme-corona .container-fluid>div>div>div>div[style*="background: #fff9f0"],
 body.theme-corona .container-fluid>div>div>div>div[style*="background: #fde8f5"] {
-    background: #0f1015 !important;
+    background: var(--color-page-bg) !important;
 }
 
 body.theme-corona .theme-toggle-header {
-    background: #191C24 !important;
-    color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: var(--color-sidebar-bg) !important;
+    color: var(--color-text-primary) !important;
+    border: 1px solid var(--color-border) !important;
 }

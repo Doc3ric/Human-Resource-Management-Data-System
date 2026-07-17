@@ -14,6 +14,11 @@ class RolePermissionController extends Controller
     // future modules register their own rows when they're actually built).
     private array $modules = [
         'Dashboard & GAD Analytics' => [
+            // Enhancement Spec RBAC Baseline — granted to every role by
+            // default regardless of other restrictions (see the one-time
+            // backfill migration for existing roles; $defaults below covers
+            // any future role created with zero permissions).
+            'Dashboard',
             'GAD Analytics',
         ],
         'Personnel Records' => [
@@ -26,6 +31,9 @@ class RolePermissionController extends Controller
             // the existing fixed-column "TWG Scoring" above. "edit" also gates
             // the Chairperson-only unlock action (Module 6.4).
             'TWG Dynamic Scoring',
+            // VPPM (RA 7041 / 2025 ORAOHRA Sec.26/30/31) — "edit" also gates
+            // who may submit to CSC FO / log posting sites / republish.
+            'Vacancy Publication',
         ],
         'Employee Development' => [
             'IPCR Ratings', 'Training & Certificates',
@@ -60,6 +68,12 @@ class RolePermissionController extends Controller
     private array $actions = ['view', 'add', 'edit', 'delete', 'archive'];
 
     // Default permissions per role (seeded on first load if missing)
+    // Enhancement Spec RBAC Baseline — granted to every role regardless of
+    // its other permissions (existing roles are backfilled by a dedicated
+    // migration; this list only matters for a brand-new role with zero
+    // permissions, per the "seed defaults" rule below).
+    private array $baselineDefaults = ['view Dashboard', 'view LGU Documents'];
+
     private array $defaults = [
         'Personnel Records' => [
             'view All Data', 'add All Data', 'edit All Data', 'delete All Data', 'archive All Data',
@@ -77,6 +91,7 @@ class RolePermissionController extends Controller
             'view Panel Members', 'add Panel Members', 'edit Panel Members',
             'view Interview Evaluations', 'add Interview Evaluations', 'edit Interview Evaluations',
             'view TWG Scoring', 'add TWG Scoring', 'edit TWG Scoring',
+            'view Vacancy Publication', 'add Vacancy Publication', 'edit Vacancy Publication',
         ],
         'Performance Management' => [
             'view IPCR Ratings', 'add IPCR Ratings', 'edit IPCR Ratings',
@@ -101,6 +116,23 @@ class RolePermissionController extends Controller
             'view Leave Application', 'add Leave Application', 'edit Leave Application',
             'view Leave Violations', 'add Leave Violations', 'edit Leave Violations',
         ],
+        'Employee Development' => [
+            'view IPCR Ratings', 'add IPCR Ratings', 'edit IPCR Ratings',
+            'view Training & Certificates', 'add Training & Certificates', 'edit Training & Certificates',
+        ],
+        // SPI Unmask / RACCS Access deliberately excluded — those stay
+        // sensitive/MFA-gated (Module 9A.7) and are granted per-user via the
+        // matrix or User Overrides screen, never by role default.
+        'Document Filing' => [
+            'view Document Ingestion & Capture', 'add Document Ingestion & Capture', 'edit Document Ingestion & Capture',
+            'view LGU Documents', 'add LGU Documents', 'edit LGU Documents',
+            'view Records Retention Matrix', 'add Records Retention Matrix', 'edit Records Retention Matrix',
+        ],
+        // Disciplinary Cases (RACCS) deliberately excluded — stays reserved
+        // for the separate "Discipline Committee" role, MFA-gated.
+        'Discipline' => [
+            'view Incident Reports', 'add Incident Reports', 'edit Incident Reports',
+        ],
     ];
 
     public function index()
@@ -123,6 +155,8 @@ class RolePermissionController extends Controller
         foreach ($roles as $role) {
             if ($role->permissions->count() === 0 && isset($this->defaults[$role->name])) {
                 $perms = collect($this->defaults[$role->name])
+                    ->merge($this->baselineDefaults)
+                    ->unique()
                     ->map(fn($p) => Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']))
                     ->pluck('name')
                     ->toArray();
@@ -170,7 +204,10 @@ class RolePermissionController extends Controller
                 ->values()
                 ->toArray();
 
-            $role->syncPermissions(array_merge($existingOther, $checkedPerms));
+            // Enhancement Spec RBAC Baseline — Dashboard/Document Filing stay
+            // granted "regardless of other permission restrictions", so the
+            // matrix can't uncheck them away even if submitted without them.
+            $role->syncPermissions(array_unique(array_merge($existingOther, $checkedPerms, $this->baselineDefaults)));
         }
 
         // Flush Spatie permission cache so changes take effect immediately

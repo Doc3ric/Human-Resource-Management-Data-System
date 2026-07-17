@@ -52,5 +52,8 @@ class DatabaseSeeder extends Seeder
 
         // Run salary grade seeder
         $this->call(SalaryGradeSeeder::class);
+
+        // Adds Employee Development / Document Filing / Discipline roles
+        $this->call(RolePermissionExpansionSeeder::class);
     }
 }

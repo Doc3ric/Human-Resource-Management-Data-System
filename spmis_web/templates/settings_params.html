@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block body %}
+<p><a href="{{ url_for('settings') }}">&larr; Settings</a></p>
+<h1>Weights &amp; Caps</h1>
+<form method="post">
+<div class="panel"><h2>Part weights &amp; intervening task</h2>
+<div class="grid">
+  <label>Part I weight (Performance)<input name="WeightP1" type="number" step="0.01" value="{{params.WeightP1}}"></label>
+  <label>Part II weight (Attitude)<input name="WeightP2" type="number" step="0.01" value="{{params.WeightP2}}"></label>
+  <label>Intervening Task max<input name="ITSmax" type="number" step="0.01" value="{{params.ITSmax}}"></label>
+  <label>ITS hour base<input name="ITShourBase" type="number" step="1" value="{{params.ITShourBase}}"></label>
+  <label>Final rating cap<input name="RatingCap" type="number" step="0.1" value="{{params.RatingCap}}"></label>
+</div>
+<p class="note">The agency-customised split is 0.70 / 0.30. Changing these recomputes future ratings only (re-run Compute on existing IPCRs to apply).</p>
+</div>
+<div class="panel"><h2>Cross-rating weights</h2>
+<table><tr><th>Role</th><th>Rater group</th><th>Weight</th></tr>
+{% for w in weights %}<tr><td>{{w.role_type}}</td><td>{{w.rater_group}}</td>
+<td><input name="rw_{{w.id}}" type="number" step="0.01" value="{{w.weight}}" style="width:90px"></td></tr>{% endfor %}
+</table>
+<p class="note">Each role's three weights normally sum to 1.00 (20% / 30% / 50%).</p>
+</div>
+<button>Save all</button>
+</form>
+{% endblock %}

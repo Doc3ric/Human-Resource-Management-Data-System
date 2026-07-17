@@ -56,6 +56,7 @@ class DashboardController extends Controller
         $joMale = 0;
         $joFemale = 0;
         $vacantPositionsTotal = 0;
+        $notRenewedActiveCount = 0;
         
         $ageBrackets = [
             '20-29' => 0,
@@ -160,50 +161,65 @@ class DashboardController extends Controller
             $jobOrderTotal = JobOrder::whereNull('nature_of_separation')->count();
 
             // --- New specific arrangement calculations ---
+            // CasualEmployee and JobOrder are PlantillaRecord subclasses that only add a
+            // global scope for employment_status ('CASUAL' / 'JO') — they read the same
+            // plantilla_records rows, not separate tables. The previous version of this
+            // block queried both the subclass AND a parallel PlantillaRecord::whereIn(...)
+            // condition and *added* the two counts together, double-counting every single
+            // casual/JO employee (verified: 246 casual records counted as 492, inflating
+            // the Male/Female GAD totals derived from them too). Counting each employment
+            // status exactly once via PlantillaRecord::filled() removes that redundancy,
+            // and — as a side effect — correctly excludes any not-yet-renewed Casual/JO
+            // record from these totals (filled() only admits a renewal-gated status once
+            // is_renewed is true), consistent with the "Action Required" renewal notice
+            // above rather than silently double-counting them anyway.
+
             // 1. TOTAL EMPLOYEES: Active Only, No Duplication
-            $plantillaEmployees = DB::table('plantilla_records')
-                ->whereNotIn('employment_status', ['JO', 'CASUAL'])
-                ->where('is_vacant', false)->where('abolished', false)->whereNull('deleted_at')->whereNull('nature_of_separation')
-                ->selectRaw("CONCAT(UPPER(TRIM(last_name)), ',', UPPER(TRIM(first_name))) as name_key")
-                ->pluck('name_key');
-            $casualEmployeesList = CasualEmployee::where('is_vacant', false)
-                ->selectRaw("CONCAT(UPPER(TRIM(last_name)), ',', UPPER(TRIM(first_name))) as name_key")
-                ->pluck('name_key');
-            $joEmployeesList = JobOrder::whereNull('nature_of_separation')
-                ->selectRaw("CONCAT(UPPER(TRIM(last_name)), ',', UPPER(TRIM(first_name))) as name_key")
-                ->pluck('name_key');
-            $totalEmployeesUnique = $plantillaEmployees->concat($casualEmployeesList)->concat($joEmployeesList)->filter()->unique()->count();
+            $totalEmployeesUnique = PlantillaRecord::filled()->count();
 
             // 2. REGULAR (Elected, Coterminus, Permanent, Part-Time, Temp)
-            $regularTotalCount = PlantillaRecord::filled()->whereNotIn('employment_status', ['Casual', 'Cas', 'CASUAL', 'C', 'JO', 'Job Order'])->count();
+            $regularTotalCount = PlantillaRecord::filled()->whereNotIn('employment_status', ['CASUAL', 'JO'])->count();
 
             // 3. MALE vs FEMALE (REGULAR)
             $regularMale = PlantillaRecord::filled()
-                ->whereNotIn('employment_status', ['Casual', 'Cas', 'CASUAL', 'C', 'JO', 'Job Order'])
-                ->where(function($q) { $q->where('sex', 'like', 'M%'); })->count();
+                ->whereNotIn('employment_status', ['CASUAL', 'JO'])
+                ->where('sex', 'like', 'M%')->count();
             $regularFemale = PlantillaRecord::filled()
-                ->whereNotIn('employment_status', ['Casual', 'Cas', 'CASUAL', 'C', 'JO', 'Job Order'])
-                ->where(function($q) { $q->where('sex', 'like', 'F%'); })->count();
+                ->whereNotIn('employment_status', ['CASUAL', 'JO'])
+                ->where('sex', 'like', 'F%')->count();
 
             // 4. CASUAL : Total (active only)
-            $casualOnlyTotal = CasualEmployee::where('is_vacant', false)->whereNull('nature_of_separation')->count() + PlantillaRecord::filled()->whereIn('employment_status', ['Casual', 'Cas', 'C'])->count();
+            $casualOnlyTotal = PlantillaRecord::filled()->where('employment_status', 'CASUAL')->count();
 
             // 5. MALE vs FEMALE (CASUAL, active only)
-            $casualMale = CasualEmployee::where('is_vacant', false)->whereNull('nature_of_separation')->where(function($q) { $q->where('sex', 'like', 'M%'); })->count()
-                        + PlantillaRecord::filled()->whereIn('employment_status', ['Casual', 'Cas', 'C'])->where(function($q) { $q->where('sex', 'like', 'M%'); })->count();
-            $casualFemale = CasualEmployee::where('is_vacant', false)->whereNull('nature_of_separation')->where(function($q) { $q->where('sex', 'like', 'F%'); })->count()
-                        + PlantillaRecord::filled()->whereIn('employment_status', ['Casual', 'Cas', 'C'])->where(function($q) { $q->where('sex', 'like', 'F%'); })->count();
+            $casualMale = PlantillaRecord::filled()->where('employment_status', 'CASUAL')->where('sex', 'like', 'M%')->count();
+            $casualFemale = PlantillaRecord::filled()->where('employment_status', 'CASUAL')->where('sex', 'like', 'F%')->count();
 
             // 6. JOB ORDER (active only)
-            $joTotalActive = JobOrder::whereNull('nature_of_separation')->count();
+            $joTotalActive = PlantillaRecord::filled()->where('employment_status', 'JO')->count();
 
             // 7. VACANT POSITIONS (Using only plantilla vacants since they hold the actual items usually)
             $vacantPositionsTotal = PlantillaRecord::vacant()->count();
 
             // 8. MALE vs. FEMALE (JO, active only)
-            $joMale = JobOrder::whereNull('nature_of_separation')->where(function($q) { $q->where('sex', 'like', 'M%'); })->count();
-            $joFemale = JobOrder::whereNull('nature_of_separation')->where(function($q) { $q->where('sex', 'like', 'F%'); })->count();
+            $joMale = PlantillaRecord::filled()->where('employment_status', 'JO')->where('sex', 'like', 'M%')->count();
+            $joFemale = PlantillaRecord::filled()->where('employment_status', 'JO')->where('sex', 'like', 'F%')->count();
             // ---------------------------------------------
+
+            // 9. Casual/JO personnel not yet renewed for the current period are now
+            // correctly EXCLUDED from the totals above — PlantillaRecord::filled()
+            // only admits a renewal-gated status once is_renewed is true. This count
+            // is purely informational: it tells the admin how many are missing from
+            // the totals pending renewal, surfaced via the "Action Required" banner
+            // with a link to Batch Renewal, rather than the number just quietly
+            // disappearing from the dashboard with no explanation.
+            $notRenewedActiveCount = PlantillaRecord::whereIn('employment_status', PlantillaRecord::RENEWAL_GATED_STATUSES)
+                ->where('is_renewed', false)
+                ->where('is_vacant', false)
+                ->where('abolished', false)
+                ->whereNull('deleted_at')
+                ->whereNull('nature_of_separation')
+                ->count();
 
             // Monthly Birthdays
             $monthlyBirthdays = PlantillaRecord::filled()
@@ -291,6 +307,7 @@ class DashboardController extends Controller
             'joMale'                   => $joMale,
             'joFemale'                 => $joFemale,
             'vacantPositionsTotal'     => $vacantPositionsTotal,
+            'notRenewedActiveCount'    => $notRenewedActiveCount,
         ]);
     }
 }

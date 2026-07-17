@@ -1,417 +1,170 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit OFFICE</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<x-dashboard-app>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e9e9ff;
-        }
-
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(to bottom, #2D5A4C, #1a3a34);
-            position: fixed;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .sidebar-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .sidebar-logo {
-            width: 48px;
-            height: 48px;
-            object-fit: contain;
-            border-radius: 10px;
-            flex-shrink: 0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            background: #ffffff;
-            padding: 2px;
-            transition: transform 0.2s ease;
-        }
-
-        .sidebar-logo:hover {
-            transform: scale(1.05);
-        }
-
-        .sidebar-title-container {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .sidebar-title-main {
-            color: #2563eb;
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            line-height: 1.2;
-        }
-
-        .sidebar-title-sub {
-            color: #64748b;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            color: #e5e7eb;
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-size: 15px;
-            font-weight: 500;
-        }
-
-        .nav-link:hover {
-            color: #ffffff;
-            background-color: #4A8B7D;
-        }
-
-        .nav-link.active {
-            background-color: #0d6efd;
-            color: #ffffff;
-            font-weight: 600;
-        }
-
-        .main-content {
-            margin-left: 280px;
-            padding: 32px;
-            min-height: 100vh;
-        }
-
-        .page-header {
-            color: #212529;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .page-header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            margin: 0;
-        }
-
-        .page-header p {
-            color: #6b7280;
-            font-size: 14px;
-            margin: 0;
-        }
-
-        .back-link {
-            color: #6b7280;
-            text-decoration: none;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.3s ease;
-        }
-
-        .back-link:hover {
-            color: #0d6efd;
-        }
-
-        .form-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        .form-card {
+            background: var(--color-surface, #ffffff);
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid var(--color-border, #e2e8f0);
             padding: 32px;
             max-width: 600px;
-            margin-top: 24px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--color-border, #e2e8f0);
+        }
+
+        .form-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .form-group {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
-        .form-group label {
+        .form-label {
             display: block;
-            margin-bottom: 8px;
             font-weight: 600;
-            color: #374151;
-            font-size: 14px;
+            color: #475569;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
         }
 
-        .form-group input,
-        .form-group select {
+        .form-control, .form-select {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #d1d5db;
+            padding: 10px 14px;
             border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            font-family: 'Segoe UI', sans-serif;
+            border: 1px solid #cbd5e1;
+            font-size: 0.95rem;
+            color: #334155;
+            transition: all 0.2s;
         }
 
-        .form-group input:focus,
-        .form-group select:focus {
+        .form-control:focus, .form-select:focus {
+            border-color: #0f4c75;
+            box-shadow: 0 0 0 3px rgba(15, 76, 117, 0.1);
             outline: none;
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
         }
 
-        .form-actions {
+        .form-text {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .invalid-feedback {
+            display: block;
+            color: #ef4444;
+            font-size: 0.85rem;
+            margin-top: 6px;
+        }
+
+        .btn-actions {
             display: flex;
             gap: 12px;
             margin-top: 32px;
         }
 
         .btn-submit {
-            background-color: #0d6efd;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
+            background: #0f4c75;
+            color: #ffffff;
             border: none;
-            font-size: 15px;
+            padding: 10px 24px;
+            border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            transition: all 0.2s;
         }
 
         .btn-submit:hover {
-            background-color: #0b5ed7;
+            background: #1a5276;
         }
 
         .btn-cancel {
-            background-color: #e5e7eb;
-            color: #374151;
-            padding: 12px 24px;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            padding: 10px 24px;
             border-radius: 8px;
-            border: none;
-            font-size: 15px;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
             text-decoration: none;
+            transition: all 0.2s;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
         }
 
         .btn-cancel:hover {
-            background-color: #d1d5db;
-            color: #1f2937;
-        }
-
-        .invalid-feedback {
-            display: block;
-            color: #dc2626;
-            font-size: 13px;
-            margin-top: 6px;
-        }
-
-        .form-group.has-error input,
-        .form-group.has-error select {
-            border-color: #dc2626;
-            background-color: #fef2f2;
-        }
-
-        .alert {
-            margin-bottom: 24px;
-            border-radius: 8px;
-            border: none;
-        }
-
-        .form-help-text {
-            color: #9ca3af;
-            font-size: 13px;
-            margin-top: 4px;
-        }
-
-        .info-box {
-            background-color: #f0f9ff;
-            border-left: 4px solid #0d6efd;
-            padding: 12px 16px;
-            border-radius: 6px;
-            margin-bottom: 24px;
-            font-size: 13px;
-            color: #1e40af;
+            background: #e2e8f0;
+            color: #334155;
         }
     </style>
-</head>
-<body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-                <div class="sidebar-header">
-            <img src="{{ asset('img/logo.png') }}" alt="CSC Logo" class="sidebar-logo" onerror="this.style.display='none'">
-            <div class="sidebar-title-container">
-                <span class="sidebar-title-main" style="line-height: 1.3; font-size: 14.5px; padding-top: 2px;">Human Resource<br>Data Management<br>System</span>
-            </div>
-        </div>
 
-        <nav class="sidebar-nav" style="flex: 1; padding: 16px 0; overflow-y: auto;">
-            <div style="margin: 8px 12px;">
-                <a href="{{ route('dashboard') }}" class="nav-link">
-                    <i class="bi bi-house-door" style="font-size: 20px;"></i>
-                    <span>Dashboard</span>
-                </a>
-            </div>
-                        <div style="margin: 8px 12px;">
-                <a href="{{ route('dashboard') }}" class="nav-link">
-                    <i class="bi bi-house-door" style="font-size: 20px;"></i>
-                    <span>Dashboard</span>
-                </a>
-            </div>
-
-            @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin()))
-            <div style="margin: 8px 12px;">
-                <a href="{{ route('plantilla.index') }}" class="nav-link {{ request()->routeIs('plantilla.*') ? 'active' : '' }}">
-                    <i class="bi bi-person-badge" style="font-size: 20px;"></i>
-                    <span>Inventory of Personnel</span>
-                </a>
-            </div>
-            @endif
-
-            @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->isSalaryAdmin()))
-            <div style="margin: 8px 12px;">
-                <a href="{{ route('step-increment.index') }}" class="nav-link {{ request()->routeIs('step-increment.*') ? 'active' : '' }}">
-                    <i class="bi bi-graph-up-arrow" style="font-size: 20px;"></i>
-                    <span>Step Increment</span>
-                </a>
-            </div>
-            @endif
-
-            @if(auth()->check() && auth()->user()->isSuperAdmin())
-            <div style="margin: 8px 12px;">
-                <a href="{{ route('imports.index') }}" class="nav-link {{ request()->routeIs('imports.*') ? 'active' : '' }}">
-                    <i class="bi bi-file-earmark-spreadsheet" style="font-size: 20px;"></i>
-                    <span>Import Data</span>
-                </a>
-            </div>
-            @endif
-
-            <div style="margin: 8px 12px;">
-                <a href="{{ route('profile.edit') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-                    <i class="bi bi-person-circle" style="font-size: 20px;"></i>
-                    <span>Profile</span>
-                </a>
-            </div>
-        </nav>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="page-header">
-            <div>
-                <a href="{{ route('organizational-units.index') }}" class="back-link">
-                    <i class="bi bi-arrow-left"></i>
-                    Back to Units
-                </a>
-                <h1>Edit OFFICE</h1>
-            </div>
-        </div>
-
-        @if ($errors->any())
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle"></i>
-                <strong>Validation Error!</strong>
-                <ul class="mb-0 ms-3 mt-2">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-
-        <div class="form-container">
-            <div class="info-box">
-                <i class="bi bi-info-circle"></i>
-                Editing: <strong>{{ $organizationalUnit->name }}</strong>
+    <div class="px-4 py-5">
+        <div class="form-card">
+            <div class="form-header">
+                <h2 class="form-title">
+                    <i class="bi bi-pencil-square text-primary"></i> Edit Office
+                </h2>
             </div>
 
             <form action="{{ route('organizational-units.update', $organizationalUnit->id) }}" method="POST">
                 @csrf
                 @method('PUT')
-
-                <div class="form-group @error('name') has-error @enderror">
-                    <label for="name">Name <span style="color: #dc2626;">*</span></label>
-                    <input 
-                        type="text" 
-                        id="name" 
-                        name="name" 
-                        value="{{ old('name', $organizationalUnit->name) }}"
-                        placeholder="e.g., Finance Department"
-                        required
-                    >
+                
+                <div class="form-group">
+                    <label for="name" class="form-label">Office Name <span class="text-danger">*</span></label>
+                    <input type="text" id="name" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $organizationalUnit->name) }}" placeholder="e.g. Provincial Human Resource Management Office" required>
                     @error('name')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-                    <div class="form-help-text">A unique name for the OFFICE</div>
                 </div>
 
-                <div class="form-group @error('code') has-error @enderror">
-                    <label for="code">Code <span style="color: #dc2626;">*</span></label>
-                    <input 
-                        type="text" 
-                        id="code" 
-                        name="code" 
-                        value="{{ old('code', $organizationalUnit->code) }}"
-                        placeholder="e.g., FIN-001"
-                        required
-                    >
+                <div class="form-group">
+                    <label for="sub_office" class="form-label">Sub-Office <span class="text-muted fw-normal">(Optional)</span></label>
+                    <input type="text" id="sub_office" name="sub_office" class="form-control @error('sub_office') is-invalid @enderror" value="{{ old('sub_office', $organizationalUnit->sub_office) }}" placeholder="e.g. Administrative Division">
+                    <small class="form-text">Specify a division or section within the office if applicable.</small>
+                    @error('sub_office')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="code" class="form-label">Office Code <span class="text-danger">*</span></label>
+                    <input type="text" id="code" name="code" class="form-control @error('code') is-invalid @enderror" value="{{ old('code', $organizationalUnit->code) }}" placeholder="e.g. PHRMO" required>
                     @error('code')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-                    <div class="form-help-text">A unique code for internal reference</div>
                 </div>
 
-                <div class="form-group @error('status') has-error @enderror">
-                    <label for="status">Status <span style="color: #dc2626;">*</span></label>
-                    <select id="status" name="status" required>
-                        <option value="">Select Status</option>
-                        <option value="Active" @selected(old('status', $organizationalUnit->status) === 'Active')>Active</option>
-                        <option value="Inactive" @selected(old('status', $organizationalUnit->status) === 'Inactive')>Inactive</option>
+                <div class="form-group">
+                    <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                    <select id="status" name="status" class="form-select @error('status') is-invalid @enderror" required>
+                        <option value="Active" {{ old('status', $organizationalUnit->status) == 'Active' ? 'selected' : '' }}>Active</option>
+                        <option value="Inactive" {{ old('status', $organizationalUnit->status) == 'Inactive' ? 'selected' : '' }}>Inactive</option>
                     </select>
                     @error('status')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
-                <div class="form-actions">
+                <div class="btn-actions">
                     <button type="submit" class="btn-submit">
-                        <i class="bi bi-save"></i>
-                        Update Unit
+                        <i class="bi bi-check2-circle"></i> Update Office
                     </button>
                     <a href="{{ route('organizational-units.index') }}" class="btn-cancel">
-                        <i class="bi bi-x-lg"></i>
                         Cancel
                     </a>
                 </div>
             </form>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</x-dashboard-app>

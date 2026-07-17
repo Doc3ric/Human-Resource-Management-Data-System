@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block body %}
+<h1>&#9881; Settings <span class="adminbadge">administrator</span></h1>
+<p class="note">Changes here take effect immediately for all users. The computation engine reads these values at every rating.</p>
+<div class="cards">
+  <a class="card setcard" href="{{ url_for('settings_band') }}"><div class="ic">&#9636;</div><b>Rating Scale</b><div>Adjectival band (Outstanding &hellip; Poor) and the numeric ranges.</div></a>
+  <a class="card setcard" href="{{ url_for('settings_params') }}"><div class="ic">&#8730;</div><b>Weights &amp; Caps</b><div>Part I/II (70/30), cross-rating weights, intervening task, rating cap.</div></a>
+  <a class="card setcard" href="{{ url_for('settings_mfo') }}"><div class="ic">&#9733;</div><b>MFOs (Pillars)</b><div>Major Final Outputs used across OPCR/DPCR/IPCR.</div></a>
+  <a class="card setcard" href="{{ url_for('settings_targets') }}"><div class="ic">&#9776;</div><b>Targets Library</b><div>Reusable OPCR/DPCR/IPCR success indicators + measures.</div></a>
+  <a class="card setcard" href="{{ url_for('settings_rubric') }}"><div class="ic">&#9881;</div><b>Rating Descriptions</b><div>Q/E/T operational definitions per score (generic &amp; per target).</div></a>
+  <a class="card setcard" href="{{ url_for('settings_users') }}"><div class="ic">&#128100;</div><b>User Management</b><div>Create accounts, set roles, reset passwords, activate/deactivate.</div></a>
+</div>
+{% endblock %}

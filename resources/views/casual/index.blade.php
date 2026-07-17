@@ -695,20 +695,41 @@
         <div class="cas-filter" style="display: flex; flex-direction: column; gap: 12px; align-items: stretch; padding: 14px 18px; margin-bottom: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, .04);">
             <!-- Top Row: Inputs + Search + Reset -->
             <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                <input type="text" name="search" value="{{ request('search') }}" class="cas-input" placeholder="🔍  Search name, position, office…" autocomplete="off" maxlength="100">
-                <select name="office[]" class="cas-select" id="office-select" multiple="multiple" style="min-width:250px;" title="Charges / Office">
-                    @php $selectedOffices = (array) request('office', []); @endphp
-                    <option value="" disabled>— Charges / Office —</option>
-                    @foreach($offices as $office)
-                        <option value="{{ $office }}" {{ in_array($office, $selectedOffices) ? 'selected' : '' }}>{{ Str::limit($office, 45) }}</option>
+                <input type="text" name="search" value="{{ request('search') }}" class="cas-input" placeholder="🔍 Search Name / Position..." autocomplete="off">
+                
+                <select name="office_department" class="cas-select">
+                    <option value="">— All Offices —</option>
+                    @foreach(($offices ?? collect([])) as $office)
+                        <option value="{{ $office }}" {{ request('office_department') === $office ? 'selected' : '' }}>{{ $office }}</option>
                     @endforeach
                 </select>
-                <select name="detail" class="cas-select" style="min-width:180px;">
+
+                <select name="office" class="cas-select">
+                    <option value="">— All Detailed Units —</option>
+                    @foreach(($detailedUnits ?? collect([])) as $unit)
+                        <option value="{{ $unit }}" {{ request('office') === $unit ? 'selected' : '' }}>{{ $unit }}</option>
+                    @endforeach
+                </select>
+
+                <select name="detail" class="cas-select">
                     <option value="">— Detailed / Reassigned —</option>
                     @foreach($detailList as $detail)
                         <option value="{{ $detail }}" {{ request('detail') === $detail ? 'selected' : '' }}>{{ Str::limit($detail, 40) }}</option>
                     @endforeach
                 </select>
+
+                <select name="sex" class="cas-select">
+                    <option value="">— SEX —</option>
+                    <option value="M" {{ request('sex') === 'M' ? 'selected' : '' }}>M</option>
+                    <option value="F" {{ request('sex') === 'F' ? 'selected' : '' }}>F</option>
+                </select>
+
+                <select name="vacancy_status" class="cas-select">
+                    <option value="">— Vacancy Status —</option>
+                    <option value="vacant" {{ request('vacancy_status') === 'vacant' ? 'selected' : '' }}>Vacant Only</option>
+                    <option value="filled" {{ request('vacancy_status') === 'filled' ? 'selected' : '' }}>Filled Only</option>
+                </select>
+                
                 <button type="submit" class="cas-btn primary"><i class="bi bi-search"></i> Search</button>
                 <a href="{{ route('casual.index') }}" class="cas-btn reset"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
                 <select name="per_page" class="cas-select" style="min-width: 80px;" onchange="this.form.submit()">
@@ -769,6 +790,8 @@
     </div>
     @endif
 
+    @include('partials.table-column-controls', ['tabKey' => 'casual'])
+
     {{-- Table --}}
     <div class="cas-table-wrap">
         <div class="cas-table-scroll" id="cas-table-scroll">
@@ -781,20 +804,20 @@
                             </th>
                         @endif
                         <th rowspan="2" style="width: 40px; text-align: center;">#</th>
-                        <th rowspan="2">OFFICE</th>
+                        <th rowspan="2" data-col="office_department" data-sort data-label="OFFICE"><x-sort-link column="office_department">OFFICE</x-sort-link></th>
                         <th colspan="4" style="text-align:center;">NAME</th>
-                        <th rowspan="2">POSITION</th>
-                        <th rowspan="2" style="text-align:center;">DATE OF BIRTH</th>
-                        <th rowspan="2" style="text-align:center;">SEX</th>
+                        <th rowspan="2" data-col="position_title" data-sort data-label="POSITION"><x-sort-link column="position_title">POSITION</x-sort-link></th>
+                        <th rowspan="2" style="text-align:center;" data-col="date_of_birth" data-sort data-label="DATE OF BIRTH"><x-sort-link column="date_of_birth">DATE OF BIRTH</x-sort-link></th>
+                        <th rowspan="2" style="text-align:center;" data-col="sex" data-sort data-label="SEX"><x-sort-link column="sex">SEX</x-sort-link></th>
                         @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
                             <th rowspan="2" style="text-align:center;">ACTIONS</th>
                         @endif
                     </tr>
                     <tr>
-                        <th style="background:#1a337a;font-size:9px;">LAST NAME</th>
-                        <th style="background:#1a337a;font-size:9px;">FIRST NAME</th>
-                        <th style="background:#1a337a;font-size:9px;">MIDDLE NAME</th>
-                        <th style="background:#1a337a;font-size:9px;">SUFFIX</th>
+                        <th style="background:#1a337a;font-size:9px;" data-col="last_name" data-sort data-label="LAST NAME"><x-sort-link column="last_name">LAST NAME</x-sort-link></th>
+                        <th style="background:#1a337a;font-size:9px;" data-col="first_name" data-sort data-label="FIRST NAME"><x-sort-link column="first_name">FIRST NAME</x-sort-link></th>
+                        <th style="background:#1a337a;font-size:9px;" data-col="middle_name" data-sort data-label="MIDDLE NAME"><x-sort-link column="middle_name">MIDDLE NAME</x-sort-link></th>
+                        <th style="background:#1a337a;font-size:9px;" data-col="name_extension" data-label="SUFFIX">SUFFIX</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -807,9 +830,9 @@
                             @endif
                             <td style="color:#9ca3af;font-size:10px;font-weight:600;">{{ $i + 1 }}</td>
 
-                            <td title="{{ $r->office_department }}" style="font-size:11px;color:#64748b;">{{ $r->office_department }}</td>
+                            <td data-col="office_department" title="{{ $r->office_department }}" style="font-size:11px;color:#64748b;">{{ $r->office_department }}</td>
 
-                            <td style="font-weight:700;color:#0f172a;">
+                            <td data-col="last_name" style="font-weight:700;color:#0f172a;">
                                 @if($r->is_vacant)
                                     <span style="color:#dc2626;font-style:italic;font-size:10px;">VACANT</span>
                                 @else
@@ -817,21 +840,22 @@
                                 @endif
                             </td>
 
-                            <td style="color:#374151;">{{ $r->first_name }}</td>
+                            <td data-col="first_name" style="color:#374151;">{{ $r->first_name }}</td>
 
-                            <td style="font-size:11px;color:#64748b;">{{ $r->middle_name ?: '—' }}</td>
+                            <td data-col="middle_name" style="font-size:11px;color:#64748b;">{{ $r->middle_name ?: '—' }}</td>
 
-                            <td style="font-size:11px;color:#64748b;">{{ $r->name_extension ?: '—' }}</td>
+                            <td data-col="name_extension" style="font-size:11px;color:#64748b;">{{ $r->name_extension ?: '—' }}</td>
 
-                            <td title="{{ $r->position_title }}" style="font-weight:600;color:#0f172a;">
-                                {{ $r->position_title }}
+                            <td data-col="position_title" title="{{ $r->position_title }}" style="font-weight:600;color:#0f172a;">
+                                <div class="pos-title-text" style="font-size:12px;">{{ $r->position_title }}</div>
+                                <div style="font-size:11px;color:#64748b;">Item #{{ $r->item_no_new ?? $r->item_no_old ?? 'N/A' }}</div>
                             </td>
 
-                            <td style="color:#6b7280;text-align:center;font-size:11px;">
+                            <td data-col="date_of_birth" style="color:#6b7280;text-align:center;font-size:11px;">
                                 {{ $r->date_of_birth ? \Carbon\Carbon::parse($r->date_of_birth)->format('M d, Y') : '—' }}
                             </td>
 
-                            <td style="text-align:center;">
+                            <td data-col="sex" style="text-align:center;">
                                 @if(strtoupper($r->sex) === 'M')
                                     <span class="gender-badge gender-m">M</span>
                                 @elseif(strtoupper($r->sex) === 'F')
@@ -966,9 +990,7 @@
                 <form id="exportForm" method="GET">
                     {{-- Hidden inputs to preserve filters --}}
                     <input type="hidden" name="search" value="{{ request('search') }}">
-                    @foreach((array)request('office', []) as $off)
-                        <input type="hidden" name="office[]" value="{{ $off }}">
-                    @endforeach
+                    <input type="hidden" name="office" value="{{ request('office_department') }}">
                     <input type="hidden" name="sex" value="{{ request('sex') }}">
                     <input type="hidden" name="vacant" value="{{ request('vacant') }}">
 
@@ -1153,20 +1175,6 @@
         }
     </script>
 
-    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            new TomSelect('#office-select', {
-                plugins: ['remove_button'],
-                placeholder: 'All Offices',
-                maxOptions: 50,
-                hideSelected: true
-            });
-        });
-    </script>
-
-    
     <div style="padding: 12px 18px; border-top: 1px solid #f1f5f9; background: #fff; border-radius: 0 0 12px 12px;">
         {{ $records->links('pagination::bootstrap-5') }}
     </div>

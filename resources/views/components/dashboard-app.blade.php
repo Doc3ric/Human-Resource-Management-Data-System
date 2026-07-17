@@ -14,6 +14,10 @@
     <link rel="stylesheet" href="{{ asset('css/emerald-night.css') }}">
     <link rel="stylesheet" href="{{ asset('css/theme-financial.css') }}">
     <link rel="stylesheet" href="{{ asset('css/theme-corona.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/theme-eyecare.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/theme-nature.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/theme-civic-blue.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/theme-nav-unified.css') }}">
     {{-- Anti-FOUC: apply theme class to <html> immediately, body picks it up via JS after DOMContentLoaded --}}
     <script>
         (function(){
@@ -25,7 +29,7 @@
         })();
     </script>
     <style>
-        /* â”€â”€ Flatpickr Premium Overrides â”€â”€ */
+        /* -- Flatpickr Premium Overrides -- */
         .flatpickr-calendar {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
             border-radius: 16px !important;
@@ -146,12 +150,32 @@
             cursor: pointer !important;
         }
 
+        /* Global Sticky Table Headers */
+        .table-responsive thead th,
+        .table thead th,
+        table thead th {
+            position: sticky !important;
+            top: 0;
+            z-index: 10;
+            background-color: var(--color-surface, #f8f9fa) !important;
+            box-shadow: inset 0 -1px 0 var(--color-border, #e5e7eb); /* Maintain bottom border */
+        }
+
+        /* Ensure office filter dropdowns accommodate the longest named office */
+        select[name="office"],
+        select[name="department"],
+        select[name="office_department"] {
+            width: auto !important;
+            min-width: 200px !important;
+            max-width: 100ch !important;
+        }
+
         input.flatpickr-input.active {
             border-color: #2563eb !important;
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
         }
 
-        /* â”€â”€ Global Page Loader â”€â”€ */
+        /* -- Global Page Loader -- */
         #global-loader {
             position: fixed;
             top: 0;
@@ -275,7 +299,6 @@
         }
 
         .sidebar-nav {
-            flex: 1;
             padding: 0 8px;
             height: 100%;
             display: flex;
@@ -434,7 +457,6 @@
             padding: 0 14px;
             border-top: none;
             border-left: 1px solid #e5e7eb;
-            margin-left: auto;
             height: 100%;
             display: flex;
             align-items: center;
@@ -462,6 +484,29 @@
             margin-right: 8px;
         }
         .nav-hamburger:hover { background: rgba(255, 255, 255, .18); }
+
+        /* ── Global back/main-menu buttons — sit in the topbar, right before
+           the My Profile group, so every page gets consistent navigation
+           back to where it came from (or the dashboard) without needing
+           its own page-specific back button. ── */
+        .topbar-nav-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, .25);
+            background: rgba(255, 255, 255, .08);
+            font-size: 16px;
+            color: #ffffff;
+            cursor: pointer;
+            flex-shrink: 0;
+            text-decoration: none;
+            margin-right: 8px;
+            transition: background .15s;
+        }
+        .topbar-nav-btn:hover { background: rgba(255, 255, 255, .18); color: #ffffff; }
 
         .main-content {
             margin-left: 0;
@@ -592,7 +637,7 @@
             color: #2563eb;
         }
 
-        /* â”€â”€ Premium Logout Modal â”€â”€ */
+        /* -- Premium Logout Modal -- */
         .logout-overlay {
             display: none;
             position: fixed;
@@ -1716,7 +1761,7 @@
             }
         }
 
-        /* â”€â”€ SweetAlert2 Custom Premium Styling â”€â”€ */
+        /* -- SweetAlert2 Custom Premium Styling -- */
         .swal2-popup.custom-swal {
             padding: 2rem;
             border-radius: 16px;
@@ -1801,7 +1846,7 @@
     </style>
 </head>
 
-<body>
+<body class="{{ auth()->user()?->theme_preference && auth()->user()->theme_preference !== 'default' ? auth()->user()->theme_preference : '' }}">
     <div id="global-loader"></div>
     <div class="sidebar">
         <div class="sidebar-header">
@@ -1830,7 +1875,7 @@
 
                 // Pre-compute active states for auto-open logic
                 $personnelActive   = request()->routeIs('all-data.*','plantilla.*','job-orders.*','casual.*','permanent.*','archives.*');
-                $recruitActive     = request()->routeIs('recruitment.*','contract-status.*','batch-renewal.*');
+                $recruitActive     = request()->routeIs('recruitment.*','contract-status.*','batch-renewal.*','vppm.*');
                 $performActive     = request()->routeIs('performance.*');
                 $payrollActive     = request()->routeIs('step-increment.*','salary-grades.*','salary-schedules.*','retirement.*');
                 $systemActive      = request()->routeIs('imports.*','rollback.*','backup.*','users.*','audit-logs.*','activity-logs.*');
@@ -1905,45 +1950,56 @@
                     </div>
                     @endif
 
-                    {{-- Module 4.1 — TWG Detailed Scoring Matrix and the HRMPSB
-                         Deliberation interface are hidden from Appointment Encoder
+                    {{-- Module 5.4 — Exam Routing, Pre-Evaluate, and HRMPSB
+                         (deliberation) are hidden from Appointment Encoder
                          sessions (also route-excluded). --}}
                     @if($isSA || $isIA || $isAppt)
                     <div class="nav-item">
-                        <a href="{{ route('recruitment.hrmpsb.interview.create') }}"
-                            class="nav-link {{ request()->routeIs('recruitment.hrmpsb.interview.create') ? 'active' : '' }}">
-                            <i class="nav-icon bi bi-person-video3"></i>
-                            <span>Interview Evaluation</span>
+                        <a href="{{ route('recruitment.exam-routing.index') }}"
+                            class="nav-link {{ request()->routeIs('recruitment.exam-routing.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-diagram-3-fill"></i>
+                            <span>Exam Routing</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('recruitment.pre-evaluate') }}"
+                            class="nav-link {{ request()->routeIs('recruitment.pre-evaluate') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-clipboard2-check-fill"></i>
+                            <span>Pre-Evaluate</span>
                         </a>
                     </div>
                     <div class="nav-item">
                         <a href="{{ route('recruitment.hrmpsb.twg.create') }}"
                             class="nav-link {{ request()->routeIs('recruitment.hrmpsb.twg.*') ? 'active' : '' }}">
                             <i class="nav-icon bi bi-star-fill"></i>
-                            <span>Score HRMPSB (TWG)</span>
+                            <span>HRMPSB-TWG</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{{ route('recruitment.deliberation.list') }}"
+                            class="nav-link {{ request()->routeIs('recruitment.deliberation.list', 'recruitment.deliberation.show') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-person-video2"></i>
+                            <span>Deliberation Workspace</span>
                         </a>
                     </div>
                     @endif
                     @if($isSA || $isIA)
                     <div class="nav-item">
-                        <a href="{{ route('recruitment.hrmpsb.interview.index') }}"
-                            class="nav-link {{ request()->routeIs('recruitment.hrmpsb.interview.index') ? 'active' : '' }}">
-                            <i class="nav-icon bi bi-grid-3x3-gap-fill"></i>
-                            <span>Scoring Matrix</span>
-                        </a>
-                    </div>
-                    <div class="nav-item">
-                        <a href="{{ route('panel-members.index') }}"
-                            class="nav-link {{ request()->routeIs('panel-members.*') ? 'active' : '' }}">
-                            <i class="nav-icon bi bi-person-badge"></i>
-                            <span>Panel Accounts</span>
-                        </a>
-                    </div>
-                    <div class="nav-item">
                         <a href="{{ route('recruitment.hrmpsb.settings') }}"
                             class="nav-link {{ request()->routeIs('recruitment.hrmpsb.settings') ? 'active' : '' }}">
                             <i class="nav-icon bi bi-gear-fill"></i>
                             <span>HRMPSB Settings</span>
+                        </a>
+                    </div>
+                    @endif
+                    {{-- VPPM (RA 7041 / 2025 ORAOHRA Sec.26/30/31) — same gating as Contract
+                         Status/Batch Renewal, excluded from Appointment Encoder sessions. --}}
+                    @if($isSA || $isIA || $isAppt || (auth()->check() && auth()->user()->can('view Vacancy Publication')))
+                    <div class="nav-item">
+                        <a href="{{ route('vppm.index') }}"
+                            class="nav-link {{ request()->routeIs('vppm.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-megaphone-fill"></i>
+                            <span>Publication</span>
                         </a>
                     </div>
                     @endif
@@ -2095,6 +2151,13 @@
                     </div>
                     @endif
                     @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->can('view Leave Violations')))
+                    <div class="nav-item">
+                        <a href="{{ route('leave-violations.watchlist') }}"
+                            class="nav-link {{ request()->routeIs('leave-violations.watchlist') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-list-check"></i>
+                            <span>Watchlist</span>
+                        </a>
+                    </div>
                     <div class="nav-item">
                         <a href="{{ route('leave-violations.recorded-entries') }}"
                             class="nav-link {{ request()->routeIs('leave-violations.recorded-entries') ? 'active' : '' }}">
@@ -2249,6 +2312,16 @@
                 <div class="nav-submenu">
 
                     {{-- Administration items (SA + IA) --}}
+                    @if(Route::has('organizational-units.index'))
+                    <div class="nav-item">
+                        <a href="{{ route('organizational-units.index') }}"
+                            class="nav-link {{ request()->routeIs('organizational-units.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-building"></i>
+                            <span>Offices</span>
+                        </a>
+                    </div>
+                    @endif
+
                     @if(Route::has('users.index'))
                     <div class="nav-item">
                         <a href="{{ route('users.index') }}"
@@ -2271,6 +2344,30 @@
                             class="nav-link {{ request()->routeIs('activity-logs.*') ? 'active' : '' }}">
                             <i class="nav-icon bi bi-journal-check"></i>
                             <span>Activity Logs</span>
+                        </a>
+                    </div>
+                    
+                    @if(Route::has('system.qualification-standards.index'))
+                    <div class="nav-item">
+                        <a href="{{ route('system.qualification-standards.index') }}"
+                            class="nav-link {{ request()->routeIs('system.qualification-standards.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-journal-bookmark-fill"></i>
+                            <span>CSC Qualification Standards</span>
+                        </a>
+                    </div>
+                    @endif
+
+                    <div class="nav-item">
+                        <a href="{{ route('policy-bulletins.index') }}"
+                            class="nav-link {{ request()->routeIs('policy-bulletins.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-bell"></i>
+                            <span>Policy Bulletins</span>
+                            @php
+                                $unreadCount = \App\Models\PolicyBulletin::where('is_acknowledged', false)->count();
+                            @endphp
+                            @if($unreadCount > 0)
+                                <span class="badge bg-danger ms-auto rounded-pill">{{ $unreadCount }}</span>
+                            @endif
                         </a>
                     </div>
                     <div class="nav-item">
@@ -2318,6 +2415,16 @@
             <form id="logout-form" method="POST" action="{{ route('logout') }}" style="display: none;">
                 @csrf
             </form>
+
+            {{-- ══ Global back / main-menu navigation — every module gets this for free ══ --}}
+            @unless(request()->routeIs('dashboard'))
+                <a href="javascript:void(0)" onclick="hrdmsGoBack()" class="topbar-nav-btn" title="Go Back">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <a href="{{ route('dashboard') }}" class="topbar-nav-btn" title="Main Menu">
+                    <i class="bi bi-house-door-fill"></i>
+                </a>
+            @endunless
 
             {{-- ══ ACCOUNT (always visible) — Log Out nested under My Profile ══ --}}
             <div class="nav-group-wrap {{ request()->routeIs('profile.*') ? 'has-active' : '' }}">
@@ -2382,7 +2489,7 @@
             <div style="font-weight:600;font-size:15px;">
                 @if(auth()->check())
                     {{ auth()->user()->name }}
-                    <span style="font-size:12px;opacity:.7;margin-left:8px;">
+                    <span style="font-size:12px;color:var(--color-text-secondary,#6b7280);margin-left:8px;">
                         {{ auth()->user()->role_label }}
                     </span>
                 @endif
@@ -2452,20 +2559,31 @@
                             <h6 class="dropdown-header">Appearance</h6>
                         </li>
                         <li><a class="dropdown-item d-flex align-items-center" href="#"
-                                onclick="setTheme('default'); return false;"><i class="bi bi-sun me-2"></i> Default
+                                onclick="chooseTheme('default'); return false;"><i class="bi bi-sun me-2"></i> Default
                                 Light</a></li>
                         <li><a class="dropdown-item d-flex align-items-center" href="#"
-                                onclick="setTheme('emerald-night'); return false;"><i class="bi bi-moon-stars me-2"></i>
+                                onclick="chooseTheme('theme-civic-blue'); return false;"><i class="bi bi-bank me-2"></i>
+                                Civic Blue</a></li>
+                        <li><a class="dropdown-item d-flex align-items-center" href="#"
+                                onclick="chooseTheme('emerald-night'); return false;"><i class="bi bi-moon-stars me-2"></i>
                                 Emerald Night</a></li>
                         <li><a class="dropdown-item d-flex align-items-center" href="#"
-                                onclick="setTheme('theme-financial'); return false;"><i
-                                    class="bi bi-graph-up-arrow me-2"></i> Financial (Teal)</a></li>
+                                onclick="chooseTheme('theme-financial'); return false;"><i
+                                    class="bi bi-graph-up-arrow me-2"></i> Modern Mint</a></li>
                         <li><a class="dropdown-item d-flex align-items-center" href="#"
-                                onclick="setTheme('theme-corona'); return false;"><i class="bi bi-moon me-2"></i> Corona
+                                onclick="chooseTheme('theme-corona'); return false;"><i class="bi bi-moon me-2"></i> Corona
                                 (Dark)</a></li>
                         <li><a class="dropdown-item d-flex align-items-center" href="#"
-                                onclick="setTheme('theme-light'); return false;"><i class="bi bi-stars me-2"></i> Indigo
+                                onclick="chooseTheme('theme-light'); return false;"><i class="bi bi-stars me-2"></i> Indigo
                                 Light</a></li>
+                        <li>
+                            <h6 class="dropdown-header" style="margin-top: 4px;">Wellness</h6>
+                        </li>
+                        <li><a class="dropdown-item d-flex align-items-center" href="#"
+                                onclick="chooseTheme('theme-eyecare'); return false;"><i class="bi bi-flower1 me-2"></i> Earth &amp; Olive</a></li>
+                        <li><a class="dropdown-item d-flex align-items-center" href="#"
+                                onclick="chooseTheme('theme-nature'); return false;"><i class="bi bi-tree me-2"></i> Forest
+                                &amp; Cream</a></li>
                     </ul>
                 </div>
             </div>
@@ -2479,7 +2597,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
-        // â”€â”€ Global Flatpickr Init: applies beautiful calendar to ALL date inputs â”€â”€
+        // -- Global Flatpickr Init: applies beautiful calendar to ALL date inputs --
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('input[type="date"]').forEach(function (input) {
                 // Preserve the current value
@@ -2525,6 +2643,18 @@
             document.getElementById('sidebarNav').classList.toggle('mobile-open');
         }
 
+        // ── Global "Go Back" — falls back to the dashboard when there's no
+        // in-app page to return to (e.g. page opened in a new tab, or the
+        // history stack is empty), so it never strands the user outside HRDMS. ──
+        function hrdmsGoBack() {
+            var cameFromThisApp = document.referrer && document.referrer.indexOf(window.location.origin) === 0;
+            if (cameFromThisApp && window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '{{ route('dashboard') }}';
+            }
+        }
+
         // Close any open dropdown when clicking outside it (desktop only)
         document.addEventListener('click', function(e) {
             if (window.innerWidth <= 1024) return;
@@ -2558,7 +2688,7 @@
                 if (e.target === overlay) closeLogoutModal();
             });
         });
-        var ALL_THEMES = ['emerald-night','theme-financial','theme-corona','theme-light'];
+        var ALL_THEMES = ['emerald-night','theme-financial','theme-corona','theme-light','theme-eyecare','theme-nature','theme-civic-blue'];
 
         function setTheme(theme) {
             ALL_THEMES.forEach(function(cls){ document.body.classList.remove(cls); });
@@ -2573,12 +2703,30 @@
             window.dispatchEvent(new CustomEvent('theme-toggled', { detail: { isDark: isDark, themeName: theme } }));
         }
 
+        // Called when the user actually picks a theme (dropdown / profile
+        // swatches): applies it immediately, then persists it to their
+        // account so it follows them across devices and survives logout.
+        function chooseTheme(theme) {
+            setTheme(theme);
+            fetch('{{ route('profile.theme') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                },
+                body: 'theme=' + encodeURIComponent(theme),
+            }).catch(function () { /* offline - localStorage already has it */ });
+        }
+
         function updateThemeToggleText(theme) {
             var labels = {
                 'emerald-night':   ['bi bi-moon-stars', 'Emerald Night'],
-                'theme-financial': ['bi bi-graph-up-arrow', 'Financial'],
+                'theme-financial': ['bi bi-graph-up-arrow', 'Modern Mint'],
                 'theme-corona':    ['bi bi-moon', 'Corona Dark'],
                 'theme-light':     ['bi bi-stars', 'Indigo Light'],
+                'theme-eyecare':   ['bi bi-flower1', 'Earth & Olive'],
+                'theme-nature':    ['bi bi-tree', 'Forest & Cream'],
+                'theme-civic-blue':['bi bi-bank', 'Civic Blue'],
                 'default':         ['bi bi-sun', 'Navy (Default)'],
             };
             var pair = labels[theme] || labels['default'];
@@ -2587,31 +2735,70 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Check legacy preference first
-            let savedTheme = localStorage.getItem('app-theme');
-            if (!savedTheme && localStorage.getItem('emerald-night') === '1') {
-                savedTheme = 'emerald-night';
-                localStorage.setItem('app-theme', 'emerald-night');
-                localStorage.removeItem('emerald-night');
+            // The DB value (if logged in) is authoritative - it's what the
+            // <body> tag was already server-rendered with. localStorage is
+            // only a fallback for guests or the legacy migration below.
+            let savedTheme = @json(auth()->user()?->theme_preference);
+            if (!savedTheme) {
+                savedTheme = localStorage.getItem('app-theme');
+                if (!savedTheme && localStorage.getItem('emerald-night') === '1') {
+                    savedTheme = 'emerald-night';
+                    localStorage.removeItem('emerald-night');
+                }
             }
             // Apply theme (also clears the pending-theme attribute set in <head>)
             document.documentElement.removeAttribute('data-pending-theme');
-            if (savedTheme) {
-                setTheme(savedTheme);
-            } else {
-                setTheme('default');
-            }
+            setTheme(savedTheme || 'default');
 
-            // Global Enter Key Search Submitter
-            document.querySelectorAll('input[name="search"]').forEach(function (input) {
-                input.addEventListener('keypress', function (e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        let form = this.closest('form');
-                        if (form) form.submit();
-                    }
-                });
+            // Global Auto-Filter Submitter
+            let globalSearchTimeout;
+            document.querySelectorAll('form').forEach(form => {
+                const hasSearchInput = form.querySelector('input[name="search"], input[name="q"]');
+                const isGetMethod = form.method && form.method.toUpperCase() === 'GET';
+                
+                if (isGetMethod && hasSearchInput) {
+                    // On-select behavior for dropdowns
+                    form.querySelectorAll('select').forEach(select => {
+                        select.addEventListener('change', function() {
+                            form.submit();
+                        });
+                    });
+                    
+                    // As-you-type behavior for text inputs
+                    form.querySelectorAll('input[type="text"], input[type="search"]').forEach(input => {
+                        input.addEventListener('input', function() {
+                            clearTimeout(globalSearchTimeout);
+                            globalSearchTimeout = setTimeout(() => {
+                                form.submit();
+                            }, 500);
+                        });
+                        
+                        input.addEventListener('keypress', function(e) {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                clearTimeout(globalSearchTimeout);
+                                form.submit();
+                            }
+                        });
+                    });
+                }
             });
+            
+            // Auto-focus search input if parameter exists in URL to maintain typing flow
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchParam = urlParams.has('search') ? 'search' : (urlParams.has('q') ? 'q' : null);
+            if (searchParam) {
+                const searchInput = document.querySelector(`input[name="${searchParam}"]`);
+                if (searchInput) {
+                    // Slight delay to ensure DOM is fully ready and visible
+                    setTimeout(() => {
+                        searchInput.focus();
+                        const val = searchInput.value;
+                        searchInput.value = '';
+                        searchInput.value = val;
+                    }, 50);
+                }
+            }
         });
 
         function markNotificationsAsRead(button) {
@@ -2631,7 +2818,7 @@
             }
         }
 
-        // â”€â”€ Global Page Transition Loader â”€â”€
+        // -- Global Page Transition Loader --
         document.addEventListener('DOMContentLoaded', () => {
             const loader = document.getElementById('global-loader');
             
@@ -2681,7 +2868,7 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // â”€â”€ Global AJAX Export Interceptor for Download Links â”€â”€
+        // -- Global AJAX Export Interceptor for Download Links --
         document.addEventListener('DOMContentLoaded', () => {
             document.addEventListener('click', async function(e) {
                 const anchor = e.target.closest('a');
@@ -2822,6 +3009,193 @@
                 });
             });
         });
+
+        // Global Pagination Scroll Preservation
+        document.addEventListener('DOMContentLoaded', function() {
+            var scrollPos = sessionStorage.getItem('scrollPosition');
+            var scrollPath = sessionStorage.getItem('scrollPath');
+            if (scrollPos && scrollPath === window.location.pathname) {
+                window.scrollTo(0, parseInt(scrollPos));
+            }
+            sessionStorage.removeItem('scrollPosition');
+            sessionStorage.removeItem('scrollPath');
+
+            document.addEventListener('click', function(e) {
+                var pageLink = e.target.closest('.pagination a, .page-link, a[href*="page="]');
+                if (pageLink) {
+                    sessionStorage.setItem('scrollPosition', window.scrollY);
+                    sessionStorage.setItem('scrollPath', window.location.pathname);
+                }
+            });
+        });
+    })();
+    </script>
+
+    {{--
+        Global resizable table columns — user drags a column's right edge to
+        resize it, per user, per table, persisted server-side (same
+        user_table_preferences row the "Show Columns" feature uses, sibling
+        column_widths field) with localStorage as an instant-paint cache.
+
+        Applies automatically to every <table> on every page (true global
+        rollout, no per-page opt-in needed) EXCEPT:
+          - print/export report mimics (.excel-table, .excel-wrapper, or
+            anything inside one) — those intentionally stay a fixed, plain
+            document layout.
+          - tables explicitly opted out via class="no-resize".
+          - tables with a multi-row/rowspan/colspan <thead> (e.g. grouped
+            headers) — resizing individual <th> cells there would misalign
+            columns, so those are safely skipped rather than half-working.
+    --}}
+    <style>
+        table.grc-init { table-layout: fixed; }
+        table.grc-init th { position: relative; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .grc-handle {
+            position: absolute; top: 0; right: 0; width: 6px; height: 100%;
+            cursor: col-resize; z-index: 3; touch-action: none;
+        }
+        .grc-handle:hover, .grc-handle.grc-dragging {
+            background: var(--color-accent, #2563eb); opacity: .45;
+        }
+        body.grc-resizing { cursor: col-resize !important; user-select: none !important; }
+        body.grc-resizing * { cursor: col-resize !important; }
+    </style>
+    <script>
+    (function () {
+        var MIN_COL_WIDTH = 40;
+        var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+        function shouldSkip(table) {
+            if (table.closest('.excel-wrapper') || table.closest('.excel-table')) return true;
+            if (table.classList.contains('no-resize')) return true;
+            var headRows = table.querySelectorAll('thead tr');
+            if (headRows.length !== 1) return true; // multi-row header — skip, see note above
+            if (table.querySelectorAll('thead th[colspan], thead th[rowspan]').length > 0) return true;
+            if (!headRows[0].querySelectorAll('th').length) return true;
+            return false;
+        }
+
+        function tableKey(table, idx) {
+            if (table.dataset.tabKey) return 'grc_' + table.dataset.tabKey;
+            if (table.id) return 'grc_' + table.id;
+            return 'grc_' + location.pathname.replace(/\/+$/, '').replace(/[^a-z0-9_-]/gi, '_') + '__t' + idx;
+        }
+
+        function ensureScrollWrapper(table) {
+            var parent = table.parentElement;
+            if (!parent) return;
+            var overflowX = getComputedStyle(parent).overflowX;
+            if (overflowX === 'auto' || overflowX === 'scroll') return;
+            var wrap = document.createElement('div');
+            wrap.style.overflowX = 'auto';
+            parent.insertBefore(wrap, table);
+            wrap.appendChild(table);
+        }
+
+        function persist(key, widths) {
+            localStorage.setItem(key, JSON.stringify(widths));
+            if (!csrfToken) return;
+            fetch('/table-preferences/' + encodeURIComponent(key), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                body: JSON.stringify({ widths: widths }),
+            }).catch(function () {});
+        }
+
+        function initTable(table, idx) {
+            if (shouldSkip(table) || table.dataset.grcInit) return;
+            table.dataset.grcInit = '1';
+
+            var key = tableKey(table, idx);
+            var ths = Array.from(table.querySelectorAll('thead th'));
+            if (!ths.length) return;
+
+            ensureScrollWrapper(table);
+
+            // Lock in the browser's own auto-computed widths first so
+            // switching to fixed layout doesn't jump the visual layout.
+            var naturalWidths = ths.map(function (th) { return th.getBoundingClientRect().width; });
+            table.classList.add('grc-init');
+            ths.forEach(function (th, i) { th.style.width = Math.round(naturalWidths[i]) + 'px'; });
+
+            function applyWidths(widths) {
+                ths.forEach(function (th, i) {
+                    var w = widths && widths[i];
+                    if (w && w >= MIN_COL_WIDTH) th.style.width = w + 'px';
+                });
+            }
+
+            // Instant-paint from localStorage, then reconcile with the server.
+            var cached = null;
+            try { cached = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) {}
+            if (cached) applyWidths(cached);
+
+            fetch('/table-preferences/' + encodeURIComponent(key), { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (data) {
+                    if (!data || !data.widths) return;
+                    applyWidths(data.widths);
+                    localStorage.setItem(key, JSON.stringify(data.widths));
+                })
+                .catch(function () {});
+
+            ths.forEach(function (th, i) {
+                var handle = document.createElement('div');
+                handle.className = 'grc-handle';
+                th.appendChild(handle);
+
+                var dragging = false, startX = 0, startWidth = 0;
+
+                handle.addEventListener('mousedown', function (e) {
+                    dragging = true;
+                    startX = e.clientX;
+                    startWidth = th.getBoundingClientRect().width;
+                    handle.classList.add('grc-dragging');
+                    document.body.classList.add('grc-resizing');
+                    e.preventDefault();
+                });
+
+                document.addEventListener('mousemove', function (e) {
+                    if (!dragging) return;
+                    var w = Math.max(MIN_COL_WIDTH, Math.round(startWidth + (e.clientX - startX)));
+                    th.style.width = w + 'px';
+                });
+
+                document.addEventListener('mouseup', function () {
+                    if (!dragging) return;
+                    dragging = false;
+                    handle.classList.remove('grc-dragging');
+                    document.body.classList.remove('grc-resizing');
+                    var widths = ths.map(function (t) { return Math.round(t.getBoundingClientRect().width); });
+                    persist(key, widths);
+                });
+
+                // Double-click a handle: reset every column in this table
+                // back to its natural width (simpler and more predictable
+                // than trying to auto-fit a single column under a fixed
+                // table layout).
+                handle.addEventListener('dblclick', function (e) {
+                    e.stopPropagation();
+                    table.classList.remove('grc-init');
+                    ths.forEach(function (t) { t.style.width = ''; });
+                    void table.offsetWidth; // force reflow so natural widths recompute
+                    var fresh = ths.map(function (t) { return t.getBoundingClientRect().width; });
+                    table.classList.add('grc-init');
+                    ths.forEach(function (t, j) { t.style.width = Math.round(fresh[j]) + 'px'; });
+                    persist(key, ths.map(function (t) { return Math.round(t.getBoundingClientRect().width); }));
+                });
+            });
+        }
+
+        function initAll() {
+            Array.from(document.querySelectorAll('table')).forEach(initTable);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAll);
+        } else {
+            initAll();
+        }
     })();
     </script>
 </body>

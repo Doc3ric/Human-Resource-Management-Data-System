@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>{{ isset($mode) && $mode === 'nosi' ? 'NOSI/NOLP Plantilla Basis CY ' . (now()->year + 1) : 'Plantilla of Personnel CY ' . (now()->year + 1) }}</title>
     <style>
-        @page { margin: 0.4in 0.5in; size: legal landscape; }
+        @page { margin: 0.4in 0.5in; size: legal portrait; }
         body { font-family: Arial, sans-serif; font-size: 9px; color: #000; }
 
         .header { text-align: center; margin-bottom: 14px; }
@@ -21,7 +21,6 @@
             word-wrap: break-word;
         }
         th {
-            background-color: #e5e7eb;
             text-align: center;
             font-weight: bold;
             font-size: 8px;
@@ -30,10 +29,9 @@
         .tc  { text-align: center; }
         .tr  { text-align: right;  }
         .tl  { text-align: left; padding-left: 4px; }
-        .total-row td { font-weight: bold; background-color: #f1f5f9; }
+        .total-row td { font-weight: bold; }
 
         .office-header td {
-            background-color: #d1d5db;
             font-weight: bold;
             font-size: 10px;
             padding: 5px 6px;
@@ -55,10 +53,13 @@
 <div class="header">
     @if(isset($mode) && $mode === 'nosi')
         <div class="title-1">NOSI/NOLP PLANTILLA BASIS CY {{ now()->year + 1 }}</div>
+        <div class="title-2">Province of Bukidnon</div>
     @else
-        <div class="title-1">PLANTILLA OF PERSONNEL CY {{ now()->year + 1 }}</div>
+        <div style="text-align: right; font-weight: bold; font-size: 10px; margin-bottom: 2px;">Annex F</div>
+        <div style="text-align: left; font-weight: bold; font-size: 10px; margin-bottom: 2px;">LBP Form No. 3</div>
+        <div class="title-1">PLANTILLA OF LGU PERSONNEL</div>
+        <div class="title-2">BUDGET YEAR {{ now()->year + 1 }}<br>Province of Bukidnon</div>
     @endif
-    <div class="title-2">Province of Bukidnon</div>
     @if(!empty($officeName))
     <div class="dept">Department/Office: <strong>{{ $officeName }}</strong></div>
     @endif
@@ -92,7 +93,7 @@
             <th class="col-sg">SG/Step</th>
             <th class="col-amt">Amount</th>
             <th class="col-sg">SG/Step</th>
-            <th class="col-amt">Step Increment Amount</th>
+            <th class="col-amt">Amount</th>
         </tr>
         <tr>
             <th style="font-size:8px;">(1)</th>
@@ -115,18 +116,22 @@
             $curSg   = $rec->salary_grade;
             $curStep = $rec->step ?: 1;
 
-            if ($rec->is_vacant) {
-                $curMonthly = \App\Models\SalaryGrade::getRate($curSg, 1);
-                $curStep    = 1;
+            if ($rec->authorized_annual_salary > 0) {
+                $curAnnual = (float)$rec->authorized_annual_salary;
             } else {
-                $curMonthly = \App\Models\SalaryGrade::getRate($curSg, $curStep);
+                if ($rec->is_vacant) {
+                    $curMonthly = \App\Models\SalaryGrade::getRate($curSg, 1);
+                    $curStep    = 1;
+                } else {
+                    $curMonthly = \App\Models\SalaryGrade::getRate($curSg, $curStep);
+                }
+                $curAnnual = $curMonthly * 12;
             }
-            $curAnnual = $curMonthly * 12;
 
             // Proposed rates & Prorated increase
-            $propStep = $curStep;
-            $propAnnual = $curAnnual;
-            $increase = 0;
+            $propStep = $rec->step_proposed ?: $curStep;
+            $propAnnual = $rec->salary_proposed > 0 ? (float)$rec->salary_proposed : $curAnnual;
+            $increase = (float)$rec->increase_decrease;
             $increaseNote = '';
             
             $due = $rec->next_step_due_date;
@@ -149,7 +154,7 @@
                     $monthlyDiff = ($propAnnual - $curAnnual) / 12;
                     $activeMonths = 12 - $due->month + 1;
                     $increase = $monthlyDiff * $activeMonths;
-                    $increaseNote = "<br><span style='font-size:7px;color:#4b5563;'>(" . $due->format('M') . " - Dec)</span>";
+                    $increaseNote = "<br><span style='font-size:7px;'>(" . $due->format('M') . " - Dec)</span>";
                 }
             }
             $officeTotalCurrent  += $curAnnual;
@@ -163,11 +168,11 @@
                 $mi        = $rec->middle_name ? strtoupper(substr($rec->middle_name, 0, 1)) . '.' : '';
                 $incumbent = trim("$first $mi $last");
             } else {
-                $incumbent = '<span style="color:#dc2626; font-weight:bold; font-size:9px;">VACANT</span>';
+                $incumbent = '<span style="font-weight:bold; font-size:9px;">VACANT</span>';
             }
         @endphp
         @php
-            $rowStyle = $rec->is_vacant ? 'background-color: #f8fafc; font-style: italic; color: #64748b;' : '';
+            $rowStyle = $rec->is_vacant ? 'font-style: italic;' : '';
         @endphp
         <tr style="{{ $rowStyle }}">
             <td class="tc">{{ $itemNum }}</td>
@@ -202,8 +207,8 @@
 @if(count($grouped) > 1)
 <table style="margin-top:10px;">
     <thead>
-        <tr style="background-color:#374151;">
-            <th colspan="9" style="color:#fff; font-size:11px; text-align:left; padding: 5px 8px;">
+        <tr>
+            <th colspan="9" style="font-size:11px; text-align:left; padding: 5px 8px;">
                 GRAND TOTAL — ALL OFFICES
             </th>
         </tr>

@@ -15,6 +15,7 @@ class OrganizationalUnit extends Model
 
     protected $fillable = [
         'name',
+        'sub_office',
         'code',
         'status',
     ];

@@ -81,6 +81,9 @@
     </div>
 </div>
 
+<div style="font-size:10.5px;color:#9ca3af;margin-bottom:8px;text-align:right;">
+    <strong>EVALUATION BASIS:</strong> 2025 ORAOHRA Rule VIII &amp; DBM-CSC JC No. 1 s.2017
+</div>
 <div class="accordion" id="qualificationsAccordion">
 
     {{-- 1. Education --}}

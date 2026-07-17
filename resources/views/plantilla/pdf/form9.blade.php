@@ -84,7 +84,7 @@
 
     <div class="request-text">
         <strong>To: CIVIL SERVICE COMMISSION (CSC)</strong><br><br>
-        We hereby request the publication of the following vacant positions, which are authorized to be filled, at the <strong>PROVINCIAL GOVERNMENT OF BUKIDNON</strong> in the CSC website:
+        We hereby request the publication of the following vacant positions, which are authorized to be filled, at the <strong>PROVINCIAL GOVERNMENT OF BUKIDNON</strong>{{ isset($office) && $office ? " — {$office}" : '' }} in the CSC website:
     </div>
 
     <div class="signature-section" style="margin-top: -40px;">

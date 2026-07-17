@@ -31,8 +31,8 @@
                     <div class="col-md-5">
                         <label class="form-label fw-bold">Select Vacancies (Items)</label>
                         <select name="positions[]" class="form-select select2-multiple" multiple>
-                            @foreach($positions as $position)
-                                <option value="{{ $position }}" {{ in_array($position, request('positions', [])) ? 'selected' : '' }}>{{ $position }}</option>
+                            @foreach($positions as $value => $label)
+                                <option value="{{ $value }}" {{ in_array($value, request('positions', [])) ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -82,17 +82,31 @@ e.g. Call to Order, Roll Call, Overview of Positions..." style="resize:vertical;
                                     <tr class="table-secondary">
                                         <td colspan="3" class="fw-bold"><i class="bi bi-building me-1"></i> Office: {{ $office }}</td>
                                     </tr>
-                                    @foreach($positions as $pos => $applicants)
+                                    @foreach($positions as $pos => $details)
                                         <tr class="table-info">
-                                            <td colspan="3" class="fw-bold ps-4"><i class="bi bi-briefcase-fill me-1"></i> Vacancy: {{ $pos }}</td>
+                                            <td colspan="3" class="fw-bold ps-4">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <i class="bi bi-briefcase-fill me-1"></i> Vacancy: {{ $pos }}
+                                                        <span class="ms-3 text-muted" style="font-size:13px; font-weight:normal;">(Item No: {{ $details['item_no'] ?? 'N/A' }})</span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="badge bg-primary me-2" style="font-size:12px;">SG-{{ $details['sg'] ?? 'N/A' }}</span>
+                                                        <span class="badge bg-success" style="font-size:12px;">₱ {{ number_format($details['rate'], 2) }}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
                                         </tr>
-                                        @foreach($applicants as $idx => $app)
+                                        <input type="hidden" name="matrix_data[{{ $office }}][{{ $pos }}][item_no]" value="{{ $details['item_no'] }}">
+                                        <input type="hidden" name="matrix_data[{{ $office }}][{{ $pos }}][sg]" value="{{ $details['sg'] }}">
+                                        <input type="hidden" name="matrix_data[{{ $office }}][{{ $pos }}][rate]" value="{{ $details['rate'] }}">
+                                        @foreach($details['applicants'] as $idx => $app)
                                             <tr>
                                                 <td class="ps-5">
                                                     {{ $app['name'] }}
-                                                    <input type="hidden" name="matrix_data[{{ $office }}][{{ $pos }}][{{ $idx }}][id]" value="{{ $app['id'] }}">
-                                                    <input type="hidden" name="matrix_data[{{ $office }}][{{ $pos }}][{{ $idx }}][name]" value="{{ $app['name'] }}">
-                                                    <input type="hidden" name="matrix_data[{{ $office }}][{{ $pos }}][{{ $idx }}][tag]" value="{{ $app['tag'] }}">
+                                                    <input type="hidden" name="matrix_data[{{ $office }}][{{ $pos }}][applicants][{{ $idx }}][id]" value="{{ $app['id'] }}">
+                                                    <input type="hidden" name="matrix_data[{{ $office }}][{{ $pos }}][applicants][{{ $idx }}][name]" value="{{ $app['name'] }}">
+                                                    <input type="hidden" name="matrix_data[{{ $office }}][{{ $pos }}][applicants][{{ $idx }}][tag]" value="{{ $app['tag'] }}">
                                                 </td>
                                                 <td>
                                                     @if($app['tag'] === 'Job Order')
@@ -104,7 +118,7 @@ e.g. Call to Order, Roll Call, Overview of Positions..." style="resize:vertical;
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    <input type="text" name="matrix_data[{{ $office }}][{{ $pos }}][{{ $idx }}][resolution]" class="form-control form-control-sm" placeholder="Enter board resolution...">
+                                                    <input type="text" name="matrix_data[{{ $office }}][{{ $pos }}][applicants][{{ $idx }}][resolution]" class="form-control form-control-sm" placeholder="Enter board resolution...">
                                                 </td>
                                             </tr>
                                         @endforeach

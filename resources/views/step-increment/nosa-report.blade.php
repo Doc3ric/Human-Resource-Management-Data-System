@@ -28,28 +28,28 @@
     display: flex; gap: 18px; flex-wrap: wrap; align-items: center;
 }
 .sched-chip {
-    background: #fff; border: 1px solid #fecdd3; border-radius: 8px; padding: 8px 14px;
+    background: var(--color-surface, #fff); border: 1px solid #fecdd3; border-radius: 8px; padding: 8px 14px;
 }
 .sched-chip-label { font-size: 10px; font-weight: 700; color: #be123c; text-transform: uppercase; letter-spacing: .5px; }
 .sched-chip-val   { font-size: 14px; font-weight: 800; color: #881337; }
 
 /* Office accordion */
 .office-card {
-    background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+    background: var(--color-surface, #fff); border: 1px solid var(--color-border, #e5e7eb); border-radius: 10px;
     overflow: hidden; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.03);
 }
 .office-btn {
     width: 100%; border: none; background: none; cursor: pointer;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 20px; text-align: left; background: #f8fafc; transition: background .15s;
+    padding: 14px 20px; text-align: left; background: var(--color-page-bg, #f8fafc); transition: background .15s;
 }
 .office-btn:hover { background: #f1f5f9; }
-.office-name  { font-weight: 700; color: #1e293b; font-size: 14px; }
-.office-count { font-size: 12px; color: #64748b; margin-left: 8px; font-weight: normal; }
+.office-name  { font-weight: 700; color: var(--color-text-primary, #1e293b); font-size: 14px; }
+.office-count { font-size: 12px; color: var(--color-text-muted, #64748b); margin-left: 8px; font-weight: normal; }
 .chevron { color: #94a3b8; font-size: 14px; transition: transform .2s; }
 
 /* NOSA Table */
-.excel-wrapper { overflow-x: auto; padding: 20px; background: #fff; border-top: 1px solid #e5e7eb; }
+.excel-wrapper { overflow-x: auto; padding: 20px; background: var(--color-surface, #fff); border-top: 1px solid var(--color-border, #e5e7eb); }
 .excel-title-block { text-align: center; margin-bottom: 14px; font-family: Arial, sans-serif; }
 .excel-title-1 { font-size: 15px; font-weight: bold; letter-spacing: .5px; text-transform: uppercase; }
 .excel-title-2 { font-size: 13px; font-weight: normal; text-transform: uppercase; margin-top: 3px; }
@@ -57,15 +57,15 @@
 .excel-dept    { font-family: Arial, sans-serif; font-size: 12px; margin-bottom: 6px; }
 .excel-dept strong { text-transform: uppercase; }
 
-.excel-table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11px; color: #000; }
-.excel-table th, .excel-table td { border: 1px solid #000; padding: 5px 4px; vertical-align: middle; }
-.excel-table th { text-align: center; font-weight: normal; background: #fff; }
+.excel-table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11px; color: var(--color-text-primary, #000); }
+.excel-table th, .excel-table td { border: 1px solid var(--color-border, #000); padding: 5px 4px; vertical-align: middle; }
+.excel-table th { text-align: center; font-weight: normal; background: var(--color-surface, #fff); }
 .excel-table td { text-align: center; }
 .excel-table td.tl  { text-align: left; padding-left: 6px; }
 .excel-table td.tr  { text-align: right; padding-right: 6px; }
-.excel-table { border: 2px solid #000; }
-.excel-table thead { border-bottom: 2px solid #000; }
-.excel-table tfoot { border-top: 2px solid #000; font-weight: bold; }
+.excel-table { border: 2px solid var(--color-border, #000); }
+.excel-table thead { border-bottom: 2px solid var(--color-border, #000); }
+.excel-table tfoot { border-top: 2px solid var(--color-border, #000); font-weight: bold; }
 .col-num { font-size: 9px; color: #333; }
 </style>
 
@@ -114,9 +114,9 @@
     </div>
     @endif
     @if($previousSchedule)
-    <div class="sched-chip" style="background:#f8fafc;border-color:#e5e7eb;">
-        <div class="sched-chip-label" style="color:#64748b;">Previous Schedule (Baseline)</div>
-        <div style="font-size:13px;font-weight:700;color:#475569;">{{ $previousSchedule->name }}</div>
+    <div class="sched-chip" style="background: var(--color-page-bg, #f8fafc);border-color:#e5e7eb;">
+        <div class="sched-chip-label" style="color: var(--color-text-muted, #64748b);">Previous Schedule (Baseline)</div>
+        <div style="font-size:13px;font-weight:700;color: var(--color-text-secondary, #475569);">{{ $previousSchedule->name }}</div>
     </div>
     @else
     <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 14px;font-size:12px;color:#92400e;">
@@ -131,9 +131,9 @@
         <input type="hidden" name="type" value="{{ $type }}">
         <input type="text" name="search" value="{{ $search }}"
                placeholder="🔍 Search name, item, position, office..."
-               style="flex:1;min-width:200px;padding:10px 16px;border:1px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;">
+               style="flex:1;min-width:200px;padding:10px 16px;border: 1px solid var(--color-border, #e5e7eb);border-radius:10px;font-size:13px;outline:none;">
 
-        <select name="office" style="min-width:180px;padding:10px 16px;border:1px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;background:#fff;">
+        <select name="office" style="min-width:180px;padding:10px 16px;border: 1px solid var(--color-border, #e5e7eb);border-radius:10px;font-size:13px;outline:none;background: var(--color-surface, #fff);">
             <option value="">All Offices</option>
             @foreach($offices ?? [] as $officeName)
                 <option value="{{ $officeName }}" {{ request('office') === $officeName ? 'selected' : '' }}>
@@ -142,7 +142,7 @@
             @endforeach
         </select>
 
-        <select name="position" style="min-width:180px;padding:10px 16px;border:1px solid #e5e7eb;border-radius:10px;font-size:13px;outline:none;background:#fff;">
+        <select name="position" style="min-width:180px;padding:10px 16px;border: 1px solid var(--color-border, #e5e7eb);border-radius:10px;font-size:13px;outline:none;background: var(--color-surface, #fff);">
             <option value="">All Positions</option>
             @foreach($positions ?? [] as $pos)
                 <option value="{{ $pos }}" {{ request('position') === $pos ? 'selected' : '' }}>
@@ -156,10 +156,23 @@
         </button>
         @if(request('search') || request('office') || request('position'))
         <a href="{{ route('step-increment.nosa', ['type' => $type]) }}"
-           style="background:#f1f5f9;color:#475569;border:1px solid #e5e7eb;padding:0 20px;border-radius:10px;font-weight:600;text-decoration:none;display:flex;align-items:center;">
+           style="background:#f1f5f9;color: var(--color-text-secondary, #475569);border: 1px solid var(--color-border, #e5e7eb);padding:0 20px;border-radius:10px;font-weight:600;text-decoration:none;display:flex;align-items:center;">
             Clear
         </a>
         @endif
+        
+        <div style="flex:1;"></div>
+        
+        <a href="{{ route('step-increment.nosa.export-pdf-by-office', ['type' => $type]) }}"
+           target="_blank"
+           style="background:#3b82f6;color:#fff;padding:0 20px;border-radius:10px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;">
+            <i class="bi bi-printer"></i> Print (All Offices)
+        </a>
+        <a href="{{ route('step-increment.nosa.export-pdf-by-office', ['type' => $type, 'download' => 1]) }}"
+           onclick="event.preventDefault(); handleReportExport(this.href, 'pdf')"
+           style="background:#ef4444;color:#fff;padding:0 20px;border-radius:10px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;">
+            <i class="bi bi-download"></i> Export (All Offices)
+        </a>
     </form>
 </div>
 
@@ -176,9 +189,14 @@
         </button>
         <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
             <a href="{{ route('step-increment.nosa.export-pdf-by-office', ['office' => $office, 'type' => $type]) }}"
+               target="_blank"
+               style="display:inline-flex;align-items:center;gap:5px;background:#3b82f6;color:#fff;padding:5px 12px;border-radius:7px;font-size:12px;font-weight:700;text-decoration:none;">
+                <i class="bi bi-printer"></i> Print
+            </a>
+            <a href="{{ route('step-increment.nosa.export-pdf-by-office', ['office' => $office, 'type' => $type, 'download' => 1]) }}"
                onclick="event.preventDefault(); handleReportExport(this.href, 'pdf')"
                style="display:inline-flex;align-items:center;gap:5px;background:#ef4444;color:#fff;padding:5px 12px;border-radius:7px;font-size:12px;font-weight:700;text-decoration:none;">
-                <i class="bi bi-file-earmark-pdf"></i> PDF
+                <i class="bi bi-download"></i> PDF
             </a>
             <i class="bi bi-chevron-down chevron" id="{{ $oid }}-chev"
                onclick="toggleNosaOffice('{{ $oid }}')"
@@ -264,11 +282,19 @@
                             $prevMonthly = \App\Models\SalaryGrade::getRateForSchedule($previousSchedule->id, $sg, $step);
                             $prevAnnual  = $prevMonthly * 12;
                         } else {
-                            // Fallback: use recorded actual annual salary
-                            $prevAnnual = (float) ($rec->base_salary_amount ?: 0);
+                            // Fallback: use recorded actual monthly salary * 12
+                            $pm = (float) ($rec->base_salary_amount ?: 0);
+                            $newMonthly = \App\Models\SalaryGrade::getRateForSchedule($activeSchedule->id, $sg, $step);
+                            
+                            if (abs($pm - $newMonthly) < 1 && $rec->previous_rate > 0 && $rec->previous_rate < $newMonthly) {
+                                $pm = (float) $rec->previous_rate;
+                            } elseif ($pm > $newMonthly && $rec->previous_rate > 0 && $rec->previous_rate < $newMonthly) {
+                                $pm = (float) $rec->previous_rate;
+                            }
+                            $prevAnnual = $pm * 12;
                         }
                         // New salary: from the active (current) schedule
-                        $newMonthly = \App\Models\SalaryGrade::getRateForSchedule($activeSchedule->id, $sg, $step);
+                        $newMonthly = $newMonthly ?? \App\Models\SalaryGrade::getRateForSchedule($activeSchedule->id, $sg, $step);
                         $newAnnual  = $newMonthly * 12;
                     }
 
@@ -287,7 +313,7 @@
                         $incumbent = trim("$first $mi $last");
                     }
 
-                    $rowStyle = $rec->is_vacant ? 'background:#f8fafc;font-style:italic;color:#64748b;' : '';
+                    $rowStyle = $rec->is_vacant ? 'background: var(--color-page-bg, #f8fafc);font-style:italic;color: var(--color-text-muted, #64748b);' : '';
                 @endphp
                 <tr style="{{ $rowStyle }}">
                     <td>{{ $itemNum }}</td>
@@ -303,10 +329,15 @@
                     </td>
                     <td>
                         @if(!$rec->is_vacant)
-                        <a href="{{ route('step-increment.pdf.nosa', $rec->id) }}" target="_blank"
-                           style="display:inline-flex;align-items:center;gap:4px;background:#be123c;color:#fff;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">
-                            <i class="bi bi-printer-fill"></i> NOSA
-                        </a>
+                                <a href="{{ route('step-increment.pdf.nosa', $rec->id) }}" target="_blank"
+                                   style="display:inline-flex;align-items:center;gap:5px;background:#eff6ff;color:#3b82f6;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;border:1px solid #bfdbfe;">
+                                    <i class="bi bi-printer"></i> Print
+                                </a>
+                                <a href="{{ route('step-increment.pdf.nosa', ['plantilla' => $rec->id, 'download' => 1]) }}"
+                                   onclick="event.preventDefault(); handleReportExport(this.href, 'pdf')"
+                                   style="display:inline-flex;align-items:center;gap:5px;background:#fef2f2;color:#be123c;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;border:1px solid #fecdd3;margin-left:4px;">
+                                    <i class="bi bi-download"></i> NOSA
+                                </a>
                         @endif
                     </td>
                 </tr>
@@ -331,9 +362,9 @@
 </div>{{-- /office-card --}}
 
 @empty
-<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;text-align:center;padding:48px;">
+<div style="background: var(--color-surface, #fff);border: 1px solid var(--color-border, #e5e7eb);border-radius:12px;text-align:center;padding:48px;">
     <i class="bi bi-inbox" style="font-size:40px;color:#cbd5e1;"></i>
-    <h3 style="margin-top:10px;font-size:16px;color:#475569;">No Records Found</h3>
+    <h3 style="margin-top:10px;font-size:16px;color: var(--color-text-secondary, #475569);">No Records Found</h3>
 </div>
 @endforelse
 

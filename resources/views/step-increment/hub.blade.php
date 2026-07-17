@@ -93,7 +93,7 @@
             font-weight: 700;
             letter-spacing: 1.5px;
             text-transform: uppercase;
-            color: #64748b;
+            color: var(--color-text-muted, #64748b);
             margin-bottom: 14px;
             display: flex;
             align-items: center;
@@ -116,8 +116,8 @@
         }
 
         .hub-card {
-            background: #fff;
-            border: 1px solid #e5e7eb;
+            background: var(--color-surface, #fff);
+            border: 1px solid var(--color-border, #e5e7eb);
             border-radius: 16px;
             overflow: hidden;
             text-decoration: none;
@@ -171,7 +171,7 @@
 
         .hub-card-desc {
             font-size: 12.5px;
-            color: #64748b;
+            color: var(--color-text-muted, #64748b);
             line-height: 1.6;
             margin: 0;
         }
@@ -204,7 +204,7 @@
         }
 
         .hub-card-footer-label {
-            color: #64748b;
+            color: var(--color-text-muted, #64748b);
         }
 
         .hub-card-footer i {
@@ -224,8 +224,8 @@
         }
 
         .hub-loyalty-card {
-            background: #fff;
-            border: 1px solid #e5e7eb;
+            background: var(--color-surface, #fff);
+            border: 1px solid var(--color-border, #e5e7eb);
             border-radius: 14px;
             padding: 20px 22px;
             text-decoration: none;
@@ -305,7 +305,7 @@
     @endif
 
     {{-- Statistics with compliance analysis --}}
-    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:20px;">
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:20px;">
         <x-stat-card icon="bi-people-fill" color="blue" label="Total Positions" :value="$totalPositions"
             compliance="DBM Plantilla"
             analysis="Total authorized positions in the approved plantilla. Any increase requires DBM authority per EO 366 and RA 10149 (GOCC Governance Act for GOCCs)." />
@@ -333,6 +333,12 @@
             :alert="$magnaCartaCount > 0"
             compliance="RA 7305"
             analysis="{{ $magnaCartaCount > 0 ? $magnaCartaCount.' health worker(s) due for NOSA under RA 7305 (Magna Carta for Public Health Workers). SG+1 entitlement must be processed.' : 'No Magna Carta NOSA due at this time.' }}" />
+
+        <x-stat-card icon="bi-shuffle" color="purple" label="Salary Misaligned" :value="$salaryMisalignedCount"
+            :alert="$salaryMisalignedCount > 0"
+            compliance="CSC SSL"
+            link="{{ route('step-increment.salary-alignment') }}"
+            analysis="{{ $salaryMisalignedCount > 0 ? $salaryMisalignedCount.' Permanent/Co-Terminous employee(s) whose recorded monthly rate does not match their Grade/Step under the active SSL schedule.' : 'All Permanent/Co-Terminous employees are aligned to the active SSL schedule.' }}" />
     </div>
 
     {{-- ── MAIN 3 CARDS ── --}}

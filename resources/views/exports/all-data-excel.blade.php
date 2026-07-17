@@ -16,7 +16,7 @@
                 @if(empty($columns) || in_array('position_title', $columns))<th>POSITION TITLE</th>@endif
                 @if(empty($columns) || in_array('salary_grade', $columns))<th>SALARY GRADE</th>@endif
                 @if(empty($columns) || in_array('authorized_annual_salary', $columns))<th>AUTHORIZED ANNUAL SALARY</th>@endif
-                @if(empty($columns) || in_array('base_salary_amount', $columns))<th>ACTUAL ANNUAL SALARY</th>@endif
+                @if(empty($columns) || in_array('base_salary_amount', $columns))<th>ACTUAL MONTHLY SALARY</th>@endif
                 @if(empty($columns) || in_array('step', $columns))<th>STEP</th>@endif
                 @if(empty($columns) || in_array('area_code', $columns))<th>AREA CODE</th>@endif
                 @if(empty($columns) || in_array('area_type', $columns))<th>AREA TYPE</th>@endif

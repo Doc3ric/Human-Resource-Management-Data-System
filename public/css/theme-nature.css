@@ -1,0 +1,241 @@
+/* Forest & Cream Theme - Deep forest green, cream, and gold accent */
+
+body.theme-nature {
+    background-color: var(--color-page-bg) !important;
+    color: var(--color-text-primary) !important;
+}
+
+/* Sidebar and Topbar */
+body.theme-nature .sidebar {
+    background: var(--color-sidebar-bg) !important;
+    border-right: 1px solid var(--color-border) !important;
+}
+
+body.theme-nature .topbar,
+body.theme-nature .main-content>nav {
+    background-color: var(--color-topbar-bg) !important;
+    border-bottom: 1px solid var(--color-topbar-border) !important;
+    color: var(--color-topbar-text) !important;
+}
+
+body.theme-nature .sidebar-header {
+    border-bottom: 1px solid var(--color-border) !important;
+}
+
+body.theme-nature .sidebar-title,
+body.theme-nature .sidebar-logo-text {
+    color: var(--color-sidebar-text) !important;
+}
+
+body.theme-nature .sidebar-logo-sub,
+body.theme-nature .sidebar-section-label {
+    color: var(--color-sidebar-icon) !important;
+}
+
+body.theme-nature .nav-link,
+body.theme-nature .sidebar-link {
+    color: var(--color-sidebar-text) !important;
+    font-weight: 500;
+}
+
+body.theme-nature .nav-link:hover,
+body.theme-nature .sidebar-link:hover {
+    background-color: var(--color-sidebar-hover-bg) !important;
+    color: var(--color-sidebar-text) !important;
+}
+
+body.theme-nature .nav-link.active,
+body.theme-nature .sidebar-link.active {
+    background-color: var(--color-sidebar-active-bg) !important;
+    color: var(--color-sidebar-active-text) !important;
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3) !important;
+}
+body.theme-nature .nav-link.active i,
+body.theme-nature .sidebar-link.active i {
+    color: var(--color-sidebar-active-text) !important;
+}
+
+body.theme-nature .sidebar-user {
+    background: var(--color-sidebar-hover-bg) !important;
+    border: 1px solid var(--color-border) !important;
+}
+
+body.theme-nature .sidebar-user-name {
+    color: var(--color-sidebar-text) !important;
+}
+
+body.theme-nature .sidebar-user-role {
+    color: var(--color-sidebar-icon) !important;
+}
+
+body.theme-nature .sidebar-footer {
+    border-top: 1px solid var(--color-border) !important;
+}
+
+body.theme-nature .sidebar-logout-btn {
+    background: var(--color-sidebar-hover-bg) !important;
+    border: 1px solid var(--color-border) !important;
+    color: var(--color-danger) !important;
+}
+
+body.theme-nature .sidebar-logout-btn:hover {
+    background: var(--color-danger) !important;
+    color: #ffffff !important;
+}
+
+/* Cards & Containers */
+body.theme-nature .bg-white,
+body.theme-nature [style*="background: white"],
+body.theme-nature [style*="background-color: white"],
+body.theme-nature .modal-card {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-border) !important;
+    box-shadow: 0 4px 10px rgba(43, 107, 74, 0.06) !important;
+}
+
+/* Headings and Text */
+body.theme-nature h1,
+body.theme-nature h2,
+body.theme-nature h3,
+body.theme-nature h4,
+body.theme-nature h5,
+body.theme-nature h6,
+body.theme-nature .text-gray-900,
+body.theme-nature .text-gray-800 {
+    color: var(--color-text-primary) !important;
+}
+
+body.theme-nature p,
+body.theme-nature .text-gray-700,
+body.theme-nature .text-gray-600 {
+    color: var(--color-text-secondary) !important;
+}
+
+body.theme-nature .text-gray-500,
+body.theme-nature .text-gray-400 {
+    color: var(--color-text-muted) !important;
+}
+
+body.theme-nature .page-header p {
+    color: var(--color-text-muted) !important;
+}
+
+body.theme-nature .modal-heading {
+    color: var(--color-text-primary) !important;
+}
+
+body.theme-nature .modal-subtext {
+    color: var(--color-text-muted) !important;
+}
+
+body.theme-nature .modal-btn-cancel {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text-secondary) !important;
+    border-color: var(--color-border) !important;
+}
+
+body.theme-nature .modal-btn-cancel:hover {
+    background-color: var(--color-page-bg) !important;
+    border-color: var(--color-text-muted) !important;
+}
+
+/* Specific background colors */
+body.theme-nature .bg-gray-50 {
+    background-color: var(--color-page-bg) !important;
+}
+
+body.theme-nature .bg-gray-100,
+body.theme-nature .bg-gray-200,
+body.theme-nature .bg-gray-300 {
+    background-color: var(--color-nav-active-bg) !important;
+}
+
+/* Alerts / Badges */
+body.theme-nature .bg-blue-50 {
+    background-color: #eef2ff !important;
+}
+
+body.theme-nature .text-blue-800,
+body.theme-nature .text-blue-700,
+body.theme-nature .text-blue-600 {
+    color: #3b82f6 !important;
+}
+
+body.theme-nature .bg-red-50 {
+    background-color: #fef2f2 !important;
+}
+
+body.theme-nature .bg-green-50 {
+    background-color: #ecfdf5 !important;
+}
+
+body.theme-nature .bg-amber-50 {
+    background-color: #fffbeb !important;
+}
+
+/* Borders */
+body.theme-nature .border-gray-200,
+body.theme-nature .border-gray-300,
+body.theme-nature .border,
+body.theme-nature .border-b,
+body.theme-nature .border-t {
+    border-color: var(--color-border) !important;
+}
+
+/* Forms & Inputs */
+body.theme-nature input,
+body.theme-nature select,
+body.theme-nature textarea {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-border) !important;
+}
+
+body.theme-nature input:focus,
+body.theme-nature select:focus,
+body.theme-nature textarea:focus {
+    border-color: var(--color-accent) !important;
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-focus-ring) !important;
+}
+
+/* Tables */
+body.theme-nature table {
+    color: var(--color-text-secondary) !important;
+}
+
+body.theme-nature thead,
+body.theme-nature th {
+    background-color: var(--color-nav-active-bg) !important;
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-border) !important;
+}
+
+body.theme-nature tbody tr {
+    border-bottom: 1px solid var(--color-border) !important;
+}
+
+body.theme-nature tbody tr:hover,
+body.theme-nature tbody tr:hover td {
+    background-color: var(--color-sidebar-active-bg) !important;
+    color: var(--color-sidebar-active-text) !important;
+}
+
+/* Theme button globally */
+body.theme-nature .btn-primary {
+    background-color: var(--color-btn-primary-bg) !important;
+    border-color: var(--color-btn-primary-bg) !important;
+    color: var(--color-btn-primary-text) !important;
+}
+
+body.theme-nature .btn-primary:hover {
+    background-color: var(--color-btn-primary-hover) !important;
+    border-color: var(--color-btn-primary-hover) !important;
+}
+
+body.theme-nature .main-content>nav a[style*="background-color: #0d6efd"] {
+    background-color: var(--color-btn-primary-bg) !important;
+    color: var(--color-btn-primary-text) !important;
+}
+

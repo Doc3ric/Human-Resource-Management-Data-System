@@ -198,7 +198,15 @@
     {{-- Admin shortcuts --}}
     <div class="admin-grid">
 
-        {{-- User Management --}}
+        <a href="{{ route('system.qualification-standards.index') }}" class="admin-card">
+            <div class="admin-card-icon" style="background: rgba(14, 165, 233, .1); color: #0ea5e9;">
+                <i class="bi bi-journal-bookmark-fill"></i>
+            </div>
+            <div>
+                <div class="admin-card-title">CSC Qualification Standards</div>
+                <div class="admin-card-desc">Manage position qualifications for New Vacancies.</div>
+            </div>
+        </a>        {{-- User Management --}}
         @if(Route::has('users.index'))
             <a href="{{ route('users.index') }}" class="admin-card">
                 <div class="admin-card-icon" style="background:#dbeafe;color:#1e40af;">

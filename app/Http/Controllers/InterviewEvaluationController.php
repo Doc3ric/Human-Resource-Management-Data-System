@@ -6,6 +6,8 @@ use App\Models\Applicant;
 use App\Models\ApplicantHrmpsbScore;
 use App\Models\HrmpsbSignatory;
 use App\Models\InterviewEvaluation;
+use App\Support\Recruitment\OfficeCanonicalizer;
+use App\Support\Recruitment\VacancyIdentifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -25,22 +27,27 @@ class InterviewEvaluationController extends Controller
      */
     public function create(Request $request)
     {
-        // For cascading dropdowns, we can either pass all applicants grouped by office/position, 
+        // For cascading dropdowns, we can either pass all applicants grouped by office/position,
         // or just load them all if the list isn't massive.
-        $applicants = Applicant::all(['id', 'first_name', 'last_name', 'reference_no', 'position_applied', 'office'])
+        // position_key identifies the specific vacancy by item_no when available (falling back to
+        // cleaned position text) so text variants of the same item don't fragment the dropdowns.
+        $applicants = Applicant::all(['id', 'first_name', 'last_name', 'reference_no', 'position_applied', 'office', 'item_no'])
             ->map(function ($app) {
-                $app->office = preg_replace('/\s+/', ' ', trim(strtoupper(str_replace([',', '.00'], '', $app->office))));
-                $app->position_applied = preg_replace('/\s+/', ' ', trim(strtoupper(str_replace([',', '.00'], '', $app->position_applied))));
+                $app->office = OfficeCanonicalizer::canonicalize(str_replace([',', '.00'], '', $app->office));
+                $app->position_key = VacancyIdentifier::key($app->item_no, $app->position_applied);
+                $app->position_label = VacancyIdentifier::labelFor([$app->position_applied]);
                 return $app;
             })
             ->unique(function ($app) {
-                return strtoupper($app->first_name . '|' . $app->last_name . '|' . $app->position_applied);
+                return strtoupper($app->first_name . '|' . $app->last_name . '|' . $app->position_key);
             })
             ->sortBy('last_name')
             ->values();
-        
+
         $offices = $applicants->pluck('office')->filter()->unique()->sort()->values();
-        $positions = $applicants->pluck('position_applied')->filter()->unique()->sort()->values();
+        $positions = $applicants->pluck('position_key')->filter()->unique()
+            ->mapWithKeys(fn ($key) => [$key => $applicants->firstWhere('position_key', $key)->position_label])
+            ->sortBy(fn ($label) => $label);
 
         $weights = [
             'appearance' => \App\Models\Setting::getVal('hrmpsb_weight_appearance', 5),
@@ -98,24 +105,32 @@ class InterviewEvaluationController extends Controller
         // Calculate weighted score
         $r = $validated['ratings'];
         
-        // 1. Appearance (1 item) - max 4
+        // Check if using new 13-item 1-4 format or old 18-item 1-4 format
+        $isNewFormat = isset($r['other_5']) && !isset($r['other_6']);
+        $maxApp = 4; // Always 4 for Appearance (1 question)
+        $maxKnow = 16; // Always 16 for Knowledge (4 questions)
+        $maxComm = 12; // Always 12 for Communication (3 questions)
+        $maxOth = $isNewFormat ? 20 : 40; // 5 questions vs 10 questions
+        $othCount = $isNewFormat ? 5 : 10;
+
+        // 1. Appearance (1 item)
         $appSum = (int)($r['appearance_1'] ?? 0);
-        $appScore = ($appSum / 4) * $wApp;
+        $appScore = ($appSum / $maxApp) * $wApp;
 
-        // 2. Knowledge (4 items) - max 16
+        // 2. Knowledge (4 items)
         $knowSum = (int)($r['knowledge_1'] ?? 0) + (int)($r['knowledge_2'] ?? 0) + (int)($r['knowledge_3'] ?? 0) + (int)($r['knowledge_4'] ?? 0);
-        $knowScore = ($knowSum / 16) * $wKno;
+        $knowScore = ($knowSum / $maxKnow) * $wKno;
 
-        // 3. Communication (3 items) - max 12
+        // 3. Communication (3 items)
         $commSum = (int)($r['comm_1'] ?? 0) + (int)($r['comm_2'] ?? 0) + (int)($r['comm_3'] ?? 0);
-        $commScore = ($commSum / 12) * $wCom;
+        $commScore = ($commSum / $maxComm) * $wCom;
 
-        // 4. Other (10 items) - max 40
+        // 4. Other
         $othSum = 0;
-        for ($i = 1; $i <= 10; $i++) {
+        for ($i = 1; $i <= $othCount; $i++) {
             $othSum += (int)($r['other_'.$i] ?? 0);
         }
-        $othScore = ($othSum / 40) * $wOth;
+        $othScore = ($othSum / $maxOth) * $wOth;
 
         $totalScore = $appScore + $knowScore + $commScore + $othScore;
 
@@ -134,6 +149,10 @@ class InterviewEvaluationController extends Controller
             ]
         );
 
+        if ($request->has('redirect_back')) {
+            return back()->with('success', 'Your interview evaluation has been saved successfully.');
+        }
+        
         return redirect()->route('recruitment.hrmpsb.interview.matrix', $applicant->id)
             ->with('success', 'Your interview evaluation has been saved successfully.');
     }
@@ -144,52 +163,9 @@ class InterviewEvaluationController extends Controller
      */
     public function matrix($applicant_id)
     {
-        $applicant   = Applicant::findOrFail($applicant_id);
-        $evaluations = InterviewEvaluation::with(['rater.roles', 'panelMember'])
-            ->where('applicant_id', $applicant->id)
-            ->orderBy('created_at')
-            ->get();
+        $applicant = Applicant::findOrFail($applicant_id);
 
-        $averageScore = $evaluations->count() > 0 ? $evaluations->avg('total_score') : 0;
-
-        $weights = [
-            'appearance'    => \App\Models\Setting::getVal('hrmpsb_weight_appearance', 5),
-            'knowledge'     => \App\Models\Setting::getVal('hrmpsb_weight_knowledge', 50),
-            'communication' => \App\Models\Setting::getVal('hrmpsb_weight_communication', 10),
-            'other'         => \App\Models\Setting::getVal('hrmpsb_weight_other', 35),
-        ];
-
-        // Pre-compute per-evaluator breakdown for the detailed criteria matrix
-        $criteriaLabels = [
-            'appearance' => [
-                'appearance_1' => 'The candidate presents himself/herself in a good grooming and tidy appearance.',
-            ],
-            'knowledge' => [
-                'knowledge_1' => 'Knowledgeable of the functions of the vacant position.',
-                'knowledge_2' => 'Knowledgeable of the organizational structure of the department/division.',
-                'knowledge_3' => 'Knowledgeable of the mission and vision of the department/office.',
-                'knowledge_4' => 'Can explain how the functions of the vacant position translate to the mission and vision.',
-            ],
-            'communication' => [
-                'comm_1' => 'Listens to questions attentively and actively.',
-                'comm_2' => 'Answers questions or expresses ideas clearly, concisely and logically.',
-                'comm_3' => 'Demonstrates confidence by displaying positive body language and maintaining eye contact.',
-            ],
-            'other' => [
-                'other_1'  => 'JOB COMMITMENT – Responsibility towards the mission and goals.',
-                'other_2'  => 'COMMITMENT – Psychological attachment to the organization.',
-                'other_3'  => 'POTENTIAL – Capability to perform duties of the position and higher ones.',
-                'other_4'  => 'SINCERITY – Assessment of honesty, expression of valid/useful opinion.',
-                'other_5'  => 'PROFESSIONALISM – Consideration, respect, loyalty, exceeds expectations.',
-                'other_6'  => 'INITIATIVE – Eagerness to start actions without being told.',
-                'other_7'  => 'TEAMWORK – Active involvement in a team resulting in goal achievement.',
-                'other_8'  => 'TIME MANAGEMENT – Act of planning time spent to increase productivity.',
-                'other_9'  => 'CUSTOMER SERVICE – Taking care of customers needs professionally.',
-                'other_10' => 'JOB SATISFACTION – Contentment of current job and sense of accomplishment.',
-            ],
-        ];
-
-        return view('hrmpsb.interview.matrix', compact('applicant', 'evaluations', 'averageScore', 'weights', 'criteriaLabels'));
+        return view('hrmpsb.interview.matrix', \App\Support\Recruitment\InterviewScoringMatrixData::forApplicant($applicant));
     }
 
     /**
@@ -314,10 +290,12 @@ class InterviewEvaluationController extends Controller
 
         $query = Applicant::query();
         if ($position) {
-            $query->where('position_applied', $position);
+            $positionRows = Applicant::whereNotNull('position_applied')->get(['position_applied', 'item_no']);
+            VacancyIdentifier::applyMatch($query, VacancyIdentifier::matchingConditions($positionRows, [$position]));
         }
         if ($office) {
-            $query->where('office', $office);
+            $rawOffices = Applicant::select('office')->distinct()->pluck('office')->filter()->values();
+            $query->whereIn('office', OfficeCanonicalizer::matchingRawValues($rawOffices, [$office]));
         }
 
         $applicants = $query->with('hrmpsbScore')->get();
@@ -356,12 +334,23 @@ class InterviewEvaluationController extends Controller
 
         $signatories = HrmpsbSignatory::where('team', $teamType)->get();
 
-        // Dropdown data
-        $positions = Applicant::select('position_applied')->distinct()->pluck('position_applied')->filter();
-        $offices = Applicant::select('office')->distinct()->pluck('office')->filter();
+        // Dropdown data — positionOffices lets the view scope Position to the selected Office.
+        $positionRowsForDropdown = Applicant::whereNotNull('position_applied')->get(['position_applied', 'item_no', 'office']);
+        $positionGroups = [];
+        foreach ($positionRowsForDropdown as $row) {
+            $key = VacancyIdentifier::key($row->item_no, $row->position_applied);
+            $positionGroups[$key]['texts'][] = $row->position_applied;
+            $positionGroups[$key]['office'] = $positionGroups[$key]['office'] ?? OfficeCanonicalizer::canonicalize($row->office);
+        }
+        $positions = collect($positionGroups)
+            ->map(fn ($group) => VacancyIdentifier::labelFor($group['texts']))
+            ->sortBy(fn ($label) => $label);
+        $positionOffices = collect($positionGroups)->map(fn ($group) => $group['office']);
+        $offices = Applicant::select('office')->distinct()->pluck('office')->filter()
+            ->map(fn ($raw) => OfficeCanonicalizer::canonicalize($raw))->unique()->sort()->values();
 
         return view('hrmpsb.interview.comparative-report', compact(
-            'applicants', 'signatories', 'positions', 'offices', 'position', 'office', 'teamType'
+            'applicants', 'signatories', 'positions', 'positionOffices', 'offices', 'position', 'office', 'teamType'
         ));
     }
 

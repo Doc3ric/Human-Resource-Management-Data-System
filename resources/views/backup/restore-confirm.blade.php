@@ -8,14 +8,20 @@
             <div style="width:70px;height:70px;background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 6px 20px rgba(220,38,38,.3);">
                 <i class="bi bi-arrow-counterclockwise" style="font-size:28px;color:#fff;"></i>
             </div>
-            <h2 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 6px;">Restore Database</h2>
-            <p style="font-size:13px;color:#6b7280;margin:0;">This action will overwrite the current database with the selected backup.</p>
+            <h2 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 6px;">{{ $backup->backup_scope === 'files' ? 'Restore File Storage' : 'Restore Database' }}</h2>
+            <p style="font-size:13px;color:#6b7280;margin:0;">
+                @if($backup->backup_scope === 'files')
+                    This action will overwrite current IDCC documents and reports with the contents of this archive.
+                @else
+                    This action will overwrite the current database with the selected backup.
+                @endif
+            </p>
         </div>
 
         <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px 16px;margin-bottom:20px;">
             <div style="font-size:12px;font-weight:700;color:#991b1b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">⚠ Irreversible Action</div>
             <ul style="font-size:12.5px;color:#7f1d1d;line-height:1.7;padding-left:16px;margin:0;">
-                <li>All data entered AFTER this backup was created will be <strong>permanently lost</strong>.</li>
+                <li>All {{ $backup->backup_scope === 'files' ? 'documents/reports added or changed' : 'data entered' }} AFTER this backup was created will be <strong>permanently lost</strong>.</li>
                 <li>This action is permanently logged in the audit trail regardless of outcome.</li>
                 <li>Only the <strong>Administrator</strong> role can perform this action.</li>
                 <li>You cannot undo a restore — create a fresh backup before proceeding if needed.</li>

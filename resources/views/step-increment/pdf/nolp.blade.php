@@ -6,16 +6,16 @@
     <title>Notice of Longevity Pay (NOLP)</title>
     <style>
         @page {
-            margin: 15mm 20mm 15mm 20mm;
+            margin: 10mm 15mm 10mm 15mm;
             size: A4 portrait;
         }
 
         body {
             font-family: "Times New Roman", Times, serif;
-            font-size: 11pt;
+            font-size: 10.5pt;
             margin: 0;
             padding: 0;
-            line-height: 1.5;
+            line-height: 1.3;
         }
 
         /* Header now comes from exports.partials.official-header (scoped styles) */
@@ -49,8 +49,8 @@
         }
 
         .employee-info {
-            margin-bottom: 22px;
-            line-height: 1.5;
+            margin-bottom: 16px;
+            line-height: 1.3;
         }
 
         .emp-name {
@@ -77,14 +77,14 @@
         .body-text {
             text-indent: 40px;
             text-align: justify;
-            line-height: 1.6;
-            margin-bottom: 20px;
+            line-height: 1.4;
+            margin-bottom: 16px;
         }
 
         .computation {
             margin-left: 50px;
-            margin-bottom: 20px;
-            line-height: 1.6;
+            margin-bottom: 16px;
+            line-height: 1.4;
         }
 
         .comp-row {
@@ -122,14 +122,14 @@
 
         .closing {
             text-indent: 40px;
-            margin-bottom: 24px;
-            line-height: 1.6;
+            margin-bottom: 18px;
+            line-height: 1.4;
         }
 
         .signoff {
             text-align: right;
             margin-right: 50px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .governor-name {
@@ -253,9 +253,13 @@
     </div>
 
     <div class="signoff">
-        Very truly yours,<br><br><br>
-        <span class="governor-name">ROGELIO NEIL P. ROQUE</span>
-        <span>Provincial Governor</span>
+        <div style="text-align: left; display: inline-block;">
+            Very truly yours,<br><br><br>
+            <div style="text-align: center;">
+                <span class="governor-name">ROGELIO NEIL P. ROQUE</span>
+                <span>Provincial Governor</span>
+            </div>
+        </div>
     </div>
 
     <div class="footer-info">

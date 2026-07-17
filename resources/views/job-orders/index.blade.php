@@ -833,7 +833,8 @@
                 
                 <select name="office_department" id="jo-charges" class="cas-select">
                     <option value="">— All Charges —</option>
-                    @foreach($chargesList as $c)
+                    @php $uniqueOffices = ($globalOffices ?? collect([]))->pluck('name')->filter()->unique(); @endphp
+                    @foreach($uniqueOffices as $c)
                         <option value="{{ $c }}" {{ request('office_department') == $c ? 'selected' : '' }}>{{ $c }}</option>
                     @endforeach
                 </select>
@@ -912,6 +913,8 @@
         </div>
         @endif
 
+        @include('partials.table-column-controls', ['tabKey' => 'job-orders'])
+
         {{-- ── DATA TABLE ── --}}
         <div class="jo-table-wrap" id="jo-table-wrap">
             <table class="jo-table" id="jo-inventory-table" style="min-width: 1000px;">
@@ -923,19 +926,19 @@
                             </th>
                         @endif
                         <th rowspan="2">NO.</th>
-                        <th rowspan="2">OFFICE</th>
+                        <th rowspan="2" data-col="office_department" data-sort data-label="OFFICE"><x-sort-link column="office_department">OFFICE</x-sort-link></th>
                         {{-- NAME group --}}
                         <th colspan="4">NAME</th>
-                        <th rowspan="2">POSITION</th>
-                        <th rowspan="2" style="text-align:center;">DATE OF BIRTH</th>
-                        <th rowspan="2" style="text-align:center;">SEX</th>
+                        <th rowspan="2" data-col="position_title" data-sort data-label="POSITION"><x-sort-link column="position_title">POSITION</x-sort-link></th>
+                        <th rowspan="2" style="text-align:center;" data-col="date_of_birth" data-sort data-label="DATE OF BIRTH"><x-sort-link column="date_of_birth">DATE OF BIRTH</x-sort-link></th>
+                        <th rowspan="2" style="text-align:center;" data-col="sex" data-sort data-label="SEX"><x-sort-link column="sex">SEX</x-sort-link></th>
                         <th rowspan="2" style="text-align:center;">ACTIONS</th>
                     </tr>
                     <tr class="sub-header">
-                        <th>LASTNAME</th>
-                        <th>FIRSTNAME</th>
-                        <th>MIDDLE NAME</th>
-                        <th>SUFFIX</th>
+                        <th data-col="last_name" data-sort data-label="LASTNAME"><x-sort-link column="last_name">LASTNAME</x-sort-link></th>
+                        <th data-col="first_name" data-sort data-label="FIRSTNAME"><x-sort-link column="first_name">FIRSTNAME</x-sort-link></th>
+                        <th data-col="middle_name" data-sort data-label="MIDDLE NAME"><x-sort-link column="middle_name">MIDDLE NAME</x-sort-link></th>
+                        <th data-col="name_extension" data-label="SUFFIX">SUFFIX</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -947,17 +950,17 @@
                                 </td>
                             @endif
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ $jo->office_department }}</td>
-                            <td class="text-left" style="font-weight:700;">{{ strtoupper($jo->last_name) }}</td>
-                            <td class="text-left">{{ $jo->first_name }}</td>
-                            <td>{{ $jo->middle_name }}</td>
-                            <td>{{ $jo->name_extension }}</td>
-                            <td class="text-left">{{ $jo->position_title }}</td>
-                            <td style="color:#6b7280;text-align:center;font-size:11px;">
+                            <td data-col="office_department">{{ $jo->office_department }}</td>
+                            <td data-col="last_name" class="text-left" style="font-weight:700;">{{ strtoupper($jo->last_name) }}</td>
+                            <td data-col="first_name" class="text-left">{{ $jo->first_name }}</td>
+                            <td data-col="middle_name">{{ $jo->middle_name }}</td>
+                            <td data-col="name_extension">{{ $jo->name_extension }}</td>
+                            <td data-col="position_title" class="text-left">{{ $jo->position_title }}</td>
+                            <td data-col="date_of_birth" style="color:#6b7280;text-align:center;font-size:11px;">
                                 {{ $jo->date_of_birth ? \Carbon\Carbon::parse($jo->date_of_birth)->format('M d, Y') : '—' }}
                             </td>
                             {{-- Gender --}}
-                            <td style="text-align:center;">
+                            <td data-col="sex" style="text-align:center;">
                                 @if(strtoupper($jo->sex) === 'M')
                                     <span class="gender-badge gender-m">M</span>
                                 @elseif(strtoupper($jo->sex) === 'F')

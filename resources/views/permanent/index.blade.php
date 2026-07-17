@@ -472,6 +472,43 @@
             font-size: 13px; font-weight: 600;
             display: flex; align-items: center; gap: 8px;
         }
+
+        /* Import Modal */
+        .import-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(15, 23, 42, .55); backdrop-filter: blur(6px);
+            z-index: 9000; justify-content: center; align-items: center;
+        }
+        .import-overlay.active { display: flex; }
+        .import-card {
+            background: #fff; border-radius: 20px; padding: 44px 48px;
+            max-width: 680px; width: calc(100% - 32px);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, .18);
+        }
+        .import-title { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
+        .import-sub { font-size: 15px; color: #64748b; margin-bottom: 24px; line-height: 1.7; }
+        .import-drop {
+            border: 2px dashed #93c5fd; border-radius: 12px; padding: 36px 28px;
+            text-align: center; background: #eff6ff; cursor: pointer;
+            transition: all .2s; white-space: normal; word-break: break-word;
+        }
+        .import-drop:hover { border-color: #3b82f6; background: #e0f2fe; }
+        .import-drop i { font-size: 40px; color: #3b82f6; margin-bottom: 10px; display: block; }
+        .import-drop strong { font-size: 16px; display: block; margin-bottom: 6px; color: #1e293b; }
+        .import-drop p { font-size: 14px; color: #64748b; margin: 0; white-space: normal; word-break: break-word; }
+        .import-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-start; }
+        .btn-import-submit {
+            padding: 12px 28px; background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; gap: 7px;
+        }
+        .btn-import-submit:hover { opacity: .9; }
+        .btn-import-cancel {
+            padding: 12px 20px; background: #f1f5f9; color: #475569;
+            border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 15px;
+            font-weight: 600; cursor: pointer;
+        }
+        .btn-import-cancel:hover { background: #e2e8f0; }
     </style>
 
         {{-- Hero --}}
@@ -528,12 +565,19 @@
     <form method="GET" action="{{ route('permanent.index') }}" id="perm-search-form">
     <div class="cas-filter" style="display: flex; flex-direction: column; gap: 12px; align-items: stretch; padding: 14px 18px; margin-bottom: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, .04);">
             <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                <input type="text" name="search" value="{{ request('search') }}" class="cas-input" placeholder="🔍 Search name, position, office…" autocomplete="off">
+                <input type="text" name="search" value="{{ request('search') }}" class="cas-input" placeholder="🔍 Search Name / Position..." autocomplete="off">
                 
-                <select name="office" class="cas-select" style="min-width:200px;">
+                <select name="office_department" class="cas-select">
                     <option value="">— All Offices —</option>
-                    @foreach($offices as $office)
-                        <option value="{{ $office }}" {{ request('office') === $office ? 'selected' : '' }}>{{ Str::limit($office, 40) }}</option>
+                    @foreach(($offices ?? collect([])) as $office)
+                        <option value="{{ $office }}" {{ request('office_department') === $office ? 'selected' : '' }}>{{ $office }}</option>
+                    @endforeach
+                </select>
+
+                <select name="office" class="cas-select">
+                    <option value="">— All Detailed Units —</option>
+                    @foreach(($detailedUnits ?? collect([])) as $unit)
+                        <option value="{{ $unit }}" {{ request('office') === $unit ? 'selected' : '' }}>{{ $unit }}</option>
                     @endforeach
                 </select>
 
@@ -544,19 +588,37 @@
                     <option value="E"  {{ request('status') === 'E'  ? 'selected' : '' }}>Elected</option>
                 </select>
 
-                <select name="sex" class="cas-select" style="min-width:110px;">
-                    <option value="">— All Genders —</option>
-                    <option value="M" {{ request('sex') === 'M' ? 'selected' : '' }}>Male</option>
-                    <option value="F" {{ request('sex') === 'F' ? 'selected' : '' }}>Female</option>
+                <select name="sex" class="cas-select">
+                    <option value="">— SEX —</option>
+                    <option value="M" {{ request('sex') === 'M' ? 'selected' : '' }}>M</option>
+                    <option value="F" {{ request('sex') === 'F' ? 'selected' : '' }}>F</option>
+                </select>
+
+                <select name="vacancy_status" class="cas-select">
+                    <option value="">— Vacancy Status —</option>
+                    <option value="vacant" {{ request('vacancy_status') === 'vacant' ? 'selected' : '' }}>Vacant Only</option>
+                    <option value="filled" {{ request('vacancy_status') === 'filled' ? 'selected' : '' }}>Filled Only</option>
                 </select>
                 
                 <button type="submit" class="cas-btn primary"><i class="bi bi-search"></i> Search</button>
                 <a href="{{ route('permanent.index') }}" class="cas-btn reset"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+                <select name="per_page" class="cas-select" style="min-width: 80px;" onchange="this.form.submit()">
+                    <option value="20" {{ request('per_page', 50) == 20 ? 'selected' : '' }}>20</option>
+                    <option value="50" {{ request('per_page', 50) == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                    <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
+                </select>
             </div>
-            
+
             <!-- Bottom Row: Actions (Far Left) -->
             <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-start;">
-                
+                @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
+                    <a href="{{ route('permanent.create') }}" class="cas-btn add"><i class="bi bi-plus-lg"></i> Add Record</a>
+                    <button type="button" class="cas-btn import" onclick="document.getElementById('perm-import-overlay').classList.add('active')"><i class="bi bi-upload"></i> Import Excel</button>
+                @endif
+                @unless(auth()->user()->isViewer())
+                <a href="{{ route('permanent.import.history') }}" class="cas-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;"><i class="bi bi-clock-history"></i> Import History</a>
+                @endunless
                 <a href="{{ route('archives.index') }}" class="cas-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;"><i class="bi bi-archive-fill"></i> View Archives</a>
                 <button type="button" class="cas-btn" style="background:#ffffff;color:#334155;border:1px solid #cbd5e1;gap:5px;" onclick="new bootstrap.Modal(document.getElementById('exportModal')).show()"><i class="bi bi-file-earmark-arrow-down-fill"></i> Export Settings</button>
                 @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
@@ -567,6 +629,41 @@
                 @endif
             </div>
         </div></form>
+
+    {{-- Import Modal --}}
+    <div id="perm-import-overlay" class="import-overlay" onclick="if(event.target===this) this.classList.remove('active')">
+        <div class="import-card">
+            <div class="import-title"><i class="bi bi-upload" style="color:#1e40af;"></i> Import Permanent Data</div>
+            <div class="import-sub">
+                Upload your Permanent/CT/Elected Excel file using the simple template (download below).
+            </div>
+
+            <form method="POST" action="{{ route('permanent.import') }}" enctype="multipart/form-data" id="perm-import-form">
+                @csrf
+                <label for="perm-import-file" class="import-drop" id="perm-import-drop">
+                    <i class="bi bi-file-earmark-spreadsheet"></i>
+                    <strong>Click to select or drag & drop</strong>
+                    <p>Accepted: .xlsx, .xls, .csv — Max 10MB</p>
+                    <p id="perm-import-filename" style="color:#1e40af;font-weight:700;margin-top:6px;"></p>
+                </label>
+                <input type="file" name="import_file" id="perm-import-file" accept=".xlsx,.xls,.csv" style="display:none;"
+                    onchange="document.getElementById('perm-import-filename').textContent=this.files[0]?.name||''">
+
+                <div class="import-actions">
+                    <button type="button" class="btn-import-cancel"
+                        onclick="document.getElementById('perm-import-overlay').classList.remove('active')">
+                        Cancel
+                    </button>
+                    <a href="{{ route('permanent.template') }}" class="btn-import-cancel" style="text-decoration:none;">
+                        <i class="bi bi-download"></i> Download Template
+                    </a>
+                    <button type="submit" class="btn-import-submit">
+                        <i class="bi bi-cloud-upload-fill"></i> Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     {{-- Bulk Action Bar --}}
     @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
@@ -598,6 +695,8 @@
     </div>
     @endif
 
+    @include('partials.table-column-controls', ['tabKey' => 'permanent'])
+
     {{-- Table --}}
     <div class="perm-table-wrap">
         <div class="perm-table-scroll" id="perm-table-scroll">
@@ -610,11 +709,11 @@
                             </th>
                         @endif
                         <th>#</th>
-                        <th>OFFICE</th>
+                        <th data-col="office_department" data-sort data-label="OFFICE"><x-sort-link column="office_department">OFFICE</x-sort-link></th>
                         <th colspan="4" style="text-align:center;">NAME</th>
-                        <th>Position Title</th>
-                        <th style="text-align:center;">DATE OF BIRTH</th>
-                        <th style="text-align:center;">SEX</th>
+                        <th data-col="position_title" data-sort data-label="Position Title"><x-sort-link column="position_title">Position Title</x-sort-link></th>
+                        <th style="text-align:center;" data-col="date_of_birth" data-sort data-label="DATE OF BIRTH"><x-sort-link column="date_of_birth">DATE OF BIRTH</x-sort-link></th>
+                        <th style="text-align:center;" data-col="sex" data-sort data-label="SEX"><x-sort-link column="sex">SEX</x-sort-link></th>
                         @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
                             <th style="text-align:center;">Actions</th>
                         @endif
@@ -624,14 +723,14 @@
                             <th class="checkbox-col" style="display:none;"></th>
                         @endif
                         <th></th>
-                        <th></th>
-                        <th>LAST NAME</th>
-                        <th>First Name</th>
-                        <th>MIDDLE NAME</th>
-                        <th>SUFFIX</th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
+                        <th data-col="office_department"></th>
+                        <th data-col="last_name" data-sort data-label="LAST NAME"><x-sort-link column="last_name">LAST NAME</x-sort-link></th>
+                        <th data-col="first_name" data-sort data-label="First Name"><x-sort-link column="first_name">First Name</x-sort-link></th>
+                        <th data-col="middle_name" data-sort data-label="MIDDLE NAME"><x-sort-link column="middle_name">MIDDLE NAME</x-sort-link></th>
+                        <th data-col="name_extension" data-label="SUFFIX">SUFFIX</th>
+                        <th data-col="position_title"></th>
+                        <th data-col="date_of_birth"></th>
+                        <th data-col="sex"></th>
                         @if(auth()->user()->isSuperAdmin() || auth()->user()->isInventoryAdmin())
                             <th></th>
                         @endif
@@ -648,29 +747,34 @@
 
                             <td style="color:#9ca3af;font-size:10px;font-weight:600;">{{ $i + 1 }}</td>
 
-                            <td title="{{ $r->office_department }}" style="font-size:11px;color:#64748b;">
+                            <td data-col="office_department" title="{{ $r->office_department }}" style="font-size:11px;color:#64748b;">
                                 {{ $r->office_department }}
                             </td>
 
-                            <td style="font-weight:700;text-transform:uppercase;color:#0f172a;">
-                                {{ strtoupper($r->last_name ?: '—') }}
+                            <td data-col="last_name" style="font-weight:700;color:#0f172a;">
+                                @if($r->is_vacant)
+                                    <span style="color:#dc2626;font-style:italic;font-size:10px;">VACANT</span>
+                                @else
+                                    {{ strtoupper($r->last_name ?: '—') }}
+                                @endif
                             </td>
 
-                            <td>{{ $r->first_name ?: '—' }}</td>
+                            <td data-col="first_name">{{ $r->first_name ?: '—' }}</td>
 
-                            <td style="color:#6b7280;">{{ $r->middle_name ?: '—' }}</td>
+                            <td data-col="middle_name" style="color:#6b7280;">{{ $r->middle_name ?: '—' }}</td>
 
-                            <td style="color:#9ca3af;font-size:11px;">—</td>
+                            <td data-col="name_extension" style="color:#9ca3af;font-size:11px;">{{ $r->name_extension ?: '—' }}</td>
 
-                            <td title="{{ $r->position_title }}" style="font-weight:600;color:#0f172a;">
-                                {{ $r->position_title }}
+                            <td data-col="position_title" title="{{ $r->position_title }}" style="font-weight:600;color:#0f172a;">
+                                <div class="pos-title-text" style="font-size:12px;">{{ $r->position_title }}</div>
+                                <div style="font-size:11px;color:#64748b;">Item #{{ $r->item_no_new ?? $r->item_no_old ?? 'N/A' }}</div>
                             </td>
 
-                            <td style="color:#6b7280;text-align:center;font-size:11px;">
+                            <td data-col="date_of_birth" style="color:#6b7280;text-align:center;font-size:11px;">
                                 {{ $r->date_of_birth ? \Carbon\Carbon::parse($r->date_of_birth)->format('M d, Y') : '—' }}
                             </td>
 
-                            <td style="text-align:center;">
+                            <td data-col="sex" style="text-align:center;">
                                 @if(strtoupper($r->sex) === 'M')
                                     <span class="gender-badge gender-m">M</span>
                                 @elseif(strtoupper($r->sex) === 'F')

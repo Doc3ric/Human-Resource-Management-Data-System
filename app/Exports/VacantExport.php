@@ -16,10 +16,12 @@ class VacantExport implements FromCollection, WithHeadings, WithTitle, ShouldAut
     use \App\Exports\Traits\HasPhrmoHeader;
 
     protected string $type;
+    protected ?string $office;
 
-    public function __construct(string $type = 'funded')
+    public function __construct(string $type = 'funded', ?string $office = null)
     {
         $this->type = $type;
+        $this->office = $office;
     }
 
     public function collection()
@@ -36,11 +38,13 @@ class VacantExport implements FromCollection, WithHeadings, WithTitle, ShouldAut
                         $q3->whereNull('base_salary_amount')->orWhere('base_salary_amount', 0);
                     });
                 });
-            })->orderBy('position_title')->get();
+            })->when($this->office, fn ($q) => $q->where('office_department', $this->office))
+                ->orderBy('position_title')->get();
         } else {
             $records = PlantillaRecord::where('is_vacant', true)
                 ->where('abolished', false)
                 ->where('dissolved', false)
+                ->when($this->office, fn ($q) => $q->where('office_department', $this->office))
                 ->orderBy('position_title')
                 ->get();
         }
@@ -64,6 +68,7 @@ class VacantExport implements FromCollection, WithHeadings, WithTitle, ShouldAut
 
     public function title(): string
     {
+        // Excel sheet titles are capped at 31 chars; keep it short even when office-scoped.
         return 'Vacant ' . ucfirst($this->type);
     }
 }

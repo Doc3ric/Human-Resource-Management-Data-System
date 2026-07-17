@@ -25,6 +25,9 @@ class LeaveController extends Controller
         }
         $applications = $query->paginate(20)->withQueryString();
         $leaveTypes = LeaveType::orderBy('code')->get();
+        $employees = PlantillaRecord::filled()->select('id', 'first_name', 'last_name', 'office_department', 'position_title')
+            ->orderBy('last_name')
+            ->get();
 
         $total = LeaveApplication::count();
         $pending = LeaveApplication::where('status', 'pending')->count();
@@ -38,7 +41,7 @@ class LeaveController extends Controller
             'approved_pct' => $total > 0 ? round(($approved / $total) * 100, 1) : 0,
         ];
 
-        return view('leave.index', compact('applications', 'leaveTypes', 'metrics'));
+        return view('leave.index', compact('applications', 'leaveTypes', 'metrics', 'employees'));
     }
 
     public function store(Request $request)

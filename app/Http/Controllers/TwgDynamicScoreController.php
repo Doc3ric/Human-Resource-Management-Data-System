@@ -75,8 +75,7 @@ class TwgDynamicScoreController extends Controller
             }
         }
 
-        return redirect()->route('recruitment.hrmpsb.twg_dynamic.create', ['applicant_id' => $applicant->id])
-            ->with('success', 'Scores saved as draft.');
+        return back()->with('success', 'Scores saved as draft.');
     }
 
     public function submit(Request $request, Applicant $applicant)
@@ -105,8 +104,7 @@ class TwgDynamicScoreController extends Controller
             'description' => "Submitted dynamic TWG evaluation for {$applicant->last_name}, {$applicant->first_name} (masked: " . BlindScoringId::forApplicant($applicant) . ').',
         ]);
 
-        return redirect()->route('recruitment.hrmpsb.twg_dynamic.create', ['applicant_id' => $applicant->id])
-            ->with('success', 'Evaluation submitted and locked.');
+        return back()->with('success', 'Evaluation submitted and locked.');
     }
 
     public function unlock(Request $request, Applicant $applicant)
@@ -125,7 +123,6 @@ class TwgDynamicScoreController extends Controller
             'description' => "Unlocked dynamic TWG evaluation for {$applicant->last_name}, {$applicant->first_name} (masked: " . BlindScoringId::forApplicant($applicant) . ').',
         ]);
 
-        return redirect()->route('recruitment.hrmpsb.twg_dynamic.create', ['applicant_id' => $applicant->id])
-            ->with('success', 'Evaluation unlocked for editing.');
+        return back()->with('success', 'Evaluation unlocked for editing.');
     }
 }

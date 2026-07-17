@@ -44,8 +44,13 @@ class DeliberationExportController extends Controller
         $position = urldecode($position);
         
         $applicants = Applicant::where('position_applied', $position)->orderBy('last_name')->get();
-        $twgSubmissions = TwgScoreSubmission::whereIn('applicant_id', $applicants->pluck('id'))->get()->keyBy('applicant_id');
+        $twgSubmissions = TwgScoreSubmission::with('submittedBy')->whereIn('applicant_id', $applicants->pluck('id'))->get()->keyBy('applicant_id');
         $hrmpsbEvaluations = InterviewEvaluation::whereIn('applicant_id', $applicants->pluck('id'))->get()->groupBy('applicant_id');
+
+        // Sort applicants descending by their TWG percentage score
+        $applicants = $applicants->sortByDesc(function ($app) use ($twgSubmissions) {
+            return $twgSubmissions->has($app->id) ? (float) $twgSubmissions->get($app->id)->percentage : 0;
+        })->values();
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -59,34 +64,27 @@ class DeliberationExportController extends Controller
             fputcsv($handle, ['Comparative Assessment for: ' . $position]);
             fputcsv($handle, []);
             fputcsv($handle, [
+                'Rank',
                 'Applicant Name',
-                'Masked ID',
-                'Total Auto Score',
-                'Total Assessor Score',
-                'Overall Percentage',
-                'Adjectival Classification',
-                'Recommendation',
-                'HRMPSB Interview Average'
+                'Total Score',
+                'Percentage Score',
+                'Assessor Recommendation',
+                'Assessor Name',
+                'Date Evaluated'
             ]);
 
+            $rank = 1;
             foreach ($applicants as $app) {
                 $twg = $twgSubmissions->get($app->id);
-                $evals = $hrmpsbEvaluations->get($app->id);
                 
-                $interviewAvg = 0;
-                if ($evals && $evals->count() > 0) {
-                    $interviewAvg = $evals->avg('total_score');
-                }
-
                 fputcsv($handle, [
+                    $rank++,
                     $app->last_name . ', ' . $app->first_name,
-                    BlindScoringId::forApplicant($app),
-                    $twg ? $twg->total_auto : '0.00',
-                    $twg ? $twg->total_assessor : '0.00',
-                    $twg ? $twg->percentage : '0.00',
-                    $twg ? $twg->adjectival_classification : 'N/A',
+                    $twg ? number_format($twg->total_assessor, 2) : '0.00',
+                    $twg ? number_format($twg->percentage, 2) : '0.00',
                     $twg ? $twg->recommendation : 'Pending',
-                    number_format($interviewAvg, 2)
+                    $twg && $twg->submittedBy ? $twg->submittedBy->name : 'N/A',
+                    $twg && $twg->submitted_at ? $twg->submitted_at->format('M d, Y') : 'N/A'
                 ]);
             }
 

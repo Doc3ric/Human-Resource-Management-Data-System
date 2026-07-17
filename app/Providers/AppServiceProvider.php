@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use App\Models\ActivityLog;
+use App\Models\OrganizationalUnit;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -49,6 +50,49 @@ class AppServiceProvider extends ServiceProvider
 
                 $view->with('recentActivity', $recentActivity)
                      ->with('unreadNotifCount', $unreadCount);
+            }
+            
+            // Share global offices list to all views for dynamic dropdowns
+            try {
+                // Get active units from the new System & Administration module
+                $newOffices = OrganizationalUnit::where('status', 'Active')->get();
+                $globalOffices = collect();
+
+                foreach ($newOffices as $office) {
+                    $globalOffices->push((object)[
+                        'name' => $office->name,
+                        'sub_office' => $office->sub_office
+                    ]);
+                }
+
+                // Merge legacy distinct offices from plantilla_records so history isn't lost
+                if (\Illuminate\Support\Facades\Schema::hasTable('plantilla_records')) {
+                    $legacyOffices = \App\Models\PlantillaRecord::distinct()->whereNotNull('office_department')->pluck('office_department');
+                    $legacySubOffices = \App\Models\PlantillaRecord::distinct()->whereNotNull('detailed_unit')->pluck('detailed_unit');
+
+                    foreach ($legacyOffices as $legacyName) {
+                        if (!$globalOffices->contains('name', $legacyName)) {
+                            $globalOffices->push((object)[
+                                'name' => $legacyName,
+                                'sub_office' => null
+                            ]);
+                        }
+                    }
+
+                    foreach ($legacySubOffices as $legacySub) {
+                        if (!$globalOffices->contains('sub_office', $legacySub)) {
+                            $globalOffices->push((object)[
+                                'name' => null,
+                                'sub_office' => $legacySub
+                            ]);
+                        }
+                    }
+                }
+
+                $view->with('globalOffices', $globalOffices);
+            } catch (\Exception $e) {
+                // If the table doesn't exist yet (e.g. during migrations), fail gracefully
+                $view->with('globalOffices', collect([]));
             }
         });
     }

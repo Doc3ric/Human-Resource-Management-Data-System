@@ -44,11 +44,9 @@
             (stored only in <code>.env</code> — never in the database or any file). The backup log table
             is append-only at the application level. Restore operations require typing
             <strong>CONFIRM</strong> and are permanently recorded in the audit trail.
-            @if($driveConfigured)
-                <br><span style="color:#065f46;"><i class="bi bi-check-circle-fill"></i> Google Drive integration is configured.</span>
-            @else
-                <br><span style="color:#92400e;"><i class="bi bi-exclamation-triangle-fill"></i> Google Drive not configured — local storage only. Set <code>GOOGLE_SA_KEY_PATH</code> in <code>.env</code> to enable.</span>
-            @endif
+            <br><span style="color:#065f46;"><i class="bi bi-check-circle-fill"></i> Scheduled database backups run every 6 hours; file-storage (IDCC/reports) backups run daily at 2:00 AM. Both currently stay on this server only.</span>
+            <br><span style="color:#92400e;"><i class="bi bi-exclamation-triangle-fill"></i> <strong>No off-site copy is active yet.</strong> The configured Google service account cannot hold file storage (a Google API limitation, not a settings error) — see <code>docs/DISASTER_RECOVERY.md</code> for off-site options before relying on this for hardware-failure recovery.</span>
+            <br><span style="color:#92400e;"><i class="bi bi-exclamation-triangle-fill"></i> The encryption key itself (<code>APP_KEY</code>) is <strong>not</strong> included in these backups — run <code>php artisan backup:export-key</code> separately and store the result offline.</span>
         </div>
     </div>
 
@@ -62,6 +60,7 @@
                     <tr>
                         <th>#</th>
                         <th>Filename</th>
+                        <th>Scope</th>
                         <th>Type</th>
                         <th>Size</th>
                         <th>Storage</th>
@@ -78,12 +77,18 @@
                     <td style="font-family:monospace;font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $log->filename }}">
                         {{ $log->filename }}
                     </td>
+                    <td>
+                        <span class="badge {{ $log->backup_scope === 'files' ? 'bg-info text-dark' : 'bg-dark' }}">
+                            <i class="bi {{ $log->backup_scope === 'files' ? 'bi-folder-fill' : 'bi-database-fill' }}"></i>
+                            {{ $log->backup_scope === 'files' ? 'Files' : 'Database' }}
+                        </span>
+                    </td>
                     <td><span class="badge bg-secondary">{{ ucfirst($log->type) }}</span></td>
                     <td>{{ $log->formatted_size }}</td>
                     <td>
-                        <span class="badge {{ $log->storage_driver === 'google_drive' ? 'bg-primary' : 'bg-secondary' }}">
-                            <i class="bi {{ $log->storage_driver === 'google_drive' ? 'bi-google' : 'bi-hdd-fill' }}"></i>
-                            {{ $log->storage_driver === 'google_drive' ? 'Google Drive' : 'Local' }}
+                        <span class="badge {{ $log->storage_driver === 'google_drive' ? 'bg-primary' : ($log->storage_driver === 's3' ? 'bg-warning text-dark' : 'bg-secondary') }}">
+                            <i class="bi {{ $log->storage_driver === 'google_drive' ? 'bi-google' : ($log->storage_driver === 's3' ? 'bi-cloud-fill' : 'bi-hdd-fill') }}"></i>
+                            {{ $log->storage_driver === 'google_drive' ? 'Google Drive' : ($log->storage_driver === 's3' ? 'S3 (AWS / B2)' : 'Local') }}
                         </span>
                     </td>
                     <td>
@@ -144,17 +149,27 @@
                 </div>
                 <div class="modal-body" style="padding:20px 24px;">
                     <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Backup Type</label>
+                        <select name="scope" class="form-select" style="font-size:13px;">
+                            <option value="database">Database (all tables)</option>
+                            <option value="files">File Storage (IDCC documents &amp; reports)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label fw-semibold" style="font-size:13px;">Storage Destination</label>
                         <select name="driver" class="form-select" style="font-size:13px;">
                             <option value="local">Local Server Storage</option>
+                            @if(config('filesystems.disks.s3.bucket'))
+                                <option value="s3">S3 Compatible (AWS / Backblaze B2) — off-site copy</option>
+                            @endif
                             @if($driveConfigured)
-                                <option value="google_drive">Google Drive (Service Account)</option>
+                                <option value="google_drive">Google Drive (Service Account) — off-site copy</option>
                             @endif
                         </select>
                     </div>
                     <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;font-size:12px;color:#78350f;">
                         <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                        <strong>Warning:</strong> Creating a backup may take several minutes depending on database size.
+                        <strong>Warning:</strong> Creating a backup may take several minutes depending on size.
                         Do not close this window until the process completes.
                     </div>
                 </div>

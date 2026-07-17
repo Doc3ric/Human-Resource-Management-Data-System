@@ -91,6 +91,10 @@
                 <div class="card-body">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
+                            <label class="form-label">Search Applicant Name</label>
+                            <input type="text" class="form-control" id="applicant_search" placeholder="Last or first name...">
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label">Office where vacancy exists</label>
                             <select class="form-select" id="office_select">
                                 <option value="">-- Select Office --</option>
@@ -99,22 +103,22 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label">Position</label>
                             <select class="form-select" id="position_select">
                                 <option value="">-- Select Position --</option>
-                                @foreach($positions as $position)
-                                    <option value="{{ $position }}">{{ $position }}</option>
+                                @foreach($positions as $posKey => $posLabel)
+                                    <option value="{{ $posKey }}">{{ $posLabel }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                             <label class="form-label">Applicant Name</label>
                             <select name="applicant_id" class="form-select" id="applicant_select" required>
                                 <option value="">-- Select Applicant --</option>
                                 @foreach($applicants as $app)
-                                    <option value="{{ $app->id }}" data-office="{{ $app->office }}" data-position="{{ $app->position_applied }}" {{ ($applicant && $applicant->id == $app->id) ? 'selected' : '' }}>
-                                        {{ $app->last_name }}, {{ $app->first_name }}
+                                    <option value="{{ $app->id }}" data-office="{{ $app->office }}" data-position="{{ $app->position_key }}" data-name="{{ strtoupper($app->last_name . ', ' . $app->first_name) }}" {{ ($applicant && $applicant->id == $app->id) ? 'selected' : '' }}>
+                                        {{ $app->last_name }}, {{ $app->first_name }} @if($app->item_no) ({{ $app->item_no }}) @endif
                                     </option>
                                 @endforeach
                             </select>
@@ -324,6 +328,7 @@
             const officeSelect    = document.getElementById('office_select');
             const positionSelect  = document.getElementById('position_select');
             const applicantSelect = document.getElementById('applicant_select');
+            const applicantSearch = document.getElementById('applicant_search');
 
             // Build office→positions mapping from applicant data attributes
             const appOpts   = Array.from(applicantSelect.options).filter(o => o.value);
@@ -345,10 +350,12 @@
             function updateApplicants() {
                 const office   = officeSelect.value;
                 const position = positionSelect.value;
+                const search   = (applicantSearch.value || '').trim().toUpperCase();
                 appOpts.forEach(o => {
                     const mO = !office   || o.dataset.office    === office;
                     const mP = !position || o.dataset.position  === position;
-                    o.style.display = (mO && mP) ? '' : 'none';
+                    const mS = !search   || (o.dataset.name || '').includes(search);
+                    o.style.display = (mO && mP && mS) ? '' : 'none';
                 });
                 const selApp = applicantSelect.options[applicantSelect.selectedIndex];
                 if (selApp && selApp.value && selApp.style.display === 'none') applicantSelect.value = '';
@@ -356,6 +363,7 @@
 
             officeSelect.addEventListener('change', function() { updatePositions(); updateApplicants(); });
             positionSelect.addEventListener('change', updateApplicants);
+            applicantSearch.addEventListener('input', updateApplicants);
             updatePositions();
             updateApplicants();
 

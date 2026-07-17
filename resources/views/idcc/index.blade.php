@@ -40,89 +40,97 @@
     <p>Every document — uploaded, scanned, or photographed — enters here first, gets classified, and is privacy-triaged before filing.</p>
 </div>
 
-<div class="idcc-card" x-data="idccCapture()">
-    <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">Upload / Capture</h3>
-
-    <div class="capture-box">
-        <input type="file" id="idcc-file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.tiff,.docx,.xlsx,.txt"
-            @change="onFilesSelected($event.target.files)" style="margin-bottom:10px;">
-        <div>
-            <button type="button" class="btn btn-sm btn-outline-primary" @click="startWebcam()" x-show="!webcamActive">
-                <i class="bi bi-camera-fill"></i> Use Webcam / Phone Camera
-            </button>
-        </div>
-
-        <template x-if="webcamActive">
-            <div style="margin-top:12px;">
-                <video x-ref="video" autoplay playsinline style="max-width:100%;border-radius:10px;"></video>
-                <canvas x-ref="canvas" style="display:none;"></canvas>
-                <div style="margin-top:8px;display:flex;gap:8px;justify-content:center;">
-                    <button type="button" class="btn btn-sm btn-primary" @click="snapshot()">
-                        <i class="bi bi-camera"></i> Capture Page
-                    </button>
-                    <button type="button" class="btn btn-sm btn-secondary" @click="stopWebcam()">Done / Stop Camera</button>
-                </div>
-                <p style="font-size:11px;color:#9ca3af;margin-top:6px;">Multi-shot: capture each page of a multi-page document one at a time.</p>
+<div class="idcc-card" style="margin-bottom: 18px; max-height: 500px; overflow-y: auto;" x-data="idccCapture()">
+    <div style="display: flex; gap: 32px; align-items: flex-start;">
+        
+        <!-- Left: Upload/Capture (Compact & Centered) -->
+        <div style="flex: 0 0 280px; display: flex; flex-direction: column; align-items: center;">
+            <h3 style="font-size:15px;font-weight:700;margin:0 0 16px 0; align-self: flex-start;">Quick Upload</h3>
+            
+            <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 24px; text-align: center; width: 100%;">
+                <i class="bi bi-cloud-arrow-up" style="font-size: 28px; color: #94a3b8; margin-bottom: 8px; display: block;"></i>
+                <input type="file" id="idcc-file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.tiff,.docx,.xlsx,.txt"
+                    @change="onFilesSelected($event.target.files)" style="font-size: 11px; max-width: 100%; margin-bottom: 12px;">
+                <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px; font-weight: 700; text-transform: uppercase;">OR</div>
+                <button type="button" class="btn btn-sm btn-outline-primary" @click="startWebcam()" x-show="!webcamActive" style="width: 100%;">
+                    <i class="bi bi-camera-fill"></i> Use Camera
+                </button>
             </div>
-        </template>
 
-        <div class="capture-preview" x-show="captures.length > 0">
-            <template x-for="(cap, i) in captures" :key="i">
-                <div style="position:relative;">
-                    <img :src="cap.previewUrl">
-                    <button type="button" @click="captures.splice(i, 1)"
-                        style="position:absolute;top:-6px;right:-6px;background:#dc2626;color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;">×</button>
+            <!-- Webcam UI Inline when active -->
+            <template x-if="webcamActive">
+                <div style="margin-top:16px; background:#f9fafb; padding:12px; border-radius:8px; border:1px solid #e5e7eb; width: 100%; text-align: center;">
+                    <video x-ref="video" autoplay playsinline style="max-height:150px; width: 100%; border-radius:8px; object-fit: cover;"></video>
+                    <canvas x-ref="canvas" style="display:none;"></canvas>
+                    <div style="margin-top:8px;display:flex;gap:8px;justify-content:center;">
+                        <button type="button" class="btn btn-sm btn-primary" @click="snapshot()">
+                            <i class="bi bi-camera"></i> Capture
+                        </button>
+                        <button type="button" class="btn btn-sm btn-secondary" @click="stopWebcam()">Done</button>
+                    </div>
                 </div>
             </template>
-        </div>
 
-        <div style="margin-top:12px;" x-show="captures.length > 0">
-            <button type="button" class="btn btn-sm btn-success" @click="submitAll()" :disabled="submitting">
-                <i class="bi bi-upload"></i> <span x-text="submitting ? 'Uploading...' : 'Submit ' + captures.length + ' item(s)'"></span>
-            </button>
-        </div>
+            <div class="capture-preview" x-show="captures.length > 0" style="margin-top:16px; background:#f9fafb; padding:12px; border-radius:8px; border:1px solid #e5e7eb; width: 100%;">
+                <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 12px; justify-content: center;">
+                    <template x-for="(cap, i) in captures" :key="i">
+                        <div style="position:relative;">
+                            <img :src="cap.previewUrl" style="width:50px; height:50px; object-fit:cover; border-radius:6px; border:1px solid #d1d5db;">
+                            <button type="button" @click="captures.splice(i, 1)"
+                                style="position:absolute;top:-6px;right:-6px;background:#dc2626;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;">&times;</button>
+                        </div>
+                    </template>
+                </div>
+                <button type="button" class="btn btn-sm btn-success" @click="submitAll()" :disabled="submitting" style="width: 100%;">
+                    <i class="bi bi-upload"></i> <span x-text="submitting ? 'Uploading...' : 'Submit ' + captures.length + ' item(s)'"></span>
+                </button>
+                <div x-show="messages.length" style="margin-top:12px;text-align:left;">
+                    <template x-for="(m, i) in messages" :key="i">
+                        <div :style="'padding:6px 10px;border-radius:6px;margin-bottom:4px;font-size:11.5px;' + (m.ok ? 'background:#f0fdf4;color:#166534;' : 'background:#fef2f2;color:#991b1b;')" x-text="m.text"></div>
+                    </template>
+                </div>
+            </div>
 
-        <div x-show="messages.length" style="margin-top:12px;text-align:left;">
-            <template x-for="(m, i) in messages" :key="i">
-                <div :style="'padding:8px 12px;border-radius:8px;margin-bottom:6px;font-size:12.5px;' + (m.ok ? 'background:#f0fdf4;color:#166534;' : 'background:#fef2f2;color:#991b1b;')" x-text="m.text"></div>
-            </template>
-        </div>
-    </div>
-
-    <!-- Duplicate blocked notice -->
-    <div class="dup-modal" :class="{ active: duplicateQueue.length > 0 }">
-        <div class="dup-card" x-show="duplicateQueue.length > 0">
-            <h4 style="font-weight:700;margin-bottom:8px;">This file already exists — upload rejected</h4>
-            <p style="font-size:13px;color:#4b5563;" x-text="currentDuplicateMessage()"></p>
-            <p style="font-size:12px;color:#9ca3af;margin-top:6px;">Duplicate files are not allowed. Go to the existing document above if you need to view or attach it.</p>
-            <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;">
-                <button type="button" class="btn btn-sm btn-primary" @click="dismissDuplicate()">OK, skip this file</button>
+            <!-- Duplicate blocked notice -->
+            <div class="dup-modal" :class="{ active: duplicateQueue.length > 0 }">
+                <div class="dup-card" x-show="duplicateQueue.length > 0">
+                    <h4 style="font-weight:700;margin-bottom:8px;">This file already exists — upload rejected</h4>
+                    <p style="font-size:13px;color:#4b5563;" x-text="currentDuplicateMessage()"></p>
+                    <p style="font-size:12px;color:#9ca3af;margin-top:6px;">Duplicate files are not allowed. Go to the existing document below if you need to view or attach it.</p>
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;">
+                        <button type="button" class="btn btn-sm btn-primary" @click="dismissDuplicate()">OK, skip this file</button>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
 
-<div class="idcc-card">
-    <h3 style="font-size:15px;font-weight:700;margin-bottom:10px;">Category Folders</h3>
-    @php
-        $groupedFolders = $folders->groupBy('doc_type_code');
-    @endphp
-    @foreach($groupedFolders as $category => $items)
-        <div style="margin-bottom:16px;">
-            <h4 style="font-size:14px;font-weight:600;margin-bottom:8px;color:#0f4c75;"><i class="bi bi-folder2-open"></i> {{ $category ?: 'Uncategorized' }}</h4>
-            <div style="display:flex;flex-wrap:wrap;">
-            @foreach($items as $f)
-                <a href="{{ request()->fullUrlWithQuery(['doc_type_code' => $category, 'search_keyword' => $f->search_keyword]) }}" class="idcc-folder" style="text-decoration:none;color:inherit;">
-                    <span>{{ $f->search_keyword ?: '(No Keyword)' }} <span style="opacity:0.6;font-size:10px;">(Tier {{ $f->privacy_tier }})</span></span>
-                    <b>{{ $f->total }} docs</b>
-                </a>
-            @endforeach
+        <!-- Right: Category Folders -->
+        <div style="flex: 1;">
+            <h3 style="font-size:15px;font-weight:700;margin:0 0 16px 0;">Category Folders &amp; Stats</h3>
+            @php
+                $groupedFolders = $folders->groupBy('doc_type_code');
+            @endphp
+            <div style="display:flex; flex-wrap:wrap; gap: 16px;">
+                @foreach($groupedFolders as $category => $items)
+                    <div>
+                        <h4 style="font-size:12px;font-weight:700;margin-bottom:6px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;"><i class="bi bi-folder2-open"></i> {{ $category ?: 'Uncategorized' }}</h4>
+                        <div style="display:flex;flex-wrap:wrap;">
+                        @foreach($items as $f)
+                            <a href="{{ request()->fullUrlWithQuery(['doc_type_code' => $category, 'search_keyword' => $f->search_keyword]) }}" class="idcc-folder" style="text-decoration:none;color:inherit;padding:6px 12px;font-size:11px; margin-bottom: 4px;">
+                                <span>{{ $f->search_keyword ?: '(No Keyword)' }} <span style="opacity:0.6;font-size:9px;">(Tier {{ $f->privacy_tier }})</span></span>
+                                <b style="font-size:13px;">{{ $f->total }} docs</b>
+                            </a>
+                        @endforeach
+                        </div>
+                    </div>
+                @endforeach
             </div>
+            @if(request()->filled('doc_type_code') || request()->filled('search_keyword'))
+                <a href="{{ route('idcc.index') }}" class="btn btn-sm btn-outline-secondary" style="margin-top:8px;">Clear Folder Filter</a>
+            @endif
         </div>
-    @endforeach
-    @if(request()->filled('doc_type_code') || request()->filled('search_keyword'))
-        <a href="{{ route('idcc.index') }}" class="btn btn-sm btn-outline-secondary" style="margin-top:8px;">Clear Folder Filter</a>
-    @endif
+
+    </div>
 </div>
 
 <div class="idcc-card" x-data="idccDocumentActions({{ $documents->count() }})">

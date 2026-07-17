@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% block body %}
+<p><a href="{{ url_for('settings') }}">&larr; Settings</a></p>
+<h1>Rating Scale (Adjectival Band)</h1>
+<p class="note">A rating takes the adjectival of the largest <b>lower bound</b> that is &le; its numeric value. CSC MC 6 s.2012 default: 4.5 / 3.5 / 2.5 / 1.5 / 0.</p>
+<table><tr><th>Lower bound</th><th>Adjectival</th><th style="width:150px">Action</th></tr>
+{% for r in rows %}
+<tr><form method="post">
+  <input type="hidden" name="id" value="{{r.id}}">
+  <td><input name="lower_bound" type="number" step="0.001" value="{{r.lower_bound}}" style="width:110px"></td>
+  <td><input name="adjectival" value="{{r.adjectival}}"></td>
+  <td><button name="action" value="update">Save</button>
+      <button name="action" value="delete" class="ghost" onclick="return confirm('Delete this band?')">Del</button></td>
+</form></tr>{% endfor %}
+<tr><form method="post">
+  <td><input name="lower_bound" type="number" step="0.001" placeholder="e.g. 4.5" style="width:110px"></td>
+  <td><input name="adjectival" placeholder="e.g. Outstanding"></td>
+  <td><button name="action" value="add">Add</button></td>
+</form></tr>
+</table>
+{% endblock %}

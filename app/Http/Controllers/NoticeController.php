@@ -67,7 +67,10 @@ class NoticeController extends Controller
         }
 
         $pdf = Pdf::loadView('step-increment.pdf.nosi-bulk', compact('records'))->setPaper('a4', 'portrait');
-        return $pdf->download('NOSI_Bulk_' . $targetDate->format('M_Y') . '.pdf');
+        if ($request->has('download')) {
+            return $pdf->download('NOSI_Bulk_' . $targetDate->format('M_Y') . '.pdf');
+        }
+        return $pdf->stream('NOSI_Bulk_' . $targetDate->format('M_Y') . '.pdf');
     }
 
     /**
@@ -127,12 +130,15 @@ class NoticeController extends Controller
         }
 
         $pdf = Pdf::loadView('step-increment.pdf.nolp-bulk', compact('records'))->setPaper('a4', 'portrait');
-        return $pdf->download('NOLP_Bulk_' . $targetDate->format('M_Y') . '.pdf');
+        if ($request->has('download')) {
+            return $pdf->download('NOLP_Bulk_' . $targetDate->format('M_Y') . '.pdf');
+        }
+        return $pdf->stream('NOLP_Bulk_' . $targetDate->format('M_Y') . '.pdf');
     }
     /**
      * Generate A4 PDF for Notice of Step Increment (NOSI)
      */
-    public function generateNosi(PlantillaRecord $plantilla)
+    public function generateNosi(Request $request, PlantillaRecord $plantilla)
     {
         // Require that we have the employee's info
         if ($plantilla->is_vacant) {
@@ -163,15 +169,19 @@ class NoticeController extends Controller
             'effectiveDate' => $effectiveDate,
         ];
 
-        // Ensure A4 size for NOSI
         $pdf = Pdf::loadView('step-increment.pdf.nosi', $data)->setPaper('a4', 'portrait');
-        return $pdf->download('NOSI_' . \Str::slug($plantilla->full_name) . '.pdf');
+
+        // Ensure A4 size for NOSI
+        if ($request->has('download')) {
+            return $pdf->download('NOSI_' . \Str::slug($plantilla->full_name) . '.pdf');
+        }
+        return $pdf->stream('NOSI_' . \Str::slug($plantilla->full_name) . '.pdf');
     }
 
     /**
      * Generate Long/Legal PDF for Notice of Longevity Pay (NOLP)
      */
-    public function generateNolp(PlantillaRecord $plantilla)
+    public function generateNolp(Request $request, PlantillaRecord $plantilla)
     {
         if ($plantilla->is_vacant) {
             return back()->with('error', 'Cannot generate NOLP for a vacant position.');
@@ -204,15 +214,19 @@ class NoticeController extends Controller
             'effectiveDate' => $effectiveDate,
         ];
 
-        // Ensure A4 size for NOLP
         $pdf = Pdf::loadView('step-increment.pdf.nolp', $data)->setPaper('a4', 'portrait');
-        return $pdf->download('NOLP_' . \Str::slug($plantilla->full_name) . '.pdf');
+
+        // Ensure A4 size for NOLP
+        if ($request->has('download')) {
+            return $pdf->download('NOLP_' . \Str::slug($plantilla->full_name) . '.pdf');
+        }
+        return $pdf->stream('NOLP_' . \Str::slug($plantilla->full_name) . '.pdf');
     }
 
     /**
      * Generate A4 PDF for Notice of Salary Adjustment (NOSA)
      */
-    public function generateNosa(PlantillaRecord $plantilla)
+    public function generateNosa(Request $request, PlantillaRecord $plantilla)
     {
         if ($plantilla->is_vacant) {
             return back()->with('error', 'Cannot generate NOSA for a vacant position.');
@@ -222,8 +236,12 @@ class NoticeController extends Controller
 
         $newSalary      = \App\Models\SalaryGrade::getRate($plantilla->salary_grade, $plantilla->step ?: 1);
         $previousSalary = $plantilla->base_salary_amount
-            ? round($plantilla->base_salary_amount / 12, 2)
+            ? (float) $plantilla->base_salary_amount
             : $newSalary;
+
+        if ((abs($previousSalary - $newSalary) < 1 || $previousSalary > $newSalary) && $plantilla->previous_rate > 0 && $plantilla->previous_rate < $newSalary) {
+            $previousSalary = (float) $plantilla->previous_rate;
+        }
 
         // Effective date: prefer schedule date, then today
         $effectiveDate = ($schedule && $schedule->effective_date)
@@ -240,13 +258,17 @@ class NoticeController extends Controller
         ];
 
         $pdf = Pdf::loadView('step-increment.pdf.nosa', $data)->setPaper('a4', 'portrait');
-        return $pdf->download('NOSA_' . \Str::slug($plantilla->full_name) . '.pdf');
+
+        if ($request->has('download')) {
+            return $pdf->download('NOSA_' . \Str::slug($plantilla->full_name) . '.pdf');
+        }
+        return $pdf->stream('NOSA_' . \Str::slug($plantilla->full_name) . '.pdf');
     }
 
     /**
      * Generate an A4 Landscape PDF for the Loyalty Incentive Certificate (two pages).
      */
-    public function generateLoyaltyIncentive(PlantillaRecord $plantilla)
+    public function generateLoyaltyIncentive(Request $request, PlantillaRecord $plantilla)
     {
         if ($plantilla->is_vacant) {
             return back()->with('error', 'Cannot generate Loyalty Incentive Certificate for a vacant position.');
@@ -302,7 +324,10 @@ class NoticeController extends Controller
         $pdf = Pdf::loadView('step-increment.pdf.loyalty-incentive', $data)
             ->setPaper('a4', 'landscape');
 
-        return $pdf->download('LoyaltyIncentive_' . \Str::slug($plantilla->full_name) . '.pdf');
+        if ($request->has('download')) {
+            return $pdf->download('LoyaltyIncentive_' . \Str::slug($plantilla->full_name) . '.pdf');
+        }
+        return $pdf->stream('LoyaltyIncentive_' . \Str::slug($plantilla->full_name) . '.pdf');
     }
 
     /**

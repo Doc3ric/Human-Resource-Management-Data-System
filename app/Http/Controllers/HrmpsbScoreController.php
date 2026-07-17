@@ -7,6 +7,8 @@ use App\Models\ApplicantHrmpsbScore;
 use App\Models\Applicant;
 use App\Models\InterviewEvaluation;
 use App\Models\Position;
+use App\Support\Recruitment\OfficeCanonicalizer;
+use App\Support\Recruitment\VacancyIdentifier;
 use Illuminate\Http\Request;
 
 class HrmpsbScoreController extends Controller
@@ -229,20 +231,23 @@ class HrmpsbScoreController extends Controller
      */
     public function create()
     {
-        $applicants = Applicant::all(['id', 'first_name', 'last_name', 'reference_no', 'position_applied', 'office'])
+        $applicants = Applicant::all(['id', 'first_name', 'last_name', 'reference_no', 'position_applied', 'office', 'item_no'])
             ->map(function ($app) {
-                $app->office = preg_replace('/\s+/', ' ', trim(strtoupper(str_replace([',', '.00'], '', $app->office))));
-                $app->position_applied = preg_replace('/\s+/', ' ', trim(strtoupper(str_replace([',', '.00'], '', $app->position_applied))));
+                $app->office = OfficeCanonicalizer::canonicalize(str_replace([',', '.00'], '', $app->office));
+                $app->position_key = VacancyIdentifier::key($app->item_no, $app->position_applied);
+                $app->position_label = VacancyIdentifier::labelFor([$app->position_applied]);
                 return $app;
             })
             ->unique(function ($app) {
-                return strtoupper($app->first_name . '|' . $app->last_name . '|' . $app->position_applied);
+                return strtoupper($app->first_name . '|' . $app->last_name . '|' . $app->position_key);
             })
             ->sortBy('last_name')
             ->values();
 
         $offices = $applicants->pluck('office')->filter()->unique()->sort()->values();
-        $positions = $applicants->pluck('position_applied')->filter()->unique()->sort()->values();
+        $positions = $applicants->pluck('position_key')->filter()->unique()
+            ->mapWithKeys(fn ($key) => [$key => $applicants->firstWhere('position_key', $key)->position_label])
+            ->sortBy(fn ($label) => $label);
         
         $applicant    = null;
         $score        = null;

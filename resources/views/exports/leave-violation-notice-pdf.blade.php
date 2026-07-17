@@ -57,13 +57,13 @@
 <div class="date">{{ now()->format('d F Y') }}</div>
 
 <div class="addressee">
-    <b>{{ $prefix ?? '' }} {{ $employeeName }}</b><br>
-    {{ $employeePosition ?? '' }}<br>
-    {{ $employeeOffice }}
+    <b>{!! $customAddresseeName ?? (($prefix ?? '') . ' ' . $employeeName) !!}</b><br>
+    {!! $customAddresseePosition ?? ($employeePosition ?? '') !!}<br>
+    {!! $customAddresseeOffice ?? $employeeOffice !!}
 </div>
 
 <div class="salutation">
-    Dear {{ $prefix ?? '' }} {{ $lastName ?? explode(' ', $employeeName)[count(explode(' ', $employeeName)) - 1] }}:
+    {!! $customSalutation ?? ('Dear ' . ($prefix ?? '') . ' ' . ($lastName ?? explode(' ', $employeeName)[count(explode(' ', $employeeName)) - 1]) . ':') !!}
 </div>
 
 <div class="body-text">

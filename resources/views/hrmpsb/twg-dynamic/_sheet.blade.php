@@ -13,6 +13,7 @@
         <div>
             <div style="font-size:20px;font-weight:800;">TWG Rating — {{ $blindId }}</div>
             <div style="font-size:12px;opacity:.75;">Item No: {{ $applicant->item_no ?: '—' }} &middot; {{ $applicant->position_applied ?: 'N/A' }}</div>
+            <div style="font-size:10px;opacity:.6;margin-top:2px;">Ref: 2025 ORAOHRA Rule IX &amp; CSC MC No. 03 s.2001</div>
         </div>
         @if($isLocked)
             <span class="badge bg-danger" style="font-size:11px;padding:6px 10px;">SUBMITTED &amp; LOCKED</span>
@@ -74,7 +75,7 @@
                                             @endforeach
                                         </select>
                                     @else
-                                        <input type="text" class="form-control form-control-sm" style="background:#f3f4f6;color:#6b7280;" readonly
+                                        <input type="text" class="form-control form-control-sm" style="background:#f8fafc;color:#1e293b;font-weight:600;" readonly
                                                value="{{ $score->auto_populated_value !== null ? number_format($score->auto_populated_value, 2) : '—' }}">
                                     @endif
                                 </td>
@@ -82,7 +83,7 @@
                                     <input type="number" step="0.01" min="0" max="{{ $score->criterion->point_value }}"
                                            name="scores[{{ $score->id }}][assessor_value]"
                                            class="form-control form-control-sm"
-                                           value="{{ old("scores.{$score->id}.assessor_value", $score->assessor_value) }}"
+                                           value="{{ old("scores.{$score->id}.assessor_value", $score->assessor_value ?? $score->auto_populated_value ?? '') }}"
                                            {{ $isLocked ? 'disabled' : '' }}>
                                 </td>
                                 <td>
@@ -142,7 +143,7 @@
                 <input class="form-check-input" type="checkbox" id="certCheck" name="certification_accepted" value="1"
                        {{ $isLocked ? 'disabled checked' : '' }} onchange="document.getElementById('submitBtn').disabled = !this.checked || {{ $hasPhoto ? 'false' : 'true' }};">
                 <label class="form-check-label" for="certCheck" style="font-size:12.5px;">
-                    I certify that this evaluation was conducted in accordance with the approved TWG Rating Criteria and the 2025 ORAOHRA Rule IX, and that all scores are based on submitted and verified documents.
+                    I certify that this evaluation was conducted in accordance with the approved TWG Rating Criteria and the 2025 ORAOHRA Rule IX, and that all scores are based on submitted and verified documents. (Subject to R.A. 6713 Code of Conduct)
                 </label>
             </div>
             <button type="submit" id="submitBtn" class="btn btn-primary" disabled>

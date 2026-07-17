@@ -25,13 +25,19 @@ class CasualController extends Controller
         session(['last_index_url' => request()->fullUrl()]);
 
 
-        $query = CasualEmployee::query()->where('is_vacant', false)->whereNull('nature_of_separation')->orderBy('office_department')->orderBy('last_name');
+        // Active roster = not separated. Vacant items stay in the list (rendered
+        // with a VACANT badge) since a vacant casual item still belongs to its
+        // office and should be visible/selectable there.
+        $query = CasualEmployee::query()->whereNull('nature_of_separation')->orderBy('office_department')->orderBy('last_name');
 
         if ($request->filled('search')) {
             $query->search($request->input('search'));
         }
+        if ($request->filled('office_department')) {
+            $query->where('office_department', $request->input('office_department'));
+        }
         if ($request->filled('office')) {
-            $query->byOffice($request->input('office'));
+            $query->where('detailed_unit', $request->input('office'));
         }
         if ($request->filled('sex')) {
             $query->where('sex', strtoupper($request->input('sex')));
@@ -41,6 +47,13 @@ class CasualController extends Controller
         }
         if ($request->filled('detail')) {
             $query->where('remarks_annotation', 'like', '%' . $request->input('detail') . '%');
+        }
+        if ($request->filled('vacancy_status')) {
+            if ($request->input('vacancy_status') === 'vacant') {
+                $query->where('is_vacant', true);
+            } elseif ($request->input('vacancy_status') === 'filled') {
+                $query->where('is_vacant', false);
+            }
         }
 
         $total = (clone $query)->count();
@@ -59,12 +72,22 @@ class CasualController extends Controller
             ->groupBy('office_department')
             ->pluck('count', 'office_department')
             ->sortKeys();
+
+        // Enhancement Spec Sec. 1 — sort is independent of (and never resets) the filters above.
+        $sortableColumns = ['last_name', 'first_name', 'office_department', 'detailed_unit', 'position_title', 'sex'];
+        if ($request->filled('sort') && in_array($request->input('sort'), $sortableColumns, true)) {
+            $direction = $request->input('direction') === 'desc' ? 'desc' : 'asc';
+            $query->reorder()->orderBy($request->input('sort'), $direction);
+        }
+
         $perPageInput = $request->input('per_page', 50);
         $perPage = $perPageInput === 'all' ? max(1, $total) : (int) $perPageInput;
         $records = $query->paginate($perPage)->withQueryString();
 
-        // Filter options
+        // Filter options — list every office/unit that has a casual item at all,
+        // active or not, so vacant/separated positions stay selectable.
         $offices    = CasualEmployee::distinct()->orderBy('office_department')->pluck('office_department')->filter()->values();
+        $detailedUnits = CasualEmployee::distinct()->orderBy('detailed_unit')->pluck('detailed_unit')->filter()->values();
         $detailList = CasualEmployee::where('is_vacant', false)->distinct()->orderBy('remarks_annotation')->pluck('remarks_annotation')->filter()->values();
         $positions  = CasualEmployee::distinct()->pluck('position_title')->filter()->map(fn($v) => trim($v))->unique()->sortBy(fn($v) => strtolower($v))->values();
 
@@ -77,6 +100,7 @@ class CasualController extends Controller
             'activeCount',
             'byOffice',
             'offices',
+            'detailedUnits',
             'detailList',
             'positions'
         ));
@@ -113,9 +137,6 @@ class CasualController extends Controller
         }
 
         $casual = CasualEmployee::create($validated);
-
-        // Sync to ALL DATA
-        $this->syncToAllData($casual);
 
         if (Auth::check()) {
             ActivityLog::create([
@@ -160,9 +181,6 @@ class CasualController extends Controller
         }
 
         $casual->update($validated);
-
-        // Sync changes back to the PlantillaRecord (All Data) entry
-        $this->resyncToAllData($casual);
 
         if (Auth::check()) {
             ActivityLog::create([
@@ -469,9 +487,9 @@ class CasualController extends Controller
             foreach ($exportKeys as $key) {
                 $val = '';
                 switch ($key) {
-                    case 'office': $val = $r->office; break;
-                    case 'item_old': $val = $r->item_no_new_no_old; break;
-                    case 'item_new': $val = $r->item_no_new_no_new; break;
+                    case 'office': $val = $r->office_department; break;
+                    case 'item_old': $val = $r->item_no_old; break;
+                    case 'item_new': $val = $r->item_no_new; break;
                     case 'position_title': $val = $r->position_title; break;
                     case 'is_vacant': $val = $r->is_vacant ? 'Y' : 'N'; break;
                     case 'last_name': $val = strtoupper($r->last_name ?? ''); break;
@@ -483,17 +501,17 @@ class CasualController extends Controller
                     case 'civil_status': $val = $r->civil_status; break;
                     case 'date_of_birth': $val = $r->date_of_birth?->format('Y-m-d'); break;
                     case 'first_day_of_service': $val = $r->first_day_of_service?->format('Y-m-d'); break;
-                    case 'eligibility': $val = $r->eligibility; break;
+                    case 'eligibility': $val = $r->civil_service_eligibility; break;
                     case 'address': $val = $r->address; break;
                     case 'solo_parent': $val = $r->solo_parent ? 'Y' : 'N'; break;
                     case 'ip_community_membership': $val = $r->ip_community_membership; break;
-                    case 'sg_step_current': $val = ($r->sg_current ? "SG-{$r->sg_current}/Step {$r->step_current}" : ''); break;
-                    case 'annual_salary_current': $val = $r->salary_current; break;
+                    case 'sg_step_current': $val = ($r->salary_grade ? "SG-{$r->salary_grade}/Step {$r->step}" : ''); break;
+                    case 'annual_salary_current': $val = $r->authorized_annual_salary; break;
                     case 'sg_step_proposed': $val = ($r->sg_proposed ? "SG-{$r->sg_proposed}/Step {$r->step_proposed}" : ''); break;
                     case 'annual_salary_proposed': $val = $r->salary_proposed; break;
                     case 'increase_decrease': $val = $r->increase_decrease; break;
                     case 'previous_rate': $val = $r->previous_rate; break;
-                    case 'monthly_rate': $val = $r->current_rate; break;
+                    case 'monthly_rate': $val = $r->base_salary_amount; break;
                     case 'annotation': $val = $r->remarks_annotation; break;
                     case 'employee_code': $val = $r->employee_code; break;
                 }
@@ -643,62 +661,18 @@ class CasualController extends Controller
 
     // ── Private Helpers ───────────────────────────────────────────────────────
 
-    private function syncToAllData(CasualEmployee $casual): void
-    {
-        \App\Models\PlantillaRecord::create([
-            'office_department' => $casual->office,
-            'last_name' => $casual->last_name,
-            'first_name' => $casual->first_name,
-            'middle_name' => $casual->middle_name,
-            'position_title' => $casual->position_title,
-            'salary_grade' => $casual->sg_current,
-            'step' => $casual->step_current,
-            'authorized_annual_salary' => $casual->salary_current,
-            'base_salary_amount' => $casual->salary_current,
-            'sex' => $casual->sex,
-            'date_of_birth' => $casual->date_of_birth?->format('Y-m-d'),
-            'date_original_appointment' => $casual->first_day_of_service?->format('Y-m-d'),
-            'civil_service_eligibility' => $casual->eligibility,
-            'employment_status' => 'Casual',
-            'is_vacant' => $casual->is_vacant,
-            'item_no_new' => $casual->item_no_new_no_new ?? $casual->item_no_new_no_old,
-        ]);
-    }
-
     /**
-     * Update the linked PlantillaRecord (All Data) when a CasualEmployee is edited.
-     * Matches by name + employment_status so we keep the existing row up-to-date.
+     * Field names here match real plantilla_records columns directly (no
+     * translation layer) — a prior version used friendly aliases (office,
+     * sg_current, step_current, salary_current, current_rate, eligibility,
+     * annotation) that don't exist as fillable columns, so Eloquent's mass
+     * assignment silently dropped them on every manual create/edit. Fixed by
+     * validating against, and the form submitting, the real column names.
      */
-    private function resyncToAllData(CasualEmployee $casual): void
-    {
-        $pr = \App\Models\PlantillaRecord::where('employment_status', 'Casual')
-            ->where('first_name', $casual->first_name)
-            ->where('last_name', $casual->last_name)
-            ->first();
-
-        if ($pr) {
-            $pr->update([
-                'office_department'      => $casual->office,
-                'position_title'           => $casual->position_title,
-                'salary_grade'             => $casual->sg_current,
-                'step'                     => $casual->step_current,
-                'authorized_annual_salary' => $casual->salary_current,
-                'base_salary_amount'     => $casual->salary_current,
-                'sex'                      => $casual->sex,
-                'date_of_birth'            => $casual->date_of_birth?->format('Y-m-d'),
-                'date_original_appointment'=> $casual->first_day_of_service?->format('Y-m-d'),
-                'civil_service_eligibility'=> $casual->eligibility,
-                'is_vacant'                => $casual->is_vacant,
-                'item_no_new'                     => $casual->item_no_new_no_new ?? $casual->item_no_new_no_old,
-            ]);
-        }
-    }
-
-
     private function validateRecord(Request $request, ?int $exceptId = null): array
     {
         return $request->validate([
-            'office' => 'nullable|string|max:200',
+            'office_department' => 'nullable|string|max:200',
             'item_no_old' => 'nullable|string|max:20',
             'item_no_new' => 'nullable|string|max:20',
             'position_title' => 'required|string|max:200',
@@ -709,23 +683,23 @@ class CasualController extends Controller
             'name_extension' => 'nullable|string|max:20',
             'civil_status'   => 'nullable|string|max:50',
             'legislative_district' => 'nullable|string|max:100',
-            'sg_current' => 'nullable|integer|min:1|max:33',
-            'step_current' => 'nullable|integer|min:1|max:8',
-            'salary_current' => 'nullable|numeric|min:0',
+            'salary_grade' => 'nullable|integer|min:1|max:33',
+            'step' => 'nullable|integer|min:1|max:8',
+            'authorized_annual_salary' => 'nullable|numeric|min:0',
             'sg_proposed' => 'nullable|integer|min:1|max:33',
             'step_proposed' => 'nullable|integer|min:1|max:8',
             'salary_proposed' => 'nullable|numeric|min:0',
             'increase_decrease' => 'nullable|numeric',
             'previous_rate' => 'nullable|numeric|min:0',
-            'current_rate' => 'nullable|numeric|min:0',
+            'base_salary_amount' => 'nullable|numeric|min:0',
             'sex' => 'nullable|in:M,F',
             'date_of_birth' => 'nullable|date',
             'first_day_of_service' => 'nullable|date',
-            'eligibility' => 'nullable|string|max:200',
+            'civil_service_eligibility' => 'nullable|string|max:200',
             'address' => 'nullable|string|max:500',
             'solo_parent' => 'boolean',
             'ip_community_membership' => 'nullable|string|max:200',
-            'annotation' => 'nullable|string|max:1000',
+            'remarks_annotation' => 'nullable|string|max:1000',
             'nature_of_separation' => 'nullable|string|max:100',
             'date_separated'       => 'nullable|date',
             'employee_code' => 'nullable|string|max:20|unique:plantilla_records,employee_code' . ($exceptId ? ",{$exceptId}" : ''),
